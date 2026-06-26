@@ -67,7 +67,7 @@ const Navbar = () => {
 
       {/* Mobile Menu Dropdown */}
       <div
-        className={`md:hidden absolute w-full bg-[#fafbf8] border-t border-[#708ca4]/30 overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-80 opacity-100 shadow-xl' : 'max-h-0 opacity-0'
+        className={`md:hidden absolute w-full bg-[#fafbf8] border-t border-[#708ca4]/30 overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100 shadow-xl' : 'max-h-0 opacity-0'
           }`}
       >
         <div className="px-4 pt-2 pb-6 space-y-2">
