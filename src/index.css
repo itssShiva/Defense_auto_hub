@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+:root {
+    --color-bg-light: #fafbf8;
+    --color-bg-white: #fefefe;
+    --color-primary-dark: #52602d;
+    --color-primary-navy: #19456d;
+    --color-secondary-slate: #708ca4;
+    --color-accent-gold: #b48001;
+}
+
+@theme {
+  --color-bg-light: var(--color-bg-light);
+  --color-bg-white: var(--color-bg-white);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-navy: var(--color-primary-navy);
+  --color-secondary-slate: var(--color-secondary-slate);
+  --color-accent-gold: var(--color-accent-gold);
+}
+
 .animate-marquee {
     animation: marquee 30s linear infinite;
 }
