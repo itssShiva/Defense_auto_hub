@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Autoplay, Pagination, Navigation } from 'swiper/modules';
+import { Link } from 'react-router-dom';
 import {
     Search, Shield, Car, Banknote, BadgeIndianRupee, Building2, ChevronRight,
     Heart, ArrowRight, ShieldCheck, ThumbsUp, Users, PenTool, CheckCircle, Plus, Minus, Mail, MapPin, Settings, Star, TrendingUp, Calendar, Zap
@@ -103,7 +104,7 @@ const HeroSection = () => {
                         {/* Floating Stats */}
                         <motion.div
                             animate={{ y: [-5, 5, -5] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                            className="absolute top-4 -left-6 md:-left-12 bg-gradient-to-br from-[#fefefe] to-[#fafbf8] backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-solid border-[#708ca4]"
+                            className="absolute top-4 -left-6 md:-left-12 bg-white/70 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white/50"
                         >
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-full bg-[#b48001]/20 flex items-center justify-center"><Car className="text-[#b48001] w-6 h-6" /></div>
@@ -116,7 +117,7 @@ const HeroSection = () => {
 
                         <motion.div
                             animate={{ y: [5, -5, 5] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                            className="absolute bottom-4 -right-6 md:-right-12 bg-gradient-to-br from-[#fefefe] to-[#fafbf8] backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-solid border-[#708ca4]"
+                            className="absolute bottom-4 -right-6 md:-right-12 bg-white/70 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white/50"
                         >
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-full bg-[#708ca4]/50 flex items-center justify-center"><Star className="text-[#b48001] w-6 h-6" /></div>
@@ -135,14 +136,14 @@ const HeroSection = () => {
 };
 
 const SmartSearch = () => {
-    const [activeTab, setActiveTab] = useState('New Cars');
-    const tabs = ['New Cars', 'Used Cars', 'CSD Cars'];
+    const [activeTab, setActiveTab] = useState('CSD Pricing');
+    const tabs = ['CSD Pricing', 'New Cars', 'Used Cars'];
 
     return (
         <section className="relative z-20 -mt-16 max-w-5xl mx-auto px-4">
             <motion.div
                 initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                className="bg-gradient-to-br from-[#fefefe] to-[#fafbf8] backdrop-blur-xl p-6 rounded-3xl shadow-[0_20px_40px_-15px_rgba(25,69,109,0.1)] border-2 border-solid border-[#708ca4]"
+                className="bg-white/70 backdrop-blur-xl p-6 rounded-3xl shadow-[0_20px_40px_-15px_rgba(25,69,109,0.1)] border border-white"
             >
                 <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
                     {tabs.map((tab) => (
@@ -195,7 +196,7 @@ const FeaturedCategories = () => {
                     {categories.map((cat, idx) => (
                         <motion.div
                             key={idx} variants={fadeUp}
-                            className="group cursor-pointer bg-gradient-to-br from-[#fefefe] to-[#fafbf8] backdrop-blur-sm border-2 border-solid border-[#708ca4] rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative overflow-hidden"
+                            className="group cursor-pointer bg-white/40 backdrop-blur-sm border border-[#708ca4]/30 rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-linear-to-br from-[#b48001]/0 to-[#b48001]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             <div className="w-16 h-16 rounded-2xl bg-[#fafbf8] flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-[#b48001]/10 transition-all duration-300 shadow-inner">
@@ -235,13 +236,13 @@ const PopularBrands = () => {
             </div>
 
             {/* Decorative Background Elements */}
-            <div className="absolute top-1/2 left-0 w-72 h-72 bg-[#b48001]/10 rounded-full blur-[100px] -translate-y-1/2 -z-0"></div>
-            <div className="absolute top-1/2 right-0 w-72 h-72 bg-[#708ca4]/20 rounded-full blur-[100px] -translate-y-1/2 -z-0"></div>
+            <div className="absolute top-1/2 left-0 w-72 h-72 bg-[#b48001]/10 rounded-full blur-[100px] -translate-y-1/2 z-0"></div>
+            <div className="absolute top-1/2 right-0 w-72 h-72 bg-[#708ca4]/20 rounded-full blur-[100px] -translate-y-1/2 z-0"></div>
 
             <div className="relative flex overflow-x-hidden group z-10 py-4">
                 <div className="py-8 animate-marquee whitespace-nowrap flex gap-10 px-4 items-center group-hover:[animation-play-state:paused]">
                     {[...brands, ...brands].map((brand, idx) => (
-                        <div key={idx} className="relative flex-none p-[3px] rounded-3xl bg-linear-to-br from-[#708ca4]/40 via-[#fafbf8] to-[#708ca4]/40 hover:from-[#b48001] hover:via-[#708ca4] hover:to-[#b48001] transition-all duration-500 hover:-translate-y-4 cursor-pointer shadow-lg hover:shadow-[0_20px_40px_rgba(180,128,1,0.25)] group/item">
+                        <div key={idx} className="relative flex-none p-[3px] rounded-3xl bg-linear-to-br from-[#708ca4]/40 via-[#fafbf8] to-[#708ca4]/40 hover:from-[#b48001] hover:via-[#708ca4] hover:to-[#b48001] transition-all duration-500 hover:-translate-y-4 cursor-pointer shadow-lg hover:shadow-[0_20px_40px_rgba(180,128,1,0.25)] group/item border border-[#708ca4]/30">
                             <div className="bg-white/80 backdrop-blur-xl rounded-[22px] w-[260px] h-[150px] p-8 flex items-center justify-center relative overflow-hidden">
                                 <div className="absolute inset-0 bg-linear-to-t from-[#b48001]/10 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-500"></div>
                                 <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain filter grayscale opacity-60 group-hover/item:grayscale-0 group-hover/item:opacity-100 transition-all duration-500 group-hover/item:scale-125 group-hover/item:drop-shadow-2xl mix-blend-multiply" />
@@ -289,7 +290,7 @@ const FeaturedCars = () => {
                 >
                     {cars.map((car, idx) => (
                         <SwiperSlide key={idx} className="w-[350px]! md:w-[400px]!">
-                            <div className="bg-gradient-to-br from-[#fefefe] to-[#fafbf8] rounded-3xl overflow-hidden border-2 border-solid border-[#708ca4] group hover:shadow-2xl transition-all duration-500">
+                            <div className="bg-[#fafbf8]/50 rounded-3xl overflow-hidden border border-[#708ca4]/30 group hover:shadow-2xl transition-all duration-500">
                                 <div className="relative h-56 overflow-hidden">
                                     <img src={car.image} alt={car.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                     <div className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:bg-[#b48001] hover:text-white transition-colors">
@@ -401,7 +402,7 @@ const LoanEMISection = () => {
                         { title: 'Lowest Interest', icon: TrendingUp, desc: 'Starting from 8.5% p.a.' },
                         { title: 'Instant Enquiry', icon: Zap, desc: 'Get a callback in 10 minutes' }
                     ].map((item, idx) => (
-                        <motion.div key={idx} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={idx} className="bg-gradient-to-br from-[#fefefe] to-[#fafbf8] rounded-3xl p-8 hover:shadow-xl transition-shadow border-2 border-solid border-[#708ca4] group">
+                        <motion.div key={idx} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={idx} className="bg-white rounded-3xl p-8 hover:shadow-xl transition-shadow border border-[#708ca4]/30 group">
                             <div className="w-14 h-14 bg-[#b48001]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#b48001] transition-all">
                                 <item.icon className="w-7 h-7 text-[#b48001] group-hover:text-white" />
                             </div>
@@ -451,12 +452,12 @@ const InsuranceSection = () => {
 
                     <div className="relative">
                         <div className="grid grid-cols-2 gap-4">
-                            <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="bg-[#fafbf8] p-6 rounded-3xl mt-8">
+                            <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="bg-[#fafbf8] p-6 rounded-3xl mt-8 border border-[#708ca4]/30">
                                 <Shield className="w-10 h-10 text-[#b48001] mb-4" />
                                 <h4 className="font-bold text-[#19456d] text-lg">Cashless Repair</h4>
                                 <p className="text-sm text-[#19456d]/70 mt-2">Network of 5000+ garages</p>
                             </motion.div>
-                            <motion.div animate={{ y: [0, 10, 0] }} transition={{ duration: 5, repeat: Infinity }} className="bg-[#b48001] p-6 rounded-3xl mb-8 shadow-xl shadow-[#b48001]/20">
+                            <motion.div animate={{ y: [0, 10, 0] }} transition={{ duration: 5, repeat: Infinity }} className="bg-[#b48001] p-6 rounded-3xl mb-8 shadow-xl shadow-[#b48001]/20 border border-[#b48001]/50">
                                 <ThumbsUp className="w-10 h-10 text-white mb-4" />
                                 <h4 className="font-bold text-white text-lg">Instant Claim</h4>
                                 <p className="text-sm text-white/80 mt-2">100% digital process</p>
@@ -485,7 +486,7 @@ const WhyChooseUs = () => {
                 <h2 className="text-4xl font-extrabold text-center text-[#19456d] mb-16">Why Choose Defence Auto Hub</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {features.map((feat, idx) => (
-                        <motion.div key={idx} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={idx} className="bg-gradient-to-br from-[#fefefe] to-[#fafbf8] backdrop-blur-sm border-2 border-solid border-[#708ca4] p-8 rounded-3xl hover:from-[#fefefe] hover:to-[#fefefe] hover:shadow-xl transition-all group">
+                        <motion.div key={idx} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={idx} className="bg-white/60 backdrop-blur-sm border border-[#708ca4]/30 p-8 rounded-3xl hover:bg-white hover:shadow-xl transition-all group">
                             <feat.icon className="w-10 h-10 text-[#b48001] mb-6 group-hover:scale-110 transition-transform" />
                             <h3 className="text-xl font-bold text-[#19456d] mb-3">{feat.title}</h3>
                             <p className="text-[#19456d]/70">Experience seamless car buying with our premium features tailored for a superior experience.</p>
@@ -513,8 +514,8 @@ const LatestBlogs = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {blogs.map((blog, idx) => (
-                        <div key={idx} className="group cursor-pointer">
-                            <div className="relative h-64 rounded-3xl overflow-hidden mb-6">
+                        <div key={idx} className="group cursor-pointer bg-white rounded-3xl border border-[#708ca4]/30 p-5 hover:shadow-xl transition-shadow">
+                            <div className="relative h-64 rounded-2xl overflow-hidden mb-6">
                                 <img src={blog.img} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold text-[#b48001] uppercase tracking-wider">
                                     {blog.category}
@@ -540,7 +541,7 @@ const CustomerTestimonials = () => {
                 <Swiper slidesPerView={1} spaceBetween={30} breakpoints={{ 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }} autoplay={{ delay: 3000 }} modules={[Autoplay]} className="pb-12">
                     {[1, 2, 3, 4, 5].map((_, i) => (
                         <SwiperSlide key={i}>
-                            <div className="bg-gradient-to-br from-[#fefefe] to-[#fafbf8] backdrop-blur-md p-8 rounded-3xl border-2 border-solid border-[#708ca4] shadow-xl relative mt-8">
+                            <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl border border-[#708ca4]/30 shadow-xl relative mt-8">
                                 <div className="absolute -top-8 left-8 w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-lg">
                                     <img src={`https://i.pravatar.cc/150?img=${i + 10}`} alt="User" />
                                 </div>
@@ -600,7 +601,7 @@ const FAQPreview = () => {
                 <h2 className="text-4xl font-extrabold text-center text-[#19456d] mb-12">Frequently Asked Questions</h2>
                 <div className="space-y-4">
                     {faqs.map((faq, idx) => (
-                        <div key={idx} className="bg-gradient-to-br from-[#fefefe] to-[#fafbf8] rounded-2xl p-6 cursor-pointer hover:shadow-md transition-shadow flex justify-between items-center group border-2 border-solid border-[#708ca4]">
+                        <div key={idx} className="bg-white rounded-2xl p-6 cursor-pointer hover:shadow-md transition-shadow flex justify-between items-center group border border-[#708ca4]/30">
                             <h4 className="font-bold text-[#19456d] text-lg">{faq}</h4>
                             <div className="w-8 h-8 rounded-full bg-[#b48001]/10 flex items-center justify-center group-hover:bg-[#b48001] transition-colors">
                                 <Plus className="w-5 h-5 text-[#b48001] group-hover:text-white transition-colors" />

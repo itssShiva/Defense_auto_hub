@@ -7,7 +7,7 @@ const Navbar = () => {
     { name: 'Vehicles', path: '#' },
     { name: 'Services', path: '#' },
     { name: 'About Us', path: '#' },
-    { name: 'Contact Us', path: '#' },
+    { name: 'Contact Us', path: '/contact' },
   ];
 
   return (
