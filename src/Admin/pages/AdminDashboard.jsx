@@ -3,6 +3,8 @@ import AddUsers from "./AddUsers.jsx";
 import UpdateUser from "./UpdateUser.jsx";
 import AllUsers from "./AllUsers.jsx";
 import AllDealers from "./AllDealers.jsx";
+import AllCars from "./AllCars.jsx";
+import EditNewCar from "./editNewCar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import AddCars from "./AddCars.jsx";
@@ -10,8 +12,9 @@ import AddCars from "./AddCars.jsx";
 const NAV = [
     { id: "All Users", icon: "👥", label: "All Users" },
     { id: "All Dealers", icon: "🏪", label: "All Dealers" },
+    { id: "All Cars", icon: "🚗", label: "All Cars" },
     { id: "Add User", icon: "➕", label: "Add Account" },
-    { id: "Add Cars", icon: "🚗", label: "Add Cars" },
+    { id: "Add Cars", icon: "🆕", label: "Add Car" },
     { id: "Settings", icon: "⚙️", label: "Settings" },
 ];
 
@@ -19,6 +22,7 @@ const AdminDashboard = () => {
     const [activePage, setActivePage] = useState("All Users");
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [selectedUserType, setSelectedUserType] = useState(null);
+    const [selectedCarId, setSelectedCarId] = useState(null);
 
     const { logoutUser, user } = useAuth();
     const navigate = useNavigate();
@@ -28,10 +32,32 @@ const AdminDashboard = () => {
         navigate("/login");
     };
 
+    /* ── Edit user / dealer ── */
     const handleEditClick = (id, type) => {
         setSelectedUserId(id);
         setSelectedUserType(type);
         setActivePage("Update User");
+    };
+
+    /* ── Edit car ── */
+    const handleEditCarClick = (id) => {
+        setSelectedCarId(id);
+        setActivePage("Edit Car");
+    };
+
+    /* ── Header title ── */
+    const pageTitle = () => {
+        if (activePage === "Update User") return "Update Account";
+        if (activePage === "Edit Car") return "Edit Car";
+        return activePage;
+    };
+
+    /* ── Sidebar active highlight logic ── */
+    const isNavActive = (id) => {
+        if (activePage === id) return true;
+        if (activePage === "Update User" && id === "All Users") return true;
+        if (activePage === "Edit Car" && id === "All Cars") return true;
+        return false;
     };
 
     return (
@@ -47,7 +73,7 @@ const AdminDashboard = () => {
                             <button
                                 key={id}
                                 onClick={() => setActivePage(id)}
-                                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg transition duration-200 ${activePage === id || (activePage === "Update User" && id === "All Users")
+                                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg transition duration-200 ${isNavActive(id)
                                     ? "bg-[#b48001] text-white"
                                     : "text-gray-300 hover:bg-[#708ca4]/20 hover:text-white"
                                     }`}
@@ -72,9 +98,7 @@ const AdminDashboard = () => {
             <div className="flex-1 flex flex-col overflow-hidden bg-[#fafbf8]">
                 {/* 2. TOP NAVIGATION BAR */}
                 <header className="flex justify-between items-center bg-background py-4 px-6 border-b border-gray-200 shadow-lg">
-                    <h1 className="text-2xl font-semibold text-[#673413]">
-                        {activePage === "Update User" ? "Update Account" : activePage}
-                    </h1>
+                    <h1 className="text-2xl font-semibold text-[#673413]">{pageTitle()}</h1>
                     <span className="text-gray-600 font-medium">Welcome, {user?.name || "Admin"} 👋</span>
                 </header>
 
@@ -87,6 +111,10 @@ const AdminDashboard = () => {
 
                     {activePage === "All Dealers" && (
                         <AllDealers handleEditClick={handleEditClick} />
+                    )}
+
+                    {activePage === "All Cars" && (
+                        <AllCars handleEditCarClick={handleEditCarClick} />
                     )}
 
                     {activePage === "Add User" && (
@@ -108,6 +136,15 @@ const AdminDashboard = () => {
                     {activePage === "Add Cars" && (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <AddCars />
+                        </div>
+                    )}
+
+                    {activePage === "Edit Car" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <EditNewCar
+                                carId={selectedCarId}
+                                goBack={() => setActivePage("All Cars")}
+                            />
                         </div>
                     )}
 

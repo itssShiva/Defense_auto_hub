@@ -47,4 +47,21 @@ export const deleteCar = async (id) => {
     }
 };
 
+
+
+
+/* ================= Update CAR Details ================= */
+export const updateCar = async (id, formData) => {
+    try {
+        const res = await carsApi.put(`/${id}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+};
+
+
+
 export default carsApi;
