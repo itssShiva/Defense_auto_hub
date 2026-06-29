@@ -63,5 +63,18 @@ export const updateCar = async (id, formData) => {
 };
 
 
+/* ================= ADD NEW CAR MODEL ================= */
+export const addNewModel = async (formData) => {
+    try {
+        const res = await carsApi.post("/add/newmodel", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+};
+
+
 
 export default carsApi;

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { addNewCar, getAllCars, getCarById, deleteCar, updateCar as updateCarApi } from "../Api/cars.api";
+import { addNewCar, getAllCars, getCarById, deleteCar, updateCar as updateCarApi, addNewModel } from "../Api/cars.api";
 import { toast } from "react-hot-toast";
 
 export const useCars = () => {
@@ -130,6 +130,25 @@ export const useCars = () => {
     }, []);
 
 
+    /* ---------- Add New Car Model ---------- */
+    const addModel = useCallback(async (formData) => {
+        setLoading(true);
+        const toastId = toast.loading("Adding model...");
+        try {
+            const res = await addNewModel(formData);
+            if (res?.success) {
+                toast.success(res.message || "Model added successfully!", { id: toastId });
+            } else {
+                toast.error(res?.message || "Failed to add model.", { id: toastId });
+            }
+            return res;
+        } catch (err) {
+            toast.error("An unexpected error occurred.", { id: toastId });
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
 
     return {
         cars,
@@ -140,6 +159,7 @@ export const useCars = () => {
         addCar,
         removeCar,
         updateCar,
+        addModel,
         setCars,
         setCar,
     };

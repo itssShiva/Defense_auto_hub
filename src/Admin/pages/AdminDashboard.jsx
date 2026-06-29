@@ -8,6 +8,7 @@ import EditNewCar from "./editNewCar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import AddCars from "./AddCars.jsx";
+import AddNewModel from "./AddNewModel.jsx";
 
 const NAV = [
     { id: "All Users", icon: "👥", label: "All Users" },
@@ -15,6 +16,7 @@ const NAV = [
     { id: "All Cars", icon: "🚗", label: "All Cars" },
     { id: "Add User", icon: "➕", label: "Add Account" },
     { id: "Add Cars", icon: "🆕", label: "Add Car" },
+    { id: "Add Model", icon: "📋", label: "Add Model" },
     { id: "Settings", icon: "⚙️", label: "Settings" },
 ];
 
@@ -136,6 +138,12 @@ const AdminDashboard = () => {
                     {activePage === "Add Cars" && (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <AddCars />
+                        </div>
+                    )}
+
+                    {activePage === "Add Model" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AddNewModel />
                         </div>
                     )}
 
