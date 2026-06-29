@@ -112,7 +112,7 @@ const AddUsers = () => {
             </div>
 
             {/* Account Type Toggle */}
-            <div className="flex gap-4 mb-8 bg-[#fafbf8] p-2 rounded-xl border border-[#708ca4]/20 inline-flex">
+            <div className="flex gap-4 mb-8 bg-[#fafbf8] p-2 rounded-xl border border-[#708ca4]/20 ">
                 <button
                     type="button"
                     onClick={() => { setAccountType("user"); handleReset(); }}
