@@ -147,3 +147,11 @@ export const deleteDealer = async (id) => {
     }
 }
 
+export const updateDealerPassword = async (id, data) => {
+    try {
+        const response = await authApi.put(`/update-password/dealer/${id}`, data);
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}

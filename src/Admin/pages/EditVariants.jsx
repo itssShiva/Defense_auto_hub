@@ -1,58 +1,15 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
 import { toast } from "react-hot-toast";
 
-/* ─── Initial form state ────────────────────────────────────────── */
-const INITIAL = {
-    brandName: "",
-    modelName: "",
-    category: "",
-    year: "",
-    fuelType: "",
-    transmissionType: "",
-    engine: "",
-    maxPower: "",
-    maxTorque: "",
-    mileage: "",
-    seatingCapacity: "",
-    bootSpace: "",
-    bodyType: "",
-    // Normal Pricing
-    CSDPrice: "",
-    OnRoadPrice: "",
-    ExShowroomPrice: "",
-    RTO: "",
-    Insurance: "",
-    RegistraionFee: "",
-    FastTagFee: "",
-    HPEndorsementFee: "",
-    HSRPSMartCardTemporaryFee: "",
-    // BH Pricing
-    BHOnRoadPrice: "",
-    ExShowroomPriceBH: "",
-    BHRegistrationCost: "",
-    BHInsurance: "",
-    BHRegistrationFee: "",
-    BHFastTagFee: "",
-    BHHPEndorsementFee: "",
-    BHHSRPSMartCardTemporaryFee: "",
-    // Other Pricing
-    civilExShowroomPrice: "",
-    MonthlyEMI: "",
-    // Additional
-    Entitlement: "",
-    Remarks: "Please verify the details with car dealer before placing order on CSD AFD Portal.",
-    details: "",
-};
-
 /* ─── Reusable field components ─────────────────────────────────── */
 const Field = ({ label, required, error, children }) => (
-    <div className="group flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold text-[#708ca4] uppercase tracking-widest">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         {children}
-        {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+        {error && <p className="text-xs text-red-500 font-medium mt-0.5">{error}</p>}
     </div>
 );
 
@@ -70,14 +27,86 @@ const SectionTitle = ({ icon, children }) => (
 );
 
 /* ═══════════════════════════════════════════════════════════════════ */
-const AddNewModel = () => {
-    const { addModel, loading } = useCars();
+const EditVariants = ({ variantId, handleBack }) => {
+    const { updateVariant, fetchVariantById, fetchAllModels, loading } = useCars();
 
-    const [form, setForm] = useState(INITIAL);
-    const [carImage, setCarImage] = useState(null);
+    const [form, setForm] = useState(null);
+    const [variantImage, setVariantImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [errors, setErrors] = useState({});
+    const [models, setModels] = useState([]);
+    const [modelsLoading, setModelsLoading] = useState(true);
+    const [pageLoading, setPageLoading] = useState(true);
     const fileInputRef = useRef(null);
+
+    /* ── Load car models & variant data ── */
+    useEffect(() => {
+        const load = async () => {
+            setPageLoading(true);
+            setModelsLoading(true);
+            
+            const modelsRes = await fetchAllModels();
+            if (modelsRes?.success && modelsRes.models) {
+                setModels(modelsRes.models);
+            }
+
+            if (variantId) {
+                const variantRes = await fetchVariantById(variantId);
+                if (variantRes?.success && variantRes.variant) {
+                    const v = variantRes.variant;
+                    setForm({
+                        modelId: v.modelId || "",
+                        variantName: v.variantName || "",
+                        fuelType: v.fuelType || "",
+                        transmissionType: v.transmissionType || "",
+                        engine: v.engine || "",
+                        maxPower: v.maxPower || "",
+                        maxTorque: v.maxTorque || "",
+                        mileage: v.mileage || "",
+                        seatingCapacity: v.seatingCapacity || "",
+                        bootSpace: v.bootSpace || "",
+                        bodyType: v.bodyType || "",
+                        // Normal Pricing
+                        CSDPrice: v.CSDPrice || "",
+                        OnRoadPrice: v.OnRoadPrice || "",
+                        ExShowroomPrice: v.ExShowroomPrice || "",
+                        RTO: v.RTO || "",
+                        Insurance: v.Insurance || "",
+                        RegistraionFee: v.RegistraionFee || "",
+                        FastTagFee: v.FastTagFee || "",
+                        HPEndorsementFee: v.HPEndorsementFee || "",
+                        HSRPSMartCardTemporaryFee: v.HSRPSMartCardTemporaryFee || "",
+                        // BH Pricing
+                        BHOnRoadPrice: v.BHOnRoadPrice || "",
+                        ExShowroomPriceBH: v.ExShowroomPriceBH || "",
+                        BHRegistrationCost: v.BHRegistrationCost || "",
+                        BHInsurance: v.BHInsurance || "",
+                        BHRegistrationFee: v.BHRegistrationFee || "",
+                        BHFastTagFee: v.BHFastTagFee || "",
+                        BHHPEndorsementFee: v.BHHPEndorsementFee || "",
+                        BHHSRPSMartCardTemporaryFee: v.BHHSRPSMartCardTemporaryFee || "",
+                        // Other Pricing
+                        civilExShowroomPrice: v.civilExShowroomPrice || "",
+                        MonthlyEMI: v.MonthlyEMI || "",
+                        // Additional
+                        Entitlement: v.Entitlement || "",
+                        Remarks: v.Remarks || "Please verify the details with car dealer before placing order on CSD AFD Portal.",
+                        features: v.features || "",
+                        description: v.description || "",
+                    });
+                    if (v.variantImage) {
+                        setImagePreview(v.variantImage);
+                    }
+                } else {
+                    toast.error("Could not load variant data.");
+                    handleBack();
+                }
+            }
+            setModelsLoading(false);
+            setPageLoading(false);
+        };
+        load();
+    }, [variantId, fetchAllModels, fetchVariantById, handleBack]);
 
     /* ── Two-way binding ── */
     const handleChange = (e) => {
@@ -95,30 +124,30 @@ const AddNewModel = () => {
             e.target.value = "";
             return;
         }
-        setCarImage(file);
+        if (!file.type.startsWith("image/")) {
+            toast.error("Only image files are accepted.");
+            e.target.value = "";
+            return;
+        }
+        setVariantImage(file);
         setImagePreview(URL.createObjectURL(file));
-        if (errors.carImage) setErrors((prev) => ({ ...prev, carImage: "" }));
+        if (errors.variantImage) setErrors((prev) => ({ ...prev, variantImage: "" }));
     };
 
     /* ── Client-side validation ── */
     const validate = () => {
         const errs = {};
-        const textFields = [
-            "brandName", "modelName", "category", "fuelType",
-            "transmissionType", "engine", "maxPower",
-            "mileage", "bootSpace", "bodyType",
-        ];
-        textFields.forEach((f) => {
-            if (!form[f]?.trim()) errs[f] = "This field is required.";
-        });
 
-        // Year
-        const yearNum = Number(form.year);
-        if (!form.year) {
-            errs.year = "Year is required.";
-        } else if (isNaN(yearNum) || yearNum < 1980 || yearNum > new Date().getFullYear() + 2) {
-            errs.year = `Year must be between 1980 and ${new Date().getFullYear() + 2}.`;
-        }
+        if (!form.modelId) errs.modelId = "Please select a car model.";
+        if (!form.variantName?.trim()) errs.variantName = "Variant name is required.";
+
+        if (!form.fuelType) errs.fuelType = "Fuel type is required.";
+        if (!form.transmissionType) errs.transmissionType = "Transmission type is required.";
+
+        const textFields = ["engine", "maxPower", "mileage", "bootSpace", "bodyType"];
+        textFields.forEach((f) => {
+            if (!form[f]?.toString().trim()) errs[f] = "This field is required.";
+        });
 
         // Seating capacity
         const seatsNum = Number(form.seatingCapacity);
@@ -127,9 +156,6 @@ const AddNewModel = () => {
         } else if (isNaN(seatsNum) || seatsNum < 1 || seatsNum > 20) {
             errs.seatingCapacity = "Must be a number between 1 and 20.";
         }
-
-        // Image
-        if (!carImage) errs.carImage = "Car image is required.";
 
         return errs;
     };
@@ -142,102 +168,126 @@ const AddNewModel = () => {
             setErrors(validationErrors);
             toast.error("Please fix the highlighted errors before submitting.");
             const firstKey = Object.keys(validationErrors)[0];
-            document.getElementById(`model-field-${firstKey}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+            document.getElementById(`variant-field-${firstKey}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
 
         const formData = new FormData();
-        Object.entries(form).forEach(([key, value]) => formData.append(key, value));
-        formData.append("carImage", carImage);
+        Object.entries(form).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+                formData.append(key, value);
+            }
+        });
+        if (variantImage) {
+            formData.append("variantImage", variantImage);
+        }
 
-        const res = await addModel(formData);
+        const res = await updateVariant(variantId, formData);
         if (res?.success) {
-            setForm(INITIAL);
-            setCarImage(null);
-            setImagePreview(null);
-            setErrors({});
-            if (fileInputRef.current) fileInputRef.current.value = "";
+            handleBack();
         }
     };
 
-    /* ── Reset ── */
-    const handleReset = () => {
-        setForm(INITIAL);
-        setCarImage(null);
-        setImagePreview(null);
-        setErrors({});
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
+    if (pageLoading || !form) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 space-y-4">
+                <div className="w-10 h-10 border-4 border-[#19456d]/20 border-t-[#19456d] rounded-full animate-spin" />
+                <p className="text-[#19456d] font-medium animate-pulse">Loading variant details...</p>
+            </div>
+        );
+    }
+
+    const selectedModel = models.find((m) => m._id === form.modelId) || null;
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto relative">
             {/* Header */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-extrabold text-[#19456d] mb-1">Add New Car Model</h2>
-                <p className="text-[#708ca4] text-sm">
-                    Fill in all the details to register a new car model in the catalogue.
-                </p>
+            <div className="mb-8 flex items-center justify-between">
+                <div>
+                    <div className="flex items-center gap-3 mb-1">
+                        <button onClick={handleBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                            ←
+                        </button>
+                        <h2 className="text-2xl font-extrabold text-[#19456d]">Edit Variant</h2>
+                    </div>
+                    <p className="text-[#708ca4] text-sm ml-11">
+                        Update variant details and specifications.
+                    </p>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="space-y-6">
 
-                {/* ═══ SECTION 1: Identity ═══ */}
+                {/* ═══ SECTION 1: Model Selection ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle icon="🚗">Car Identity</SectionTitle>
+                    <div className="grid grid-cols-1 gap-5">
+                        <SectionTitle icon="🚗">Base Car Model</SectionTitle>
 
-                        <Field label="Brand Name" required error={errors.brandName}>
-                            <input id="model-field-brandName" type="text" name="brandName"
-                                value={form.brandName} onChange={handleChange}
-                                placeholder="e.g. Maruti Suzuki, Tata, Hyundai"
-                                className={inputCls(errors.brandName)} />
+                        <Field label="Select Car Model" required error={errors.modelId}>
+                            <select
+                                id="variant-field-modelId"
+                                name="modelId"
+                                value={form.modelId}
+                                onChange={handleChange}
+                                disabled={modelsLoading}
+                                className={inputCls(errors.modelId)}
+                            >
+                                <option value="">
+                                    {modelsLoading ? "Loading models…" : "-- Select a base model --"}
+                                </option>
+                                {models.map((m) => (
+                                    <option key={m._id} value={m._id}>
+                                        {m.brandName} {m.modelName} ({m.year}) — {m.fuelType} / {m.transmissionType}
+                                    </option>
+                                ))}
+                            </select>
                         </Field>
 
-                        <Field label="Model Name" required error={errors.modelName}>
-                            <input id="model-field-modelName" type="text" name="modelName"
-                                value={form.modelName} onChange={handleChange}
-                                placeholder="e.g. Swift ZXI, Nexon XZ+"
-                                className={inputCls(errors.modelName)} />
-                        </Field>
+                        {/* Preview card for selected model */}
+                        {selectedModel && (
+                            <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-[#19456d]/20 shadow-sm">
+                                <img
+                                    src={selectedModel.carImage || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                                    alt={selectedModel.modelName}
+                                    className="w-20 h-14 rounded-lg object-cover border border-gray-200"
+                                />
+                                <div>
+                                    <p className="text-sm font-extrabold text-[#19456d]">
+                                        {selectedModel.brandName} {selectedModel.modelName}
+                                    </p>
+                                    <div className="flex flex-wrap gap-1.5 mt-1">
+                                        <span className="px-2 py-0.5 text-xs font-bold bg-[#19456d]/10 text-[#19456d] rounded-full">
+                                            {selectedModel.fuelType}
+                                        </span>
+                                        <span className="px-2 py-0.5 text-xs font-bold bg-[#b48001]/10 text-[#b48001] rounded-full">
+                                            {selectedModel.transmissionType}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
-                        <Field label="Category" required error={errors.category}>
-                            <input id="model-field-category" type="text" name="category"
-                                value={form.category} onChange={handleChange}
-                                placeholder="e.g. Hatchback, SUV, Sedan"
-                                className={inputCls(errors.category)} />
-                        </Field>
-
-                        <Field label="Body Type" required error={errors.bodyType}>
-                            <input id="model-field-bodyType" type="text" name="bodyType"
-                                value={form.bodyType} onChange={handleChange}
-                                placeholder="e.g. 5-Door Hatchback"
-                                className={inputCls(errors.bodyType)} />
-                        </Field>
-
-                        <Field label="Year" required error={errors.year}>
-                            <input id="model-field-year" type="number" name="year"
-                                value={form.year} onChange={handleChange}
-                                placeholder={`e.g. ${new Date().getFullYear()}`}
-                                min="1980" max={new Date().getFullYear() + 2}
-                                className={inputCls(errors.year)} />
-                        </Field>
-
-                        <Field label="Price (₹)" required error={errors.price}>
-                            <input id="model-field-price" type="number" name="price"
-                                value={form.price} onChange={handleChange}
-                                placeholder="e.g. 850000" min="0"
-                                className={inputCls(errors.price)} />
+                        <Field label="Variant Name" required error={errors.variantName}>
+                            <input
+                                id="variant-field-variantName"
+                                type="text"
+                                name="variantName"
+                                value={form.variantName}
+                                onChange={handleChange}
+                                placeholder="e.g. ZXI+, Top Trim, LXI, AMT"
+                                className={inputCls(errors.variantName)}
+                            />
                         </Field>
                     </div>
                 </div>
 
-                {/* ═══ SECTION 2: Powertrain ═══ */}
+                {/* ═══ SECTION 2: Powertrain (Override) ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle icon="⚙️">Powertrain</SectionTitle>
+                        <SectionTitle icon="⚙️">Powertrain & Specs</SectionTitle>
 
                         <Field label="Fuel Type" required error={errors.fuelType}>
-                            <select id="model-field-fuelType" name="fuelType"
+                            <select id="variant-field-fuelType" name="fuelType"
                                 value={form.fuelType} onChange={handleChange}
                                 className={inputCls(errors.fuelType)}>
                                 <option value="">Select Fuel Type</option>
@@ -248,7 +298,7 @@ const AddNewModel = () => {
                         </Field>
 
                         <Field label="Transmission Type" required error={errors.transmissionType}>
-                            <select id="model-field-transmissionType" name="transmissionType"
+                            <select id="variant-field-transmissionType" name="transmissionType"
                                 value={form.transmissionType} onChange={handleChange}
                                 className={inputCls(errors.transmissionType)}>
                                 <option value="">Select Transmission</option>
@@ -259,28 +309,28 @@ const AddNewModel = () => {
                         </Field>
 
                         <Field label="Engine Displacement" required error={errors.engine}>
-                            <input id="model-field-engine" type="text" name="engine"
+                            <input id="variant-field-engine" type="text" name="engine"
                                 value={form.engine} onChange={handleChange}
                                 placeholder="e.g. 1197 cc"
                                 className={inputCls(errors.engine)} />
                         </Field>
 
                         <Field label="Max Power" required error={errors.maxPower}>
-                            <input id="model-field-maxPower" type="text" name="maxPower"
+                            <input id="variant-field-maxPower" type="text" name="maxPower"
                                 value={form.maxPower} onChange={handleChange}
                                 placeholder="e.g. 89 bhp @ 6000 rpm"
                                 className={inputCls(errors.maxPower)} />
                         </Field>
 
-                        <Field label="Max Torque" required error={errors.maxTorque}>
-                            <input id="model-field-maxTorque" type="text" name="maxTorque"
+                        <Field label="Max Torque" error={errors.maxTorque}>
+                            <input id="variant-field-maxTorque" type="text" name="maxTorque"
                                 value={form.maxTorque} onChange={handleChange}
-                                placeholder="e.g. 113 Nm @ 4200 rpm"
+                                placeholder="e.g. 113 Nm @ 4200 rpm (optional)"
                                 className={inputCls(errors.maxTorque)} />
                         </Field>
 
                         <Field label="Mileage" required error={errors.mileage}>
-                            <input id="model-field-mileage" type="text" name="mileage"
+                            <input id="variant-field-mileage" type="text" name="mileage"
                                 value={form.mileage} onChange={handleChange}
                                 placeholder="e.g. 22.38 km/l"
                                 className={inputCls(errors.mileage)} />
@@ -288,23 +338,30 @@ const AddNewModel = () => {
                     </div>
                 </div>
 
-                {/* ═══ SECTION 3: Dimensions ═══ */}
+                {/* ═══ SECTION 3: Dimensions & Capacity ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <SectionTitle icon="📐">Dimensions & Capacity</SectionTitle>
 
                         <Field label="Seating Capacity" required error={errors.seatingCapacity}>
-                            <input id="model-field-seatingCapacity" type="number" name="seatingCapacity"
+                            <input id="variant-field-seatingCapacity" type="number" name="seatingCapacity"
                                 value={form.seatingCapacity} onChange={handleChange}
                                 placeholder="e.g. 5" min="1" max="20"
                                 className={inputCls(errors.seatingCapacity)} />
                         </Field>
 
                         <Field label="Boot Space" required error={errors.bootSpace}>
-                            <input id="model-field-bootSpace" type="text" name="bootSpace"
+                            <input id="variant-field-bootSpace" type="text" name="bootSpace"
                                 value={form.bootSpace} onChange={handleChange}
                                 placeholder="e.g. 268 L"
                                 className={inputCls(errors.bootSpace)} />
+                        </Field>
+
+                        <Field label="Body Type" required error={errors.bodyType}>
+                            <input id="variant-field-bodyType" type="text" name="bodyType"
+                                value={form.bodyType} onChange={handleChange}
+                                placeholder="e.g. 5-Door Hatchback"
+                                className={inputCls(errors.bodyType)} />
                         </Field>
                     </div>
                 </div>
@@ -327,7 +384,7 @@ const AddNewModel = () => {
                             { name: "MonthlyEMI", label: "Monthly EMI" },
                         ].map(({ name, label }) => (
                             <Field key={name} label={`${label} (₹)`} error={errors[name]}>
-                                <input id={`model-field-${name}`} type="number" name={name}
+                                <input id={`variant-field-${name}`} type="number" name={name}
                                     value={form[name]} onChange={handleChange}
                                     placeholder="₹ 0" min="0"
                                     className={inputCls(errors[name])} />
@@ -335,7 +392,7 @@ const AddNewModel = () => {
                         ))}
 
                         <Field label="Registration Fee" error={errors.RegistraionFee}>
-                            <input id="model-field-RegistraionFee" type="text" name="RegistraionFee"
+                            <input id="variant-field-RegistraionFee" type="text" name="RegistraionFee"
                                 value={form.RegistraionFee} onChange={handleChange}
                                 placeholder="e.g. Inclusive / 5500"
                                 className={inputCls(errors.RegistraionFee)} />
@@ -346,7 +403,7 @@ const AddNewModel = () => {
                 {/* ═══ SECTION 5: BH Series Pricing ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle icon="🏛️">BH Series Pricing</SectionTitle>
+                        <SectionTitle icon="🏗️">BH Series Pricing</SectionTitle>
 
                         {[
                             { name: "BHOnRoadPrice", label: "BH On Road Price" },
@@ -359,7 +416,7 @@ const AddNewModel = () => {
                             { name: "BHHSRPSMartCardTemporaryFee", label: "BH HSRP / Smart Card / Temp Fee" },
                         ].map(({ name, label }) => (
                             <Field key={name} label={`${label} (₹)`} error={errors[name]}>
-                                <input id={`model-field-${name}`} type="number" name={name}
+                                <input id={`variant-field-${name}`} type="number" name={name}
                                     value={form[name]} onChange={handleChange}
                                     placeholder="₹ 0" min="0"
                                     className={inputCls(errors[name])} />
@@ -374,22 +431,38 @@ const AddNewModel = () => {
                         <SectionTitle icon="📝">Additional Details</SectionTitle>
 
                         <Field label="Entitlement" error={errors.Entitlement}>
-                            <input id="model-field-Entitlement" type="text" name="Entitlement"
+                            <input id="variant-field-Entitlement" type="text" name="Entitlement"
                                 value={form.Entitlement} onChange={handleChange}
                                 placeholder="e.g. Cat I, Cat II"
                                 className={inputCls(errors.Entitlement)} />
                         </Field>
 
-                        <Field label="Details" error={errors.details}>
-                            <textarea id="model-field-details" name="details"
-                                value={form.details} onChange={handleChange}
-                                placeholder="Describe the car model, features, and any important notes…"
+                        <Field label="Features" error={errors.features}>
+                            <textarea
+                                id="variant-field-features"
+                                name="features"
+                                value={form.features}
+                                onChange={handleChange}
+                                placeholder="e.g. Sunroof, Cruise Control, 360° Camera, Android Auto, Apple CarPlay…"
                                 rows={3}
-                                className={`${inputCls(errors.details)} resize-none`} />
+                                className={`${inputCls(errors.features)} resize-none`}
+                            />
+                        </Field>
+
+                        <Field label="Description" error={errors.description}>
+                            <textarea
+                                id="variant-field-description"
+                                name="description"
+                                value={form.description}
+                                onChange={handleChange}
+                                placeholder="Short description of this variant…"
+                                rows={3}
+                                className={`${inputCls(errors.description)} resize-none`}
+                            />
                         </Field>
 
                         <Field label="Remarks" error={errors.Remarks}>
-                            <textarea id="model-field-Remarks" name="Remarks"
+                            <textarea id="variant-field-Remarks" name="Remarks"
                                 value={form.Remarks} onChange={handleChange}
                                 placeholder="Disclaimer / additional remarks…"
                                 rows={2}
@@ -398,19 +471,18 @@ const AddNewModel = () => {
                     </div>
                 </div>
 
-                {/* ═══ SECTION 7: Car Image ═══ */}
-
+                {/* ═══ SECTION 6: Variant Image ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5 flex items-center gap-2">
                         <span className="text-lg">🖼️</span>
-                        <h3 className="text-base font-bold text-[#19456d]">Car Image</h3>
+                        <h3 className="text-base font-bold text-[#19456d]">Variant Image</h3>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-6 items-start">
                         {/* Preview */}
                         <div className={`shrink-0 w-48 h-36 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all
                             ${imagePreview ? "border-[#19456d]/50 bg-white" : "border-[#708ca4]/30 bg-white/60"}
-                            ${errors.carImage ? "border-red-400" : ""}`}>
+                            ${errors.variantImage ? "border-red-400" : ""}`}>
                             {imagePreview
                                 ? <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
                                 : <div className="text-center p-4">
@@ -423,7 +495,7 @@ const AddNewModel = () => {
                         {/* File input */}
                         <div className="flex-1 space-y-3">
                             <input
-                                id="model-field-carImage"
+                                id="variant-field-variantImage"
                                 type="file"
                                 accept="image/*"
                                 ref={fileInputRef}
@@ -432,22 +504,22 @@ const AddNewModel = () => {
                                     file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
                                     file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
                                     hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1
-                                    ${errors.carImage
+                                    ${errors.variantImage
                                         ? "border-red-400 focus:border-red-500 focus:ring-red-400"
                                         : "border-[#708ca4]/40 focus:border-[#19456d] focus:ring-[#19456d]"}`}
                             />
-                            {errors.carImage && (
-                                <p className="text-xs text-red-500 font-medium">{errors.carImage}</p>
+                            {errors.variantImage && (
+                                <p className="text-xs text-red-500 font-medium">{errors.variantImage}</p>
                             )}
-                            {carImage && (
+                            {variantImage && (
                                 <div className="flex items-center gap-2 text-sm text-[#52602d] font-medium">
                                     <span>✅</span>
-                                    <span className="truncate max-w-xs">{carImage.name}</span>
-                                    <span className="text-[#708ca4] shrink-0">({(carImage.size / 1024).toFixed(1)} KB)</span>
+                                    <span className="truncate max-w-xs">{variantImage.name}</span>
+                                    <span className="text-[#708ca4] shrink-0">({(variantImage.size / 1024).toFixed(1)} KB)</span>
                                     <button type="button"
                                         onClick={() => {
-                                            setCarImage(null);
-                                            setImagePreview(null);
+                                            setVariantImage(null);
+                                            setImagePreview(form.variantImage || null);
                                             if (fileInputRef.current) fileInputRef.current.value = "";
                                         }}
                                         className="ml-auto text-red-400 hover:text-red-600 font-bold text-xs transition-colors shrink-0">
@@ -466,15 +538,15 @@ const AddNewModel = () => {
                 <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
                     <button
                         type="button"
-                        onClick={handleReset}
+                        onClick={handleBack}
                         disabled={loading}
                         className="px-6 py-3.5 rounded-xl font-bold border-2 border-[#708ca4]/40 text-[#708ca4] hover:border-[#19456d] hover:text-[#19456d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Reset Form
+                        Cancel
                     </button>
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || modelsLoading}
                         className="px-8 py-3.5 rounded-xl font-bold text-white bg-[#19456d] hover:bg-[#113150] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center min-w-[220px] disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         {loading ? (
@@ -483,10 +555,10 @@ const AddNewModel = () => {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
-                                Adding Model…
+                                Updating Variant…
                             </div>
                         ) : (
-                            <span>🚗 Add Car Model</span>
+                            <span>✨ Update Variant</span>
                         )}
                     </button>
                 </div>
@@ -495,4 +567,4 @@ const AddNewModel = () => {
     );
 };
 
-export default AddNewModel;
+export default EditVariants;

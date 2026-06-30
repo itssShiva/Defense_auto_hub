@@ -1,49 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
 import { toast } from "react-hot-toast";
-
-/* ─── Initial form state ────────────────────────────────────────── */
-const INITIAL = {
-    brandName: "",
-    modelName: "",
-    category: "",
-    year: "",
-    fuelType: "",
-    transmissionType: "",
-    engine: "",
-    maxPower: "",
-    maxTorque: "",
-    mileage: "",
-    seatingCapacity: "",
-    bootSpace: "",
-    bodyType: "",
-    // Normal Pricing
-    CSDPrice: "",
-    OnRoadPrice: "",
-    ExShowroomPrice: "",
-    RTO: "",
-    Insurance: "",
-    RegistraionFee: "",
-    FastTagFee: "",
-    HPEndorsementFee: "",
-    HSRPSMartCardTemporaryFee: "",
-    // BH Pricing
-    BHOnRoadPrice: "",
-    ExShowroomPriceBH: "",
-    BHRegistrationCost: "",
-    BHInsurance: "",
-    BHRegistrationFee: "",
-    BHFastTagFee: "",
-    BHHPEndorsementFee: "",
-    BHHSRPSMartCardTemporaryFee: "",
-    // Other Pricing
-    civilExShowroomPrice: "",
-    MonthlyEMI: "",
-    // Additional
-    Entitlement: "",
-    Remarks: "Please verify the details with car dealer before placing order on CSD AFD Portal.",
-    details: "",
-};
 
 /* ─── Reusable field components ─────────────────────────────────── */
 const Field = ({ label, required, error, children }) => (
@@ -70,14 +27,121 @@ const SectionTitle = ({ icon, children }) => (
 );
 
 /* ═══════════════════════════════════════════════════════════════════ */
-const AddNewModel = () => {
-    const { addModel, loading } = useCars();
+const EditModels = ({ modelId, goBack }) => {
+    const { fetchAllModels, updateModel, loading } = useCars();
 
-    const [form, setForm] = useState(INITIAL);
+    const [form, setForm] = useState({
+        brandName: "",
+        modelName: "",
+        category: "",
+        year: "",
+        fuelType: "",
+        transmissionType: "",
+        engine: "",
+        maxPower: "",
+        maxTorque: "",
+        mileage: "",
+        seatingCapacity: "",
+        bootSpace: "",
+        bodyType: "",
+        // Normal Pricing
+        CSDPrice: "",
+        OnRoadPrice: "",
+        ExShowroomPrice: "",
+        RTO: "",
+        Insurance: "",
+        RegistraionFee: "",
+        FastTagFee: "",
+        HPEndorsementFee: "",
+        HSRPSMartCardTemporaryFee: "",
+        // BH Pricing
+        BHOnRoadPrice: "",
+        ExShowroomPriceBH: "",
+        BHRegistrationCost: "",
+        BHInsurance: "",
+        BHRegistrationFee: "",
+        BHFastTagFee: "",
+        BHHPEndorsementFee: "",
+        BHHSRPSMartCardTemporaryFee: "",
+        // Other Pricing
+        civilExShowroomPrice: "",
+        MonthlyEMI: "",
+        // Additional
+        Entitlement: "",
+        Remarks: "",
+        details: "",
+    });
+
+    const [originalForm, setOriginalForm] = useState(null);
     const [carImage, setCarImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [errors, setErrors] = useState({});
     const fileInputRef = useRef(null);
+
+    /* ── Load existing data ── */
+    useEffect(() => {
+        const loadModel = async () => {
+            if (!modelId) return;
+
+            const res = await fetchAllModels();
+            if (res?.success && res.models) {
+                const existingModel = res.models.find((m) => m._id === modelId);
+                if (existingModel) {
+                    const initialValues = {
+                        brandName: existingModel.brandName || "",
+                        modelName: existingModel.modelName || "",
+                        category: existingModel.category || "",
+                        year: existingModel.year || "",
+                        fuelType: existingModel.fuelType || "",
+                        transmissionType: existingModel.transmissionType || "",
+                        engine: existingModel.engine || "",
+                        maxPower: existingModel.maxPower || "",
+                        maxTorque: existingModel.maxTorque || "",
+                        mileage: existingModel.mileage || "",
+                        seatingCapacity: existingModel.seatingCapacity || "",
+                        bootSpace: existingModel.bootSpace || "",
+                        bodyType: existingModel.bodyType || "",
+                        // Normal Pricing
+                        CSDPrice: existingModel.CSDPrice ?? "",
+                        OnRoadPrice: existingModel.OnRoadPrice ?? "",
+                        ExShowroomPrice: existingModel.ExShowroomPrice ?? "",
+                        RTO: existingModel.RTO ?? "",
+                        Insurance: existingModel.Insurance ?? "",
+                        RegistraionFee: existingModel.RegistraionFee || "",
+                        FastTagFee: existingModel.FastTagFee ?? "",
+                        HPEndorsementFee: existingModel.HPEndorsementFee ?? "",
+                        HSRPSMartCardTemporaryFee: existingModel.HSRPSMartCardTemporaryFee ?? "",
+                        // BH Pricing
+                        BHOnRoadPrice: existingModel.BHOnRoadPrice ?? "",
+                        ExShowroomPriceBH: existingModel.ExShowroomPriceBH ?? "",
+                        BHRegistrationCost: existingModel.BHRegistrationCost ?? "",
+                        BHInsurance: existingModel.BHInsurance ?? "",
+                        BHRegistrationFee: existingModel.BHRegistrationFee ?? "",
+                        BHFastTagFee: existingModel.BHFastTagFee ?? "",
+                        BHHPEndorsementFee: existingModel.BHHPEndorsementFee ?? "",
+                        BHHSRPSMartCardTemporaryFee: existingModel.BHHSRPSMartCardTemporaryFee ?? "",
+                        // Other
+                        civilExShowroomPrice: existingModel.civilExShowroomPrice ?? "",
+                        MonthlyEMI: existingModel.MonthlyEMI ?? "",
+                        // Additional
+                        Entitlement: existingModel.Entitlement || "",
+                        Remarks: existingModel.Remarks || "",
+                        details: existingModel.details || "",
+                    };
+                    setForm(initialValues);
+                    setOriginalForm(initialValues);
+                    if (existingModel.carImage) {
+                        setImagePreview(existingModel.carImage);
+                    }
+                } else {
+                    toast.error("Model not found!");
+                    if (goBack) goBack();
+                }
+            }
+        };
+        
+        loadModel();
+    }, [modelId, fetchAllModels, goBack]);
 
     /* ── Two-way binding ── */
     const handleChange = (e) => {
@@ -105,11 +169,11 @@ const AddNewModel = () => {
         const errs = {};
         const textFields = [
             "brandName", "modelName", "category", "fuelType",
-            "transmissionType", "engine", "maxPower",
+            "transmissionType", "engine", "maxPower", "maxTorque",
             "mileage", "bootSpace", "bodyType",
         ];
         textFields.forEach((f) => {
-            if (!form[f]?.trim()) errs[f] = "This field is required.";
+            if (!String(form[f])?.trim()) errs[f] = "This field is required.";
         });
 
         // Year
@@ -128,8 +192,7 @@ const AddNewModel = () => {
             errs.seatingCapacity = "Must be a number between 1 and 20.";
         }
 
-        // Image
-        if (!carImage) errs.carImage = "Car image is required.";
+        // Note: Image is not required on edit, because they might keep the old one.
 
         return errs;
     };
@@ -147,40 +210,58 @@ const AddNewModel = () => {
         }
 
         const formData = new FormData();
-        Object.entries(form).forEach(([key, value]) => formData.append(key, value));
-        formData.append("carImage", carImage);
+        let hasChanges = false;
 
-        const res = await addModel(formData);
-        if (res?.success) {
-            setForm(INITIAL);
-            setCarImage(null);
-            setImagePreview(null);
-            setErrors({});
-            if (fileInputRef.current) fileInputRef.current.value = "";
+        if (originalForm) {
+            Object.keys(form).forEach((key) => {
+                // Compare current form value against the original
+                if (String(form[key]) !== String(originalForm[key])) {
+                    formData.append(key, form[key]);
+                    hasChanges = true;
+                }
+            });
         }
-    };
 
-    /* ── Reset ── */
-    const handleReset = () => {
-        setForm(INITIAL);
-        setCarImage(null);
-        setImagePreview(null);
-        setErrors({});
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        // Only append image if a new one was selected
+        if (carImage) {
+            formData.append("carImage", carImage);
+            hasChanges = true;
+        }
+
+        if (!hasChanges) {
+            toast("No changes were made.", { icon: "ℹ️" });
+            if (goBack) goBack();
+            return;
+        }
+
+        const res = await updateModel(modelId, formData);
+        if (res?.success) {
+            if (goBack) goBack();
+        }
     };
 
     return (
         <div className="max-w-4xl mx-auto">
             {/* Header */}
-            <div className="mb-8">
-                <h2 className="text-2xl font-extrabold text-[#19456d] mb-1">Add New Car Model</h2>
-                <p className="text-[#708ca4] text-sm">
-                    Fill in all the details to register a new car model in the catalogue.
-                </p>
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <div className="flex items-center gap-3 mb-1">
+                        <button
+                            onClick={goBack}
+                            className="p-1.5 rounded-lg bg-[#19456d]/5 text-[#19456d] hover:bg-[#19456d]/10 transition"
+                            title="Go Back"
+                        >
+                            ←
+                        </button>
+                        <h2 className="text-2xl font-extrabold text-[#19456d]">Update Car Model</h2>
+                    </div>
+                    <p className="text-[#708ca4] text-sm ml-10">
+                        Modify the details for this car model in the catalogue.
+                    </p>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="space-y-6">
-
                 {/* ═══ SECTION 1: Identity ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -346,7 +427,7 @@ const AddNewModel = () => {
                 {/* ═══ SECTION 5: BH Series Pricing ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle icon="🏛️">BH Series Pricing</SectionTitle>
+                        <SectionTitle icon="🏗️">BH Series Pricing</SectionTitle>
 
                         {[
                             { name: "BHOnRoadPrice", label: "BH On Road Price" },
@@ -399,11 +480,10 @@ const AddNewModel = () => {
                 </div>
 
                 {/* ═══ SECTION 7: Car Image ═══ */}
-
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5 flex items-center gap-2">
                         <span className="text-lg">🖼️</span>
-                        <h3 className="text-base font-bold text-[#19456d]">Car Image</h3>
+                        <h3 className="text-base font-bold text-[#19456d]">Car Image (Optional to Update)</h3>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-6 items-start">
@@ -447,16 +527,18 @@ const AddNewModel = () => {
                                     <button type="button"
                                         onClick={() => {
                                             setCarImage(null);
-                                            setImagePreview(null);
+                                            // Reset to original image if they cancel new upload
+                                            const original = models.find(m => m._id === modelId)?.carImage;
+                                            setImagePreview(original || null);
                                             if (fileInputRef.current) fileInputRef.current.value = "";
                                         }}
                                         className="ml-auto text-red-400 hover:text-red-600 font-bold text-xs transition-colors shrink-0">
-                                        ✕ Remove
+                                        ✕ Revert
                                     </button>
                                 </div>
                             )}
                             <p className="text-xs text-[#708ca4]">
-                                Accepted: JPG, PNG, WEBP · Max size: 5 MB
+                                Accepted: JPG, PNG, WEBP · Max size: 5 MB (Leave empty to keep current image)
                             </p>
                         </div>
                     </div>
@@ -466,11 +548,11 @@ const AddNewModel = () => {
                 <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
                     <button
                         type="button"
-                        onClick={handleReset}
+                        onClick={goBack}
                         disabled={loading}
                         className="px-6 py-3.5 rounded-xl font-bold border-2 border-[#708ca4]/40 text-[#708ca4] hover:border-[#19456d] hover:text-[#19456d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Reset Form
+                        Cancel
                     </button>
                     <button
                         type="submit"
@@ -483,10 +565,10 @@ const AddNewModel = () => {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
-                                Adding Model…
+                                Updating Model…
                             </div>
                         ) : (
-                            <span>🚗 Add Car Model</span>
+                            <span>💾 Save Changes</span>
                         )}
                     </button>
                 </div>
@@ -495,4 +577,4 @@ const AddNewModel = () => {
     );
 };
 
-export default AddNewModel;
+export default EditModels;

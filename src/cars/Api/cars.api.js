@@ -75,6 +75,84 @@ export const addNewModel = async (formData) => {
     }
 };
 
+/* ================= MODEL API ================= */
+export const getAllModels = async () => {
+    try {
+        const res = await carsApi.get("/model/all");
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+};
 
+export const updateModel = async (id, formData) => {
+    try {
+        const res = await carsApi.put(`/model/${id}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+};
+
+export const deleteModel = async (id) => {
+    try {
+        const res = await carsApi.delete(`/model/${id}`);
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+};
+
+
+export const addVariant = async (formData) => {
+    try {
+        const res = await carsApi.post("/add/variant", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const updateVariant = async (id, formData) => {
+    try {
+        const res = await carsApi.put(`/update/variant/${id}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const deleteVariant = async (id) => {
+    try {
+        const res = await carsApi.delete(`/delete/variant/${id}`);
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const getAllVariants = async () => {
+    try {
+        const res = await carsApi.get("/variant/all");
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const getVariantById = async (id) => {
+    try {
+        const res = await carsApi.get(`/variant/${id}`);
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
 
 export default carsApi;

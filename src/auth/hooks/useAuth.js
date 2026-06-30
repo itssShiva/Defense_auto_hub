@@ -5,6 +5,8 @@ import {
     loginDealer,
     logoutUser as logoutUserApi,
     getUserDetails as getUserDetailsApi,
+    updateDealer as updateDealerApi,
+    updateDealerPassword as updateDealerPasswordApi,
 } from "../Api/auth.api";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser, setLoading, setError } from "../../slices/userSlice";
@@ -110,6 +112,40 @@ export const useAuth = () => {
         }
     };
 
+    const updateDealerProfile = async (id, data) => {
+        try {
+            dispatch(setLoading(true));
+            dispatch(setError(null));
+            const response = await updateDealerApi(id, data);
+            if (response?.dealer) {
+                // Optionally update local store if the user is currently the updated dealer
+                if (user?._id === id) {
+                    dispatch(setUser(response.dealer));
+                }
+            }
+            return response;
+        } catch (err) {
+            dispatch(setError(err.response?.data?.message || err.message));
+            return { success: false, message: err.message };
+        } finally {
+            dispatch(setLoading(false));
+        }
+    };
+
+    const updateDealerPassword = async (id, data) => {
+        try {
+            dispatch(setLoading(true));
+            dispatch(setError(null));
+            const response = await updateDealerPasswordApi(id, data);
+            return response;
+        } catch (err) {
+            dispatch(setError(err.response?.data?.message || err.message));
+            return { success: false, message: err.message };
+        } finally {
+            dispatch(setLoading(false));
+        }
+    };
+
     return {
         registerNewUser,
         registerNewDealer,
@@ -117,6 +153,8 @@ export const useAuth = () => {
         loginExistingDealer,
         logoutUser,
         getUserDetails,
+        updateDealerProfile,
+        updateDealerPassword,
         user,
         loading,
         error,

@@ -4,19 +4,27 @@ import UpdateUser from "./UpdateUser.jsx";
 import AllUsers from "./AllUsers.jsx";
 import AllDealers from "./AllDealers.jsx";
 import AllCars from "./AllCars.jsx";
+import AllModels from "./AllModels.jsx";
+import EditModels from "./EditModels.jsx";
 import EditNewCar from "./editNewCar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import AddCars from "./AddCars.jsx";
 import AddNewModel from "./AddNewModel.jsx";
+import AddVariants from "./AddVariants.jsx";
+import AllVariants from "./AllVariants.jsx";
+import EditVariants from "./EditVariants.jsx";
 
 const NAV = [
     { id: "All Users", icon: "👥", label: "All Users" },
     { id: "All Dealers", icon: "🏪", label: "All Dealers" },
     { id: "All Cars", icon: "🚗", label: "All Cars" },
+    { id: "All Models", icon: "📋", label: "All Models" },
+    { id: "All Variants", icon: "📑", label: "All Variants" },
     { id: "Add User", icon: "➕", label: "Add Account" },
     { id: "Add Cars", icon: "🆕", label: "Add Car" },
-    { id: "Add Model", icon: "📋", label: "Add Model" },
+    { id: "Add Model", icon: "✨", label: "Add Model" },
+    { id: "Add Variant", icon: "🔧", label: "Add Variant" },
     { id: "Settings", icon: "⚙️", label: "Settings" },
 ];
 
@@ -25,6 +33,8 @@ const AdminDashboard = () => {
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [selectedUserType, setSelectedUserType] = useState(null);
     const [selectedCarId, setSelectedCarId] = useState(null);
+    const [selectedModelId, setSelectedModelId] = useState(null);
+    const [selectedVariantId, setSelectedVariantId] = useState(null);
 
     const { logoutUser, user } = useAuth();
     const navigate = useNavigate();
@@ -47,10 +57,24 @@ const AdminDashboard = () => {
         setActivePage("Edit Car");
     };
 
+    /* ── Edit model ── */
+    const handleEditModelClick = (id) => {
+        setSelectedModelId(id);
+        setActivePage("Edit Model");
+    };
+
+    /* ── Edit variant ── */
+    const handleEditVariantClick = (id) => {
+        setSelectedVariantId(id);
+        setActivePage("Edit Variant");
+    };
+
     /* ── Header title ── */
     const pageTitle = () => {
         if (activePage === "Update User") return "Update Account";
         if (activePage === "Edit Car") return "Edit Car";
+        if (activePage === "Edit Model") return "Edit Model";
+        if (activePage === "Edit Variant") return "Edit Variant";
         return activePage;
     };
 
@@ -59,6 +83,8 @@ const AdminDashboard = () => {
         if (activePage === id) return true;
         if (activePage === "Update User" && id === "All Users") return true;
         if (activePage === "Edit Car" && id === "All Cars") return true;
+        if (activePage === "Edit Model" && id === "All Models") return true;
+        if (activePage === "Edit Variant" && id === "All Variants") return true;
         return false;
     };
 
@@ -119,6 +145,14 @@ const AdminDashboard = () => {
                         <AllCars handleEditCarClick={handleEditCarClick} />
                     )}
 
+                    {activePage === "All Models" && (
+                        <AllModels handleEditModelClick={handleEditModelClick} />
+                    )}
+
+                    {activePage === "All Variants" && (
+                        <AllVariants handleEditVariantClick={handleEditVariantClick} />
+                    )}
+
                     {activePage === "Add User" && (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <AddUsers />
@@ -147,11 +181,35 @@ const AdminDashboard = () => {
                         </div>
                     )}
 
+                    {activePage === "Add Variant" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AddVariants />
+                        </div>
+                    )}
+
                     {activePage === "Edit Car" && (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <EditNewCar
                                 carId={selectedCarId}
                                 goBack={() => setActivePage("All Cars")}
+                            />
+                        </div>
+                    )}
+
+                    {activePage === "Edit Model" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <EditModels
+                                modelId={selectedModelId}
+                                goBack={() => setActivePage("All Models")}
+                            />
+                        </div>
+                    )}
+
+                    {activePage === "Edit Variant" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <EditVariants
+                                variantId={selectedVariantId}
+                                handleBack={() => setActivePage("All Variants")}
                             />
                         </div>
                     )}
