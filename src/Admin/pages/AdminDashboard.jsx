@@ -14,6 +14,8 @@ import AddNewModel from "./AddNewModel.jsx";
 import AddVariants from "./AddVariants.jsx";
 import AllVariants from "./AllVariants.jsx";
 import EditVariants from "./EditVariants.jsx";
+import AddUsedCar from "./AddUsedCar.jsx";
+import UsedCarApproval from "./usedCarApproval.jsx";
 
 const NAV = [
     { id: "All Users", icon: "👥", label: "All Users" },
@@ -25,6 +27,8 @@ const NAV = [
     { id: "Add Cars", icon: "🆕", label: "Add Car" },
     { id: "Add Model", icon: "✨", label: "Add Model" },
     { id: "Add Variant", icon: "🔧", label: "Add Variant" },
+    { id: "Add Used Car", icon: "🚗", label: "Add Used Car" },
+    { id: "Used Car Approvals", icon: "✅", label: "Used Car Approvals" },
     { id: "Settings", icon: "⚙️", label: "Settings" },
 ];
 
@@ -218,6 +222,18 @@ const AdminDashboard = () => {
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <h2 className="text-xl font-bold text-[#19456d] mb-4">Settings</h2>
                             <p className="text-gray-600">Admin settings will go here.</p>
+                        </div>
+                    )}
+
+                    {activePage === "Add Used Car" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AddUsedCar />
+                        </div>
+                    )}
+
+                    {activePage === "Used Car Approvals" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <UsedCarApproval />
                         </div>
                     )}
                 </main>

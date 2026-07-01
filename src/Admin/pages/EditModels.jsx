@@ -73,8 +73,9 @@ const EditModels = ({ modelId, goBack }) => {
     });
 
     const [originalForm, setOriginalForm] = useState(null);
-    const [carImage, setCarImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [newImages, setNewImages] = useState([]);         // newly selected File objects
+    const [newImagePreviews, setNewImagePreviews] = useState([]);
+    const [existingImages, setExistingImages] = useState([]); // already-saved image paths
     const [errors, setErrors] = useState({});
     const fileInputRef = useRef(null);
 
@@ -130,8 +131,8 @@ const EditModels = ({ modelId, goBack }) => {
                     };
                     setForm(initialValues);
                     setOriginalForm(initialValues);
-                    if (existingModel.carImage) {
-                        setImagePreview(existingModel.carImage);
+                    if (existingModel.carImages?.length) {
+                        setExistingImages(existingModel.carImages);
                     }
                 } else {
                     toast.error("Model not found!");
@@ -152,16 +153,24 @@ const EditModels = ({ modelId, goBack }) => {
 
     /* ── Image handler ── */
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image must be less than 5 MB.");
-            e.target.value = "";
-            return;
-        }
-        setCarImage(file);
-        setImagePreview(URL.createObjectURL(file));
-        if (errors.carImage) setErrors((prev) => ({ ...prev, carImage: "" }));
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
+        if (oversized.length) toast.error(`${oversized.length} file(s) exceed 5 MB and were skipped.`);
+        const valid = files.filter(f => f.size <= 5 * 1024 * 1024);
+        if (!valid.length) { e.target.value = ""; return; }
+        setNewImages(prev => [...prev, ...valid]);
+        setNewImagePreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))]);
+        e.target.value = "";
+    };
+
+    const removeNewImage = (idx) => {
+        setNewImages(prev => prev.filter((_, i) => i !== idx));
+        setNewImagePreviews(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    const removeExistingImage = (idx) => {
+        setExistingImages(prev => prev.filter((_, i) => i !== idx));
     };
 
     /* ── Client-side validation ── */
@@ -222,11 +231,13 @@ const EditModels = ({ modelId, goBack }) => {
             });
         }
 
-        // Only append image if a new one was selected
-        if (carImage) {
-            formData.append("carImage", carImage);
+        // Append new images if any
+        if (newImages.length) {
+            newImages.forEach(img => formData.append("carImages", img));
             hasChanges = true;
         }
+        // Always send existing image paths so backend knows what to keep
+        formData.append("existingImages", JSON.stringify(existingImages));
 
         if (!hasChanges) {
             toast("No changes were made.", { icon: "ℹ️" });
@@ -479,68 +490,71 @@ const EditModels = ({ modelId, goBack }) => {
                     </div>
                 </div>
 
-                {/* ═══ SECTION 7: Car Image ═══ */}
+                {/* ═══ SECTION 7: Car Images ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5 flex items-center gap-2">
                         <span className="text-lg">🖼️</span>
-                        <h3 className="text-base font-bold text-[#19456d]">Car Image (Optional to Update)</h3>
+                        <div>
+                            <h3 className="text-base font-bold text-[#19456d]">Car Images (Optional to Update)</h3>
+                            <p className="text-xs text-[#708ca4]">Add new images or remove existing ones. First image is the main thumbnail.</p>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-6 items-start">
-                        {/* Preview */}
-                        <div className={`shrink-0 w-48 h-36 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all
-                            ${imagePreview ? "border-[#19456d]/50 bg-white" : "border-[#708ca4]/30 bg-white/60"}
-                            ${errors.carImage ? "border-red-400" : ""}`}>
-                            {imagePreview
-                                ? <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                                : <div className="text-center p-4">
-                                    <span className="text-4xl">🚗</span>
-                                    <p className="text-xs text-[#708ca4] mt-1 font-medium">No image<br />selected</p>
-                                </div>
-                            }
+                    {/* Existing images */}
+                    {existingImages.length > 0 && (
+                        <div className="mb-4">
+                            <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">Current Images</p>
+                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                {existingImages.map((src, idx) => (
+                                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
+                                        <img src={src} alt={`existing-${idx}`} className="w-full h-full object-cover" />
+                                        {idx === 0 && existingImages.length > 0 && (
+                                            <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
+                                        )}
+                                        <button type="button" onClick={() => removeExistingImage(idx)}
+                                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
+                                        >✕</button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+                    )}
 
-                        {/* File input */}
-                        <div className="flex-1 space-y-3">
-                            <input
-                                id="model-field-carImage"
-                                type="file"
-                                accept="image/*"
-                                ref={fileInputRef}
-                                onChange={handleImageChange}
-                                className={`w-full px-4 py-3 rounded-xl border transition-all bg-white text-[#19456d] font-medium
-                                    file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
-                                    file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
-                                    hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1
-                                    ${errors.carImage
-                                        ? "border-red-400 focus:border-red-500 focus:ring-red-400"
-                                        : "border-[#708ca4]/40 focus:border-[#19456d] focus:ring-[#19456d]"}`}
-                            />
-                            {errors.carImage && (
-                                <p className="text-xs text-red-500 font-medium">{errors.carImage}</p>
-                            )}
-                            {carImage && (
-                                <div className="flex items-center gap-2 text-sm text-[#52602d] font-medium">
-                                    <span>✅</span>
-                                    <span className="truncate max-w-xs">{carImage.name}</span>
-                                    <span className="text-[#708ca4] shrink-0">({(carImage.size / 1024).toFixed(1)} KB)</span>
-                                    <button type="button"
-                                        onClick={() => {
-                                            setCarImage(null);
-                                            // Reset to original image if they cancel new upload
-                                            const original = models.find(m => m._id === modelId)?.carImage;
-                                            setImagePreview(original || null);
-                                            if (fileInputRef.current) fileInputRef.current.value = "";
-                                        }}
-                                        className="ml-auto text-red-400 hover:text-red-600 font-bold text-xs transition-colors shrink-0">
-                                        ✕ Revert
-                                    </button>
-                                </div>
-                            )}
-                            <p className="text-xs text-[#708ca4]">
-                                Accepted: JPG, PNG, WEBP · Max size: 5 MB (Leave empty to keep current image)
-                            </p>
+                    {/* New image previews */}
+                    {newImagePreviews.length > 0 && (
+                        <div className="mb-4">
+                            <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">New Images to Add</p>
+                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                {newImagePreviews.map((src, idx) => (
+                                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-green-300 aspect-square bg-white">
+                                        <img src={src} alt={`new-${idx}`} className="w-full h-full object-cover" />
+                                        <span className="absolute top-1 left-1 bg-green-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">NEW</span>
+                                        <button type="button" onClick={() => removeNewImage(idx)}
+                                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
+                                        >✕</button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <input
+                            id="model-field-carImages"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            ref={fileInputRef}
+                            onChange={handleImageChange}
+                            className="w-full px-4 py-3 rounded-xl border border-[#708ca4]/40 transition-all bg-white text-[#19456d] font-medium
+                                file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                                file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
+                                hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1
+                                focus:border-[#19456d] focus:ring-[#19456d]"
+                        />
+                        <p className="text-xs text-[#708ca4]">
+                            Accepted: JPG, PNG, WEBP · Max 5 MB per image · Leave empty to keep current images
+                        </p>
                     </div>
                 </div>
 

@@ -28,7 +28,7 @@ const VariantModal = ({ variant, onClose }) => {
                 {/* Header */}
                 <div className="bg-linear-to-r from-[#19456d] to-[#2a6094] px-6 py-5 flex items-center gap-4 shrink-0">
                     <img
-                        src={variant.variantImage || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                        src={variant.variantImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
                         alt={variant.variantName}
                         className="w-20 h-14 rounded-xl object-cover border-2 border-white/30 shadow bg-white/10"
                     />
@@ -196,7 +196,7 @@ const AllVariants = ({ handleEditVariantClick }) => {
                                     <td className="px-6 py-4">
                                         <div className="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group-hover:shadow transition-all">
                                             <img
-                                                src={variant.variantImage || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                                                src={variant.variantImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
                                                 alt={variant.variantName}
                                                 className="w-full h-full object-cover"
                                                 loading="lazy"
@@ -218,7 +218,7 @@ const AllVariants = ({ handleEditVariantClick }) => {
                                         <p className="font-bold text-[#b48001]">{fmt(variant.CSDPrice)}</p>
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => setSelectedVariant(variant)}
                                                 className="w-8 h-8 rounded bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-colors shadow-sm"

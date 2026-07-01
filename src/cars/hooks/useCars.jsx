@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { addNewCar, getAllCars, getCarById, deleteCar, updateCar as updateCarApi, addNewModel, getAllModels, updateModel as updateModelApi, deleteModel, addVariant as addVariantApi, updateVariant as updateVariantApi, deleteVariant as deleteVariantApi, getAllVariants, getVariantById } from "../Api/cars.api";
+import { addNewCar, getAllCars, getCarById, deleteCar, updateCar as updateCarApi, addNewModel, getAllModels, updateModel as updateModelApi, deleteModel, addVariant as addVariantApi, updateVariant as updateVariantApi, deleteVariant as deleteVariantApi, getAllVariants, getVariantById, addUsedCar as addUsedCarApi, updateUsedCar as updateUsedCarApi, deleteUsedCar as deleteUsedCarApi, getAllUsedCars as getAllUsedCarsApi, approveUsedCar as approveUsedCarApi } from "../Api/cars.api";
 import { toast } from "react-hot-toast";
 
 export const useCars = () => {
@@ -7,6 +7,7 @@ export const useCars = () => {
     const [car, setCar] = useState(null);
     const [models, setModels] = useState([]);
     const [variants, setVariants] = useState([]);
+    const [usedCars, setUsedCars] = useState([]);
     const [loading, setLoading] = useState(false);
 
     /* ---------- Fetch All Cars ---------- */
@@ -350,11 +351,135 @@ export const useCars = () => {
         }
     }, []);
 
+    /* ---------- Fetch All Used Cars ---------- */
+    const fetchAllUsedCars = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await getAllUsedCarsApi();
+            if (res?.success) {
+                setUsedCars(res.usedCars);
+            } else {
+                toast.error(res?.message || "Failed to fetch used cars.");
+            }
+            return res;
+        } catch (err) {
+            toast.error("An unexpected error occurred while fetching used cars.");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    /* ---------- Add Used Car ---------- */
+    const addUsedCarHook = useCallback(async (formData) => {
+        setLoading(true);
+        const toastId = toast.loading("Adding used car listing...");
+        try {
+            const res = await addUsedCarApi(formData);
+            if (res?.success) {
+                toast.success(res.message || "Used car added successfully!", { id: toastId });
+                setUsedCars((prev) => [res.usedCar, ...prev]);
+            } else {
+                toast.error(res?.message || "Failed to add used car.", { id: toastId });
+            }
+            return res;
+        } catch (err) {
+            toast.error("An unexpected error occurred.", { id: toastId });
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    /* ---------- Update Used Car ---------- */
+    const updateUsedCarHook = useCallback(async (id, formData) => {
+        setLoading(true);
+        const toastId = toast.loading("Updating used car...");
+        try {
+            const res = await updateUsedCarApi(id, formData);
+            if (res?.success) {
+                toast.success(res.message || "Used car updated successfully!", { id: toastId });
+                setUsedCars((prev) =>
+                    prev.map((uc) => (uc._id === id ? res.usedCar : uc))
+                );
+            } else {
+                toast.error(res?.message || "Failed to update used car.", { id: toastId });
+            }
+            return res;
+        } catch (err) {
+            toast.error("An unexpected error occurred.", { id: toastId });
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    /* ---------- Remove Used Car (with confirm) ---------- */
+    const removeUsedCar = useCallback(async (id) => {
+        return new Promise((resolve) => {
+            toast((t) => (
+                <div className="flex flex-col gap-3">
+                    <p className="font-semibold text-gray-800">Are you sure you want to delete this used car listing?</p>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={async () => {
+                                toast.dismiss(t.id);
+                                const toastId = toast.loading("Deleting used car...");
+                                setLoading(true);
+                                try {
+                                    const res = await deleteUsedCarApi(id);
+                                    if (res?.success) {
+                                        toast.success("Used car deleted successfully!", { id: toastId });
+                                        setUsedCars((prev) => prev.filter((uc) => uc._id !== id));
+                                        resolve(res);
+                                    } else {
+                                        toast.error(res?.message || "Failed to delete used car.", { id: toastId });
+                                        resolve(res);
+                                    }
+                                } catch (err) {
+                                    toast.error("An unexpected error occurred.", { id: toastId });
+                                    resolve({ success: false });
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg"
+                        >Delete</button>
+                        <button
+                            onClick={() => { toast.dismiss(t.id); resolve({ success: false, cancelled: true }); }}
+                            className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold rounded-lg"
+                        >Cancel</button>
+                    </div>
+                </div>
+            ), { duration: Infinity });
+        });
+    }, []);
+
+    /* ---------- Approve Used Car ---------- */
+    const approveUsedCarHook = useCallback(async (id) => {
+        setLoading(true);
+        const toastId = toast.loading("Approving used car...");
+        try {
+            const res = await approveUsedCarApi(id);
+            if (res?.success) {
+                toast.success(res.message || "Used car approved successfully!", { id: toastId });
+                setUsedCars((prev) =>
+                    prev.map((uc) => (uc._id === id ? res.usedCar : uc))
+                );
+            } else {
+                toast.error(res?.message || "Failed to approve used car.", { id: toastId });
+            }
+            return res;
+        } catch (err) {
+            toast.error("An unexpected error occurred.", { id: toastId });
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         cars,
         car,
         models,
         variants,
+        usedCars,
         loading,
         fetchAllCars,
         fetchCarById,
@@ -370,9 +495,15 @@ export const useCars = () => {
         removeVariant,
         fetchAllVariants,
         fetchVariantById,
+        addUsedCar: addUsedCarHook,
+        updateUsedCar: updateUsedCarHook,
+        removeUsedCar,
+        approveUsedCar: approveUsedCarHook,
+        fetchAllUsedCars,
         setCars,
         setCar,
         setModels,
         setVariants,
+        setUsedCars,
     };
 };

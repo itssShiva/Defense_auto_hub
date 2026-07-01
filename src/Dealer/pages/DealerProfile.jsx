@@ -18,7 +18,7 @@ const DealerProfile = () => {
         pincode: "",
         country: "",
     });
-    
+
     const [profileImage, setProfileImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
@@ -79,7 +79,7 @@ const DealerProfile = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!user?._id) {
             toast.error("User not found!");
             return;
@@ -110,8 +110,8 @@ const DealerProfile = () => {
             <div className="flex justify-between items-center mb-6 border-b pb-4">
                 <h2 className="text-2xl font-extrabold text-[#19456d]">Dealer Profile</h2>
                 {!isEditing && (
-                    <button 
-                        onClick={() => setIsEditing(true)} 
+                    <button
+                        onClick={() => setIsEditing(true)}
                         className="px-4 py-2 bg-[#19456d] text-white rounded-md hover:bg-[#113150] transition-colors"
                     >
                         Edit Profile
@@ -122,7 +122,7 @@ const DealerProfile = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Profile Image Section */}
                 <div className="flex flex-col sm:flex-row items-center gap-6">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 flex-shrink-0 bg-gray-100">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-300 shrink-0 bg-gray-100">
                         {imagePreview ? (
                             <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
@@ -134,9 +134,9 @@ const DealerProfile = () => {
                     {isEditing && (
                         <div className="flex-1">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Update Profile Picture</label>
-                            <input 
-                                type="file" 
-                                accept="image/*" 
+                            <input
+                                type="file"
+                                accept="image/*"
                                 onChange={handleImageChange}
                                 ref={fileInputRef}
                                 className="block w-full text-sm text-gray-500
@@ -153,128 +153,128 @@ const DealerProfile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Dealership Name</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="dealerName"
                             value={formData.dealerName}
                             onChange={handleChange}
-                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                            placeholder="e.g. ABC Motors" 
-                            disabled={!isEditing} 
+                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                            placeholder="e.g. ABC Motors"
+                            disabled={!isEditing}
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="contactPerson"
                             value={formData.contactPerson}
                             onChange={handleChange}
-                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                            placeholder="e.g. John Doe" 
-                            disabled={!isEditing} 
+                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                            placeholder="e.g. John Doe"
+                            disabled={!isEditing}
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                        <input 
-                            type="email" 
+                        <input
+                            type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                            placeholder="dealer@example.com" 
-                            disabled={!isEditing} 
+                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                            placeholder="dealer@example.com"
+                            disabled={!isEditing}
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <input 
-                            type="tel" 
+                        <input
+                            type="tel"
                             name="phone"
                             value={formData.phone}
                             onChange={handleChange}
-                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                            placeholder="9876543210" 
-                            disabled={!isEditing} 
+                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                            placeholder="9876543210"
+                            disabled={!isEditing}
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="country"
                             value={formData.country}
                             onChange={handleChange}
-                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                            placeholder="Country" 
-                            disabled={!isEditing} 
+                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                            placeholder="Country"
+                            disabled={!isEditing}
                         />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             name="pincode"
                             value={formData.pincode}
                             onChange={handleChange}
-                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                            placeholder="123456" 
-                            disabled={!isEditing} 
+                            className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                            placeholder="123456"
+                            disabled={!isEditing}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 name="city"
                                 value={formData.city}
                                 onChange={handleChange}
-                                className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                                placeholder="City" 
-                                disabled={!isEditing} 
+                                className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                                placeholder="City"
+                                disabled={!isEditing}
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 name="state"
                                 value={formData.state}
                                 onChange={handleChange}
-                                className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                                placeholder="State" 
-                                disabled={!isEditing} 
+                                className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                                placeholder="State"
+                                disabled={!isEditing}
                             />
                         </div>
                     </div>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <textarea 
-                        rows={3} 
+                    <textarea
+                        rows={3}
                         name="address"
                         value={formData.address}
                         onChange={handleChange}
-                        className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`} 
-                        placeholder="Full dealership address" 
+                        className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                        placeholder="Full dealership address"
                         disabled={!isEditing}
                     ></textarea>
                 </div>
-                
+
                 {isEditing && (
                     <div className="flex justify-end pt-4 gap-4">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={handleCancel}
                             disabled={loading}
                             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                         >
                             Cancel
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             disabled={loading}
                             className="px-6 py-2 bg-[#19456d] text-white rounded-md hover:bg-[#113150] transition-colors flex items-center gap-2"
                         >

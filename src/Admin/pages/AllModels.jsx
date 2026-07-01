@@ -28,7 +28,7 @@ const ModelModal = ({ model, onClose }) => {
                 {/* Header */}
                 <div className="bg-linear-to-r from-[#19456d] to-[#2a6094] px-6 py-5 flex items-center gap-4 shrink-0">
                     <img
-                        src={model.carImage || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                        src={model.carImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
                         alt={model.modelName}
                         className="w-20 h-14 rounded-xl object-cover border-2 border-white/30 shadow bg-white/10"
                     />
@@ -190,7 +190,7 @@ const AllModels = ({ handleEditModelClick }) => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-4">
                                                 <img
-                                                    src={m.carImage || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                                                    src={m.carImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
                                                     alt={m.modelName}
                                                     className="w-14 h-10 rounded-lg object-cover border border-gray-200 shadow-sm"
                                                 />

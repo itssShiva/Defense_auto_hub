@@ -73,8 +73,8 @@ const AddVariants = () => {
     const { addVariant, fetchAllModels, loading } = useCars();
 
     const [form, setForm] = useState(INITIAL);
-    const [variantImage, setVariantImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [variantImages, setVariantImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
     const [errors, setErrors] = useState({});
     const [models, setModels] = useState([]);
     const [modelsLoading, setModelsLoading] = useState(true);
@@ -104,21 +104,23 @@ const AddVariants = () => {
 
     /* ── Image handler ── */
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image must be less than 5 MB.");
-            e.target.value = "";
-            return;
-        }
-        if (!file.type.startsWith("image/")) {
-            toast.error("Only image files are accepted.");
-            e.target.value = "";
-            return;
-        }
-        setVariantImage(file);
-        setImagePreview(URL.createObjectURL(file));
-        if (errors.variantImage) setErrors((prev) => ({ ...prev, variantImage: "" }));
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        const invalid = files.filter(f => !f.type.startsWith("image/"));
+        if (invalid.length) { toast.error("Only image files are accepted."); e.target.value = ""; return; }
+        const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
+        if (oversized.length > 0) { toast.error(`${oversized.length} file(s) exceed 5 MB and were skipped.`); }
+        const valid = files.filter(f => f.size <= 5 * 1024 * 1024);
+        if (!valid.length) { e.target.value = ""; return; }
+        setVariantImages(prev => [...prev, ...valid]);
+        setImagePreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))]);
+        if (errors.variantImages) setErrors(prev => ({ ...prev, variantImages: "" }));
+        e.target.value = "";
+    };
+
+    const removeImage = (idx) => {
+        setVariantImages(prev => prev.filter((_, i) => i !== idx));
+        setImagePreviews(prev => prev.filter((_, i) => i !== idx));
     };
 
     /* ── Client-side validation ── */
@@ -145,7 +147,7 @@ const AddVariants = () => {
             errs.seatingCapacity = "Must be a number between 1 and 20.";
         }
 
-        if (!variantImage) errs.variantImage = "Variant image is required.";
+        if (!variantImages.length) errs.variantImages = "At least one image is required. (optional — defaults to parent model images)";
 
         return errs;
     };
@@ -166,13 +168,13 @@ const AddVariants = () => {
         Object.entries(form).forEach(([key, value]) => {
             if (value !== "") formData.append(key, value);
         });
-        formData.append("variantImage", variantImage);
+        variantImages.forEach(img => formData.append("variantImages", img));
 
         const res = await addVariant(formData);
         if (res?.success) {
             setForm(INITIAL);
-            setVariantImage(null);
-            setImagePreview(null);
+            setVariantImages([]);
+            setImagePreviews([]);
             setErrors({});
             if (fileInputRef.current) fileInputRef.current.value = "";
         }
@@ -181,8 +183,8 @@ const AddVariants = () => {
     /* ── Reset ── */
     const handleReset = () => {
         setForm(INITIAL);
-        setVariantImage(null);
-        setImagePreview(null);
+        setVariantImages([]);
+        setImagePreviews([]);
         setErrors({});
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
@@ -461,66 +463,51 @@ const AddVariants = () => {
                     </div>
                 </div>
 
-                {/* ═══ SECTION 6: Variant Image ═══ */}
+                {/* ═══ SECTION 6: Variant Images ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5 flex items-center gap-2">
                         <span className="text-lg">🖼️</span>
-                        <h3 className="text-base font-bold text-[#19456d]">Variant Image</h3>
+                        <div>
+                            <h3 className="text-base font-bold text-[#19456d]">Variant Images</h3>
+                            <p className="text-xs text-[#708ca4]">Upload up to 10 images. If none selected, parent model images are used.</p>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-6 items-start">
-                        {/* Preview */}
-                        <div className={`shrink-0 w-48 h-36 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all
-                            ${imagePreview ? "border-[#19456d]/50 bg-white" : "border-[#708ca4]/30 bg-white/60"}
-                            ${errors.variantImage ? "border-red-400" : ""}`}>
-                            {imagePreview
-                                ? <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                                : <div className="text-center p-4">
-                                    <span className="text-4xl">🚗</span>
-                                    <p className="text-xs text-[#708ca4] mt-1 font-medium">No image<br />selected</p>
+                    {imagePreviews.length > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
+                            {imagePreviews.map((src, idx) => (
+                                <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
+                                    <img src={src} alt={`preview-${idx}`} className="w-full h-full object-cover" />
+                                    {idx === 0 && (
+                                        <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
+                                    )}
+                                    <button type="button" onClick={() => removeImage(idx)}
+                                        className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
+                                    >✕</button>
                                 </div>
-                            }
+                            ))}
                         </div>
+                    )}
 
-                        {/* File input */}
-                        <div className="flex-1 space-y-3">
-                            <input
-                                id="variant-field-variantImage"
-                                type="file"
-                                accept="image/*"
-                                ref={fileInputRef}
-                                onChange={handleImageChange}
-                                className={`w-full px-4 py-3 rounded-xl border transition-all bg-white text-[#19456d] font-medium
-                                    file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
-                                    file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
-                                    hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1
-                                    ${errors.variantImage
-                                        ? "border-red-400 focus:border-red-500 focus:ring-red-400"
-                                        : "border-[#708ca4]/40 focus:border-[#19456d] focus:ring-[#19456d]"}`}
-                            />
-                            {errors.variantImage && (
-                                <p className="text-xs text-red-500 font-medium">{errors.variantImage}</p>
-                            )}
-                            {variantImage && (
-                                <div className="flex items-center gap-2 text-sm text-[#52602d] font-medium">
-                                    <span>✅</span>
-                                    <span className="truncate max-w-xs">{variantImage.name}</span>
-                                    <span className="text-[#708ca4] shrink-0">({(variantImage.size / 1024).toFixed(1)} KB)</span>
-                                    <button type="button"
-                                        onClick={() => {
-                                            setVariantImage(null);
-                                            setImagePreview(null);
-                                            if (fileInputRef.current) fileInputRef.current.value = "";
-                                        }}
-                                        className="ml-auto text-red-400 hover:text-red-600 font-bold text-xs transition-colors shrink-0">
-                                        ✕ Remove
-                                    </button>
-                                </div>
-                            )}
-                            <p className="text-xs text-[#708ca4]">
-                                Accepted: JPG, PNG, WEBP · Max size: 5 MB
-                            </p>
-                        </div>
+                    <div className="space-y-2">
+                        <input
+                            id="variant-field-variantImages"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            ref={fileInputRef}
+                            onChange={handleImageChange}
+                            className={`w-full px-4 py-3 rounded-xl border transition-all bg-white text-[#19456d] font-medium
+                                file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                                file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
+                                hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1
+                                ${errors.variantImages ? "border-red-400 focus:border-red-500 focus:ring-red-400" : "border-[#708ca4]/40 focus:border-[#19456d] focus:ring-[#19456d]"}`}
+                        />
+                        {errors.variantImages && <p className="text-xs text-red-500 font-medium">{errors.variantImages}</p>}
+                        <p className="text-xs text-[#708ca4]">Accepted: JPG, PNG, WEBP · Max 5 MB per image · Up to 10 images. If none selected, parent model images are used.</p>
+                        {variantImages.length > 0 && (
+                            <p className="text-xs font-semibold text-[#19456d]">✅ {variantImages.length} image(s) selected</p>
+                        )}
                     </div>
                 </div>
 

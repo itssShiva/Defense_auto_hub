@@ -31,8 +31,9 @@ const EditVariants = ({ variantId, handleBack }) => {
     const { updateVariant, fetchVariantById, fetchAllModels, loading } = useCars();
 
     const [form, setForm] = useState(null);
-    const [variantImage, setVariantImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [newImages, setNewImages] = useState([]);
+    const [newImagePreviews, setNewImagePreviews] = useState([]);
+    const [existingImages, setExistingImages] = useState([]);
     const [errors, setErrors] = useState({});
     const [models, setModels] = useState([]);
     const [modelsLoading, setModelsLoading] = useState(true);
@@ -94,8 +95,8 @@ const EditVariants = ({ variantId, handleBack }) => {
                         features: v.features || "",
                         description: v.description || "",
                     });
-                    if (v.variantImage) {
-                        setImagePreview(v.variantImage);
+                    if (v.variantImages?.length) {
+                        setExistingImages(v.variantImages);
                     }
                 } else {
                     toast.error("Could not load variant data.");
@@ -117,21 +118,26 @@ const EditVariants = ({ variantId, handleBack }) => {
 
     /* ── Image handler ── */
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image must be less than 5 MB.");
-            e.target.value = "";
-            return;
-        }
-        if (!file.type.startsWith("image/")) {
-            toast.error("Only image files are accepted.");
-            e.target.value = "";
-            return;
-        }
-        setVariantImage(file);
-        setImagePreview(URL.createObjectURL(file));
-        if (errors.variantImage) setErrors((prev) => ({ ...prev, variantImage: "" }));
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
+        if (oversized.length) toast.error(`${oversized.length} file(s) exceed 5 MB and were skipped.`);
+        
+        const valid = files.filter(f => f.size <= 5 * 1024 * 1024 && f.type.startsWith("image/"));
+        if (!valid.length) { e.target.value = ""; return; }
+        
+        setNewImages(prev => [...prev, ...valid]);
+        setNewImagePreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))]);
+        e.target.value = "";
+    };
+
+    const removeNewImage = (idx) => {
+        setNewImages(prev => prev.filter((_, i) => i !== idx));
+        setNewImagePreviews(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    const removeExistingImage = (idx) => {
+        setExistingImages(prev => prev.filter((_, i) => i !== idx));
     };
 
     /* ── Client-side validation ── */
@@ -178,9 +184,10 @@ const EditVariants = ({ variantId, handleBack }) => {
                 formData.append(key, value);
             }
         });
-        if (variantImage) {
-            formData.append("variantImage", variantImage);
+        if (newImages.length) {
+            newImages.forEach(img => formData.append("variantImages", img));
         }
+        formData.append("existingImages", JSON.stringify(existingImages));
 
         const res = await updateVariant(variantId, formData);
         if (res?.success) {
@@ -471,66 +478,71 @@ const EditVariants = ({ variantId, handleBack }) => {
                     </div>
                 </div>
 
-                {/* ═══ SECTION 6: Variant Image ═══ */}
+                {/* ═══ SECTION 6: Variant Images ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5 flex items-center gap-2">
                         <span className="text-lg">🖼️</span>
-                        <h3 className="text-base font-bold text-[#19456d]">Variant Image</h3>
+                        <div>
+                            <h3 className="text-base font-bold text-[#19456d]">Variant Images (Optional to Update)</h3>
+                            <p className="text-xs text-[#708ca4]">Upload multiple images. The first image will be used as the primary thumbnail.</p>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-6 items-start">
-                        {/* Preview */}
-                        <div className={`shrink-0 w-48 h-36 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all
-                            ${imagePreview ? "border-[#19456d]/50 bg-white" : "border-[#708ca4]/30 bg-white/60"}
-                            ${errors.variantImage ? "border-red-400" : ""}`}>
-                            {imagePreview
-                                ? <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                                : <div className="text-center p-4">
-                                    <span className="text-4xl">🚗</span>
-                                    <p className="text-xs text-[#708ca4] mt-1 font-medium">No image<br />selected</p>
-                                </div>
-                            }
+                    {/* Existing images */}
+                    {existingImages.length > 0 && (
+                        <div className="mb-4">
+                            <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">Current Images</p>
+                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                {existingImages.map((src, idx) => (
+                                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
+                                        <img src={src} alt={`existing-${idx}`} className="w-full h-full object-cover" />
+                                        {idx === 0 && (
+                                            <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
+                                        )}
+                                        <button type="button" onClick={() => removeExistingImage(idx)}
+                                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
+                                        >✕</button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+                    )}
 
-                        {/* File input */}
-                        <div className="flex-1 space-y-3">
-                            <input
-                                id="variant-field-variantImage"
-                                type="file"
-                                accept="image/*"
-                                ref={fileInputRef}
-                                onChange={handleImageChange}
-                                className={`w-full px-4 py-3 rounded-xl border transition-all bg-white text-[#19456d] font-medium
-                                    file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
-                                    file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
-                                    hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1
-                                    ${errors.variantImage
-                                        ? "border-red-400 focus:border-red-500 focus:ring-red-400"
-                                        : "border-[#708ca4]/40 focus:border-[#19456d] focus:ring-[#19456d]"}`}
-                            />
-                            {errors.variantImage && (
-                                <p className="text-xs text-red-500 font-medium">{errors.variantImage}</p>
-                            )}
-                            {variantImage && (
-                                <div className="flex items-center gap-2 text-sm text-[#52602d] font-medium">
-                                    <span>✅</span>
-                                    <span className="truncate max-w-xs">{variantImage.name}</span>
-                                    <span className="text-[#708ca4] shrink-0">({(variantImage.size / 1024).toFixed(1)} KB)</span>
-                                    <button type="button"
-                                        onClick={() => {
-                                            setVariantImage(null);
-                                            setImagePreview(form.variantImage || null);
-                                            if (fileInputRef.current) fileInputRef.current.value = "";
-                                        }}
-                                        className="ml-auto text-red-400 hover:text-red-600 font-bold text-xs transition-colors shrink-0">
-                                        ✕ Remove
-                                    </button>
-                                </div>
-                            )}
-                            <p className="text-xs text-[#708ca4]">
-                                Accepted: JPG, PNG, WEBP · Max size: 5 MB
-                            </p>
+                    {/* New image previews */}
+                    {newImagePreviews.length > 0 && (
+                        <div className="mb-4">
+                            <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">New Images to Add</p>
+                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                {newImagePreviews.map((src, idx) => (
+                                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-green-300 aspect-square bg-white">
+                                        <img src={src} alt={`new-${idx}`} className="w-full h-full object-cover" />
+                                        <span className="absolute top-1 left-1 bg-green-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">NEW</span>
+                                        <button type="button" onClick={() => removeNewImage(idx)}
+                                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
+                                        >✕</button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <input
+                            id="variant-field-variantImages"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            ref={fileInputRef}
+                            onChange={handleImageChange}
+                            className="w-full px-4 py-3 rounded-xl border border-[#708ca4]/40 transition-all bg-white text-[#19456d] font-medium
+                                file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                                file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
+                                hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1
+                                focus:border-[#19456d] focus:ring-[#19456d]"
+                        />
+                        <p className="text-xs text-[#708ca4]">
+                            Accepted: JPG, PNG, WEBP · Max size: 5 MB per image · Leave empty to keep current images
+                        </p>
                     </div>
                 </div>
 

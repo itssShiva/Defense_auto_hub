@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import DealerProfile from "./DealerProfile.jsx";
 import ChangePassword from "./ChangePassword.jsx";
+import AddUsedCar from "../AddUsedCar.jsx";
 
 const NAV = [
     { id: "Dealer Profile", icon: "🏪", label: "Dealer Profile" },
+    { id: "Add Used Car", icon: "🚗", label: "Add Used Car" },
     { id: "Change Password", icon: "🔒", label: "Change Password" },
-    // More options can be added here
 ];
 
 const DealerDashboard = () => {
@@ -79,6 +80,12 @@ const DealerDashboard = () => {
                 <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
                     {activePage === "Dealer Profile" && (
                         <DealerProfile />
+                    )}
+
+                    {activePage === "Add Used Car" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AddUsedCar />
+                        </div>
                     )}
 
                     {activePage === "Change Password" && (

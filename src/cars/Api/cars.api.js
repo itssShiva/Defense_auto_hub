@@ -155,4 +155,54 @@ export const getVariantById = async (id) => {
     }
 }
 
+
+export const addUsedCar = async (formData) => {
+    try {
+        const res = await carsApi.post("/add/usedcar", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const updateUsedCar = async (id, formData) => {
+    try {
+        const res = await carsApi.put(`/update/usedcar/${id}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const deleteUsedCar = async (id) => {
+    try {
+        const res = await carsApi.delete(`/delete/usedcar/${id}`);
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const getAllUsedCars = async () => {
+    try {
+        const res = await carsApi.get("/usedcar/all");
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const approveUsedCar = async (id) => {
+    try {
+        const res = await carsApi.put(`/approve/usedcar/${id}`);
+        return res.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
 export default carsApi;
