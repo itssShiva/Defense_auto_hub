@@ -16,7 +16,7 @@ const ChangePassword = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!user?._id) {
             toast.error("Dealer not found!");
             return;
@@ -55,43 +55,43 @@ const ChangePassword = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                    <input 
-                        type="password" 
+                    <input
+                        type="password"
                         name="currentPassword"
                         value={passwords.currentPassword}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#19456d] focus:border-[#19456d]" 
-                        placeholder="••••••••" 
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#19456d] focus:border-[#19456d]"
+                        placeholder="••••••••"
                         required
                     />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                    <input 
-                        type="password" 
+                    <input
+                        type="password"
                         name="newPassword"
                         value={passwords.newPassword}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#19456d] focus:border-[#19456d]" 
-                        placeholder="••••••••" 
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#19456d] focus:border-[#19456d]"
+                        placeholder="••••••••"
                         required
                     />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                    <input 
-                        type="password" 
+                    <input
+                        type="password"
                         name="confirmPassword"
                         value={passwords.confirmPassword}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#19456d] focus:border-[#19456d]" 
-                        placeholder="••••••••" 
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#19456d] focus:border-[#19456d]"
+                        placeholder="••••••••"
                         required
                     />
                 </div>
                 <div className="flex justify-end pt-4">
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         disabled={loading}
                         className="px-6 py-2 bg-[#19456d] text-white rounded-md hover:bg-[#113150] transition-colors flex items-center gap-2"
                     >

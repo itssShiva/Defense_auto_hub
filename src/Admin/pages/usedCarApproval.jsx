@@ -72,7 +72,7 @@ const UsedCarApproval = () => {
                                         Pending
                                     </span>
                                 </div>
-                                <p className="text-lg font-extrabold text-[#19456d] mb-4">₹{car.price?.toLocaleString('en-IN')}</p>
+                                <p className="text-lg font-extrabold text-[#19456d] mb-4">₹{car.ExShowroomPrice?.toLocaleString('en-IN')} <span className="text-xs font-normal text-gray-400">(Ex-Showroom)</span></p>
 
                                 <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-600 mb-6 flex-1">
                                     <div className="flex items-center gap-1"><span>📅</span> {car.year}</div>
@@ -152,7 +152,7 @@ const UsedCarApproval = () => {
                                         <span className="px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full">Pending Approval</span>
                                     </div>
                                     <h2 className="text-3xl font-extrabold text-gray-900 mb-2">{selectedCar.modelName}</h2>
-                                    <p className="text-2xl font-black text-[#19456d]">₹{selectedCar.price?.toLocaleString('en-IN')}</p>
+                                    <p className="text-2xl font-black text-[#19456d]">₹{selectedCar.ExShowroomPrice?.toLocaleString('en-IN')} <span className="text-sm font-normal text-gray-400">(Ex-Showroom)</span></p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 mb-8">
@@ -179,6 +179,67 @@ const UsedCarApproval = () => {
                                     <div className="bg-gray-50 p-3 rounded-lg">
                                         <p className="text-xs text-gray-500 uppercase font-semibold">Ownership</p>
                                         <p className="font-medium">{selectedCar.owner}</p>
+                                    </div>
+                                </div>
+
+                                {/* Normal Pricing Breakdown */}
+                                <div className="border-t border-gray-100 pt-5 mb-5">
+                                    <h3 className="text-sm font-bold text-[#19456d] uppercase tracking-wider mb-3">💰 Normal Pricing Breakdown</h3>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        {[
+                                            ["CSD Price", selectedCar.CSDPrice],
+                                            ["On-Road Price", selectedCar.OnRoadPrice],
+                                            ["Ex-Showroom", selectedCar.ExShowroomPrice],
+                                            ["RTO", selectedCar.RTO],
+                                            ["Insurance", selectedCar.Insurance],
+                                            ["Registration Fee", selectedCar.RegistraionFee],
+                                            ["Fast Tag Fee", selectedCar.FastTagFee],
+                                            ["HP Endorsement", selectedCar.HPEndorsementFee],
+                                            ["HSRP/Smart/Temp", selectedCar.HSRPSMartCardTemporaryFee],
+                                        ].map(([label, val]) => (
+                                            <div key={label} className="flex justify-between bg-gray-50 px-3 py-2 rounded-lg">
+                                                <span className="text-gray-500 text-xs">{label}</span>
+                                                <span className="font-semibold text-gray-800">₹{val?.toLocaleString('en-IN') ?? '-'}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* BH Pricing Breakdown */}
+                                <div className="border-t border-gray-100 pt-5 mb-5">
+                                    <h3 className="text-sm font-bold text-[#19456d] uppercase tracking-wider mb-3">🏛️ BH Pricing Breakdown</h3>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        {[
+                                            ["BH On-Road", selectedCar.BHOnRoadPrice],
+                                            ["BH Ex-Showroom", selectedCar.ExShowroomPriceBH],
+                                            ["BH Reg. Cost", selectedCar.BHRegistrationCost],
+                                            ["BH Insurance", selectedCar.BHInsurance],
+                                            ["BH Reg. Fee", selectedCar.BHRegistrationFee],
+                                            ["BH Fast Tag", selectedCar.BHFastTagFee],
+                                            ["BH HP Endorsement", selectedCar.BHHPEndorsementFee],
+                                            ["BH HSRP/Smart", selectedCar.BHHSRPSMartCardTemporaryFee],
+                                        ].map(([label, val]) => (
+                                            <div key={label} className="flex justify-between bg-gray-50 px-3 py-2 rounded-lg">
+                                                <span className="text-gray-500 text-xs">{label}</span>
+                                                <span className="font-semibold text-gray-800">₹{val?.toLocaleString('en-IN') ?? '-'}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Other Pricing */}
+                                <div className="border-t border-gray-100 pt-5 mb-5">
+                                    <h3 className="text-sm font-bold text-[#19456d] uppercase tracking-wider mb-3">💳 Other Pricing</h3>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        {[
+                                            ["Civil Ex-Showroom", selectedCar.civilExShowroomPrice],
+                                            ["Monthly EMI", selectedCar.MonthlyEMI],
+                                        ].map(([label, val]) => (
+                                            <div key={label} className="flex justify-between bg-gray-50 px-3 py-2 rounded-lg">
+                                                <span className="text-gray-500 text-xs">{label}</span>
+                                                <span className="font-semibold text-gray-800">₹{val?.toLocaleString('en-IN') ?? '-'}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 

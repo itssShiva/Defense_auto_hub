@@ -1,12 +1,11 @@
 import React, { useState, useRef } from "react";
-import { useCars } from "../cars/hooks/useCars";
+import { useCars } from "../../cars/hooks/useCars";
 import { toast } from "react-hot-toast";
 
 /* ─── Initial form state ──────────────────────────────────── */
 const INITIAL = {
     brandName: "",
     modelName: "",
-    price: "",
     kmTravelled: "",
     year: "",
     fuelType: "",
@@ -16,6 +15,25 @@ const INITIAL = {
     Address: "",
     City: "",
     State: "",
+    CSDPrice: "",
+    OnRoadPrice: "",
+    ExShowroomPrice: "",
+    RTO: "",
+    Insurance: "",
+    RegistraionFee: "",
+    FastTagFee: "",
+    HPEndorsementFee: "",
+    HSRPSMartCardTemporaryFee: "",
+    BHOnRoadPrice: "",
+    ExShowroomPriceBH: "",
+    BHRegistrationCost: "",
+    BHInsurance: "",
+    BHRegistrationFee: "",
+    BHFastTagFee: "",
+    BHHPEndorsementFee: "",
+    BHHSRPSMartCardTemporaryFee: "",
+    civilExShowroomPrice: "",
+    MonthlyEMI: "",
 };
 
 /* ─── Reusable field components ─────────────────────────── */
@@ -83,7 +101,13 @@ const AddUsedCar = () => {
     const validate = () => {
         const newErrors = {};
         const requiredText = ["brandName", "modelName", "fuelType", "transmissionType", "color", "owner", "Address", "City", "State"];
-        const requiredNumber = ["price", "kmTravelled", "year"];
+        const requiredNumber = [
+            "kmTravelled", "year", "CSDPrice", "OnRoadPrice", "ExShowroomPrice", "RTO", 
+            "Insurance", "RegistraionFee", "FastTagFee", "HPEndorsementFee", "HSRPSMartCardTemporaryFee",
+            "BHOnRoadPrice", "ExShowroomPriceBH", "BHRegistrationCost", "BHInsurance", 
+            "BHRegistrationFee", "BHFastTagFee", "BHHPEndorsementFee", "BHHSRPSMartCardTemporaryFee", 
+            "civilExShowroomPrice", "MonthlyEMI"
+        ];
 
         requiredText.forEach((f) => {
             if (!form[f]?.trim()) newErrors[f] = "This field is required.";
@@ -232,12 +256,86 @@ const AddUsedCar = () => {
                                 placeholder="e.g. 45000" min="0"
                                 className={`${inputCls} ${errCls(errors, "kmTravelled")}`} />
                         </Field>
+                    </div>
+                </div>
 
-                        <Field label="Price (₹)" required error={errors.price}>
-                            <input id="field-price" type="number" name="price"
-                                value={form.price} onChange={handleChange}
-                                placeholder="e.g. 750000" min="0"
-                                className={`${inputCls} ${errCls(errors, "price")}`} />
+                {/* ═══ SECTION 3: Normal Pricing ═══ */}
+                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <SectionTitle icon="💰">Normal Pricing</SectionTitle>
+
+                        <Field label="CSD Price" required error={errors.CSDPrice}>
+                            <input type="number" name="CSDPrice" value={form.CSDPrice} onChange={handleChange} className={`${inputCls} ${errCls(errors, "CSDPrice")}`} />
+                        </Field>
+                        <Field label="On-Road Price" required error={errors.OnRoadPrice}>
+                            <input type="number" name="OnRoadPrice" value={form.OnRoadPrice} onChange={handleChange} className={`${inputCls} ${errCls(errors, "OnRoadPrice")}`} />
+                        </Field>
+                        <Field label="Ex-Showroom Price" required error={errors.ExShowroomPrice}>
+                            <input type="number" name="ExShowroomPrice" value={form.ExShowroomPrice} onChange={handleChange} className={`${inputCls} ${errCls(errors, "ExShowroomPrice")}`} />
+                        </Field>
+                        <Field label="RTO" required error={errors.RTO}>
+                            <input type="number" name="RTO" value={form.RTO} onChange={handleChange} className={`${inputCls} ${errCls(errors, "RTO")}`} />
+                        </Field>
+                        <Field label="Insurance" required error={errors.Insurance}>
+                            <input type="number" name="Insurance" value={form.Insurance} onChange={handleChange} className={`${inputCls} ${errCls(errors, "Insurance")}`} />
+                        </Field>
+                        <Field label="Registration Fee" required error={errors.RegistraionFee}>
+                            <input type="number" name="RegistraionFee" value={form.RegistraionFee} onChange={handleChange} className={`${inputCls} ${errCls(errors, "RegistraionFee")}`} />
+                        </Field>
+                        <Field label="Fast Tag Fee" required error={errors.FastTagFee}>
+                            <input type="number" name="FastTagFee" value={form.FastTagFee} onChange={handleChange} className={`${inputCls} ${errCls(errors, "FastTagFee")}`} />
+                        </Field>
+                        <Field label="HP Endorsement Fee" required error={errors.HPEndorsementFee}>
+                            <input type="number" name="HPEndorsementFee" value={form.HPEndorsementFee} onChange={handleChange} className={`${inputCls} ${errCls(errors, "HPEndorsementFee")}`} />
+                        </Field>
+                        <Field label="HSRP/Smart Card/Temp" required error={errors.HSRPSMartCardTemporaryFee}>
+                            <input type="number" name="HSRPSMartCardTemporaryFee" value={form.HSRPSMartCardTemporaryFee} onChange={handleChange} className={`${inputCls} ${errCls(errors, "HSRPSMartCardTemporaryFee")}`} />
+                        </Field>
+                    </div>
+                </div>
+
+                {/* ═══ SECTION 4: BH Pricing ═══ */}
+                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <SectionTitle icon="🏛️">BH Pricing</SectionTitle>
+
+                        <Field label="BH On-Road Price" required error={errors.BHOnRoadPrice}>
+                            <input type="number" name="BHOnRoadPrice" value={form.BHOnRoadPrice} onChange={handleChange} className={`${inputCls} ${errCls(errors, "BHOnRoadPrice")}`} />
+                        </Field>
+                        <Field label="BH Ex-Showroom" required error={errors.ExShowroomPriceBH}>
+                            <input type="number" name="ExShowroomPriceBH" value={form.ExShowroomPriceBH} onChange={handleChange} className={`${inputCls} ${errCls(errors, "ExShowroomPriceBH")}`} />
+                        </Field>
+                        <Field label="BH Registration Cost" required error={errors.BHRegistrationCost}>
+                            <input type="number" name="BHRegistrationCost" value={form.BHRegistrationCost} onChange={handleChange} className={`${inputCls} ${errCls(errors, "BHRegistrationCost")}`} />
+                        </Field>
+                        <Field label="BH Insurance" required error={errors.BHInsurance}>
+                            <input type="number" name="BHInsurance" value={form.BHInsurance} onChange={handleChange} className={`${inputCls} ${errCls(errors, "BHInsurance")}`} />
+                        </Field>
+                        <Field label="BH Registration Fee" required error={errors.BHRegistrationFee}>
+                            <input type="number" name="BHRegistrationFee" value={form.BHRegistrationFee} onChange={handleChange} className={`${inputCls} ${errCls(errors, "BHRegistrationFee")}`} />
+                        </Field>
+                        <Field label="BH Fast Tag Fee" required error={errors.BHFastTagFee}>
+                            <input type="number" name="BHFastTagFee" value={form.BHFastTagFee} onChange={handleChange} className={`${inputCls} ${errCls(errors, "BHFastTagFee")}`} />
+                        </Field>
+                        <Field label="BH HP Endorsement" required error={errors.BHHPEndorsementFee}>
+                            <input type="number" name="BHHPEndorsementFee" value={form.BHHPEndorsementFee} onChange={handleChange} className={`${inputCls} ${errCls(errors, "BHHPEndorsementFee")}`} />
+                        </Field>
+                        <Field label="BH HSRP/Smart/Temp" required error={errors.BHHSRPSMartCardTemporaryFee}>
+                            <input type="number" name="BHHSRPSMartCardTemporaryFee" value={form.BHHSRPSMartCardTemporaryFee} onChange={handleChange} className={`${inputCls} ${errCls(errors, "BHHSRPSMartCardTemporaryFee")}`} />
+                        </Field>
+                    </div>
+                </div>
+
+                {/* ═══ SECTION 5: Other Pricing ═══ */}
+                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <SectionTitle icon="💳">Other Pricing</SectionTitle>
+
+                        <Field label="Civil Ex-Showroom" required error={errors.civilExShowroomPrice}>
+                            <input type="number" name="civilExShowroomPrice" value={form.civilExShowroomPrice} onChange={handleChange} className={`${inputCls} ${errCls(errors, "civilExShowroomPrice")}`} />
+                        </Field>
+                        <Field label="Monthly EMI" required error={errors.MonthlyEMI}>
+                            <input type="number" name="MonthlyEMI" value={form.MonthlyEMI} onChange={handleChange} className={`${inputCls} ${errCls(errors, "MonthlyEMI")}`} />
                         </Field>
                     </div>
                 </div>

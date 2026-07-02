@@ -408,7 +408,7 @@ const AddCars = () => {
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5">
                         <h3 className="text-base font-bold text-[#19456d]">Car Images</h3>
-                        <p className="text-xs text-[#708ca4] mt-1">Upload up to 10 images. First image will be used as the main thumbnail.</p>
+                        <p className="text-xs text-[#708ca4] mt-1">Upload up to 10 images. First image will be used as the main thumbnail.(Only JPEG, JPG, PNG, and WEBP are allowed.)</p>
                     </div>
 
                     {/* Image Previews Grid */}

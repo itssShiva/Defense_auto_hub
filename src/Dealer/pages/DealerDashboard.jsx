@@ -3,16 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import DealerProfile from "./DealerProfile.jsx";
 import ChangePassword from "./ChangePassword.jsx";
-import AddUsedCar from "../AddUsedCar.jsx";
+import AddUsedCar from "./AddUsedCar.jsx";
+import AllUsedCars from "./AllUsedCars.jsx";
+import EditUsedCar from "./EditUsedCar.jsx";
 
 const NAV = [
     { id: "Dealer Profile", icon: "🏪", label: "Dealer Profile" },
     { id: "Add Used Car", icon: "🚗", label: "Add Used Car" },
+    { id: "All Used Cars", icon: "📋", label: "All Used Cars" },
     { id: "Change Password", icon: "🔒", label: "Change Password" },
 ];
 
 const DealerDashboard = () => {
     const [activePage, setActivePage] = useState("Dealer Profile");
+    const [editUsedCarId, setEditUsedCarId] = useState(null);
 
     const { logoutUser, user } = useAuth();
     const navigate = useNavigate();
@@ -30,6 +34,7 @@ const DealerDashboard = () => {
     /* ── Sidebar active highlight logic ── */
     const isNavActive = (id) => {
         if (activePage === id) return true;
+        if (activePage === "Edit Used Car" && id === "All Used Cars") return true;
         return false;
     };
 
@@ -85,6 +90,27 @@ const DealerDashboard = () => {
                     {activePage === "Add Used Car" && (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <AddUsedCar />
+                        </div>
+                    )}
+
+                    {activePage === "All Used Cars" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AllUsedCars onEdit={(id) => {
+                                setEditUsedCarId(id);
+                                setActivePage("Edit Used Car");
+                            }} />
+                        </div>
+                    )}
+
+                    {activePage === "Edit Used Car" && editUsedCarId && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <EditUsedCar 
+                                carId={editUsedCarId} 
+                                onCancel={() => {
+                                    setEditUsedCarId(null);
+                                    setActivePage("All Used Cars");
+                                }} 
+                            />
                         </div>
                     )}
 
