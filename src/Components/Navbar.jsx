@@ -21,7 +21,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Vehicles', path: '#' },
-    { name: 'Services', path: '#' },
+    { name: 'Blogs', path: '/blogs' },
     { name: 'About Us', path: '#' },
     { name: 'Contact Us', path: '/contact' },
   ];
@@ -40,16 +40,16 @@ const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
-                href={link.path}
+                to={link.path}
                 className="relative group text-[#19456d] text-lg font-semibold overflow-hidden px-1 py-2"
               >
                 <span className="relative z-10 transition-colors duration-300 group-hover:text-[#b48001]">
                   {link.name}
                 </span>
                 <span className="absolute left-0 bottom-0 w-full h-[3px] bg-[#b48001] translate-x-[105%] group-hover:translate-x-0 transition-transform duration-300 ease-out rounded-full"></span>
-              </a>
+              </Link>
             ))}
           </div>
 

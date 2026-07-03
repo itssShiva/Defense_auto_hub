@@ -16,6 +16,9 @@ import AllVariants from "./AllVariants.jsx";
 import EditVariants from "./EditVariants.jsx";
 import AddUsedCar from "./AddUsedCar.jsx";
 import UsedCarApproval from "./usedCarApproval.jsx";
+import AddBlog from "./AddBlog.jsx";
+import AllBlogs from "./AllBlogs.jsx";
+import EditBlog from "./EditBlog.jsx";
 
 const NAV = [
     { id: "All Users", icon: "👥", label: "All Users" },
@@ -29,6 +32,8 @@ const NAV = [
     { id: "Add Variant", icon: "🔧", label: "Add Variant" },
     { id: "Add Used Car", icon: "🚗", label: "Add Used Car" },
     { id: "Used Car Approvals", icon: "✅", label: "Used Car Approvals" },
+    { id: "All Blogs", icon: "📰", label: "All Blogs" },
+    { id: "Add Blog", icon: "📝", label: "Add Blog" },
     { id: "Settings", icon: "⚙️", label: "Settings" },
 ];
 
@@ -39,6 +44,7 @@ const AdminDashboard = () => {
     const [selectedCarId, setSelectedCarId] = useState(null);
     const [selectedModelId, setSelectedModelId] = useState(null);
     const [selectedVariantId, setSelectedVariantId] = useState(null);
+    const [selectedBlogId, setSelectedBlogId] = useState(null);
 
     const { logoutUser, user } = useAuth();
     const navigate = useNavigate();
@@ -73,12 +79,19 @@ const AdminDashboard = () => {
         setActivePage("Edit Variant");
     };
 
+    /* ── Edit blog ── */
+    const handleEditBlogClick = (id) => {
+        setSelectedBlogId(id);
+        setActivePage("Edit Blog");
+    };
+
     /* ── Header title ── */
     const pageTitle = () => {
         if (activePage === "Update User") return "Update Account";
         if (activePage === "Edit Car") return "Edit Car";
         if (activePage === "Edit Model") return "Edit Model";
         if (activePage === "Edit Variant") return "Edit Variant";
+        if (activePage === "Edit Blog") return "Edit Blog Post";
         return activePage;
     };
 
@@ -89,6 +102,7 @@ const AdminDashboard = () => {
         if (activePage === "Edit Car" && id === "All Cars") return true;
         if (activePage === "Edit Model" && id === "All Models") return true;
         if (activePage === "Edit Variant" && id === "All Variants") return true;
+        if (activePage === "Edit Blog" && id === "All Blogs") return true;
         return false;
     };
 
@@ -234,6 +248,27 @@ const AdminDashboard = () => {
                     {activePage === "Used Car Approvals" && (
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                             <UsedCarApproval />
+                        </div>
+                    )}
+
+                    {activePage === "Add Blog" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AddBlog />
+                        </div>
+                    )}
+
+                    {activePage === "All Blogs" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AllBlogs handleEditBlogClick={handleEditBlogClick} />
+                        </div>
+                    )}
+
+                    {activePage === "Edit Blog" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <EditBlog
+                                blogId={selectedBlogId}
+                                goBack={() => setActivePage("All Blogs")}
+                            />
                         </div>
                     )}
                 </main>

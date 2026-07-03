@@ -1,14 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useBlog } from "../../blogs/hooks/useBlog";
 import { toast } from "react-hot-toast";
-
-/* ─── Initial form state ─────────────────────────────────────────── */
-const INITIAL = {
-    title: "",
-    category: "",
-    shortDescription: "",
-    content: "",
-};
 
 const CATEGORIES = [
     "Car Reviews",
@@ -44,14 +36,49 @@ const SectionTitle = ({ icon, children }) => (
 );
 
 /* ═══════════════════════════════════════════════════════════════════ */
-const AddBlog = () => {
-    const { createBlog, loading } = useBlog();
+const EditBlog = ({ blogId, goBack }) => {
+    const { updateBlog, fetchOneBlog, loading } = useBlog();
 
-    const [form, setForm] = useState(INITIAL);
-    const [blogImages, setBlogImages] = useState([]);
-    const [imagePreviews, setImagePreviews] = useState([]);
+    const [form, setForm] = useState({
+        title: "",
+        category: "",
+        shortDescription: "",
+        content: ""
+    });
+
+    // Existing images coming from DB
+    const [existingImages, setExistingImages] = useState([]);
+
+    // Newly uploaded images
+    const [newImages, setNewImages] = useState([]);
+    const [newImagePreviews, setNewImagePreviews] = useState([]);
+
     const [errors, setErrors] = useState({});
+    const [fetching, setFetching] = useState(true);
     const fileInputRef = useRef(null);
+
+    /* ── Load initial data ── */
+    useEffect(() => {
+        const loadBlog = async () => {
+            if (!blogId) return;
+            setFetching(true);
+            const res = await fetchOneBlog(blogId);
+            if (res?.success && res.data) {
+                const b = res.data;
+                setForm({
+                    title: b.title || "",
+                    category: b.category || "",
+                    shortDescription: b.shortDescription || "",
+                    content: b.content || ""
+                });
+                setExistingImages(b.blogImages || []);
+            } else {
+                goBack();
+            }
+            setFetching(false);
+        };
+        loadBlog();
+    }, [blogId, fetchOneBlog, goBack]);
 
     /* ── Two-way binding ── */
     const handleChange = (e) => {
@@ -60,8 +87,13 @@ const AddBlog = () => {
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
-    /* ── Image Handler ── */
-    const handleImageChange = (e) => {
+    /* ── Existing Image Handler ── */
+    const removeExistingImage = (idx) => {
+        setExistingImages(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    /* ── New Image Handler ── */
+    const handleNewImageChange = (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
 
@@ -72,16 +104,16 @@ const AddBlog = () => {
         const valid = files.filter(f => f.size <= 5 * 1024 * 1024 && f.type.startsWith("image/"));
         if (!valid.length) { e.target.value = ""; return; }
 
-        setBlogImages(prev => [...prev, ...valid]);
-        setImagePreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))]);
+        setNewImages(prev => [...prev, ...valid]);
+        setNewImagePreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))]);
         e.target.value = "";
 
-        if (errors.blogImages) setErrors(prev => ({ ...prev, blogImages: "" }));
+        if (errors.images) setErrors(prev => ({ ...prev, images: "" }));
     };
 
-    const removeImage = (idx) => {
-        setBlogImages(prev => prev.filter((_, i) => i !== idx));
-        setImagePreviews(prev => prev.filter((_, i) => i !== idx));
+    const removeNewImage = (idx) => {
+        setNewImages(prev => prev.filter((_, i) => i !== idx));
+        setNewImagePreviews(prev => prev.filter((_, i) => i !== idx));
     };
 
     /* ── Client Validation ── */
@@ -98,10 +130,11 @@ const AddBlog = () => {
             newErrors.shortDescription = "Description cannot exceed 300 characters.";
         }
 
-        if (!blogImages.length) {
-            newErrors.blogImages = "At least one blog image is required.";
-        } else if (blogImages.length > 5) {
-            newErrors.blogImages = "Maximum 5 images allowed.";
+        const totalImages = existingImages.length + newImages.length;
+        if (totalImages === 0) {
+            newErrors.images = "At least one blog image is required.";
+        } else if (totalImages > 5) {
+            newErrors.images = "Maximum 5 images allowed in total.";
         }
 
         return newErrors;
@@ -122,31 +155,42 @@ const AddBlog = () => {
 
         const formData = new FormData();
         Object.entries(form).forEach(([key, val]) => formData.append(key, val));
-        blogImages.forEach(img => formData.append("blogImages", img));
 
-        const res = await createBlog(formData);
+        // Append existing images array as a JSON string so backend knows which ones to keep
+        formData.append("existingImages", JSON.stringify(existingImages));
+
+        // Append newly uploaded images
+        newImages.forEach(img => formData.append("blogImages", img));
+
+        const res = await updateBlog(blogId, formData);
         if (res?.success) {
-            // Toast is handled in useBlog, so we just clear form
-            handleReset();
-            // Scroll to top
+            goBack();
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
     };
 
-    /* ── Reset ── */
-    const handleReset = () => {
-        setForm(INITIAL);
-        setBlogImages([]);
-        setImagePreviews([]);
-        setErrors({});
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
+    if (fetching) {
+        return (
+            <div className="flex flex-col items-center justify-center py-32">
+                <div className="w-10 h-10 border-4 border-[#19456d]/20 border-t-[#b48001] rounded-full animate-spin"></div>
+                <p className="text-[#708ca4] font-medium mt-4 animate-pulse">Loading blog details...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto py-6">
-            <div className="mb-8">
-                <h2 className="text-3xl font-extrabold text-[#19456d] mb-2">Add New Blog Post</h2>
-                <p className="text-[#708ca4]">Create a new blog article and publish it to the platform.</p>
+            <div className="flex items-center gap-4 mb-8">
+                <button
+                    onClick={goBack}
+                    className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 text-[#19456d] rounded-xl hover:bg-gray-50 shadow-sm transition"
+                >
+                    ←
+                </button>
+                <div>
+                    <h2 className="text-3xl font-extrabold text-[#19456d] mb-1">Edit Blog Post</h2>
+                    <p className="text-[#708ca4]">Update the details of this blog post.</p>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -164,7 +208,6 @@ const AddBlog = () => {
                                     name="title"
                                     value={form.title}
                                     onChange={handleChange}
-                                    placeholder="e.g. Top 10 Electric Cars in 2026"
                                     className={inputCls(errors.title)}
                                 />
                             </Field>
@@ -192,7 +235,6 @@ const AddBlog = () => {
                                 value={form.shortDescription}
                                 onChange={handleChange}
                                 rows="3"
-                                placeholder="Write a brief excerpt or summary of the blog..."
                                 className={`${inputCls(errors.shortDescription)} resize-none`}
                             />
                             <div className="text-right text-xs text-gray-400 mt-1">
@@ -207,7 +249,6 @@ const AddBlog = () => {
                                 value={form.content}
                                 onChange={handleChange}
                                 rows="12"
-                                placeholder="Write the complete blog content here..."
                                 className={`${inputCls(errors.content)}`}
                             />
                         </Field>
@@ -216,31 +257,55 @@ const AddBlog = () => {
 
                 {/* ═══ SECTION 2: Images ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
-                    <SectionTitle icon="🖼️">Blog Images</SectionTitle>
+                    <SectionTitle icon="🖼️">Manage Images</SectionTitle>
 
-                    {imagePreviews.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
-                            {imagePreviews.map((src, idx) => (
-                                <div key={idx} className="relative group aspect-video bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
-                                    <img src={src} alt={`preview-${idx}`} className="w-full h-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeImage(idx)}
-                                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
-                                        title="Remove Image"
-                                    >✕</button>
-                                </div>
-                            ))}
+                    {/* Existing Images */}
+                    {existingImages.length > 0 && (
+                        <div className="mb-6">
+                            <p className="text-xs font-bold text-[#b48001] uppercase tracking-widest mb-3">Currently Published Images</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {existingImages.map((src, idx) => (
+                                    <div key={idx} className="relative group aspect-video bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
+                                        <img src={`http://localhost:3000${src}`} alt={`existing-${idx}`} className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeExistingImage(idx)}
+                                            className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                                            title="Remove Image"
+                                        >✕</button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
-                    <div id="field-blogImages" className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${errors.blogImages ? 'border-red-400 bg-red-50/50' : 'border-[#708ca4]/30 hover:border-[#19456d] bg-white'}`}>
+                    {/* New Images Previews */}
+                    {newImagePreviews.length > 0 && (
+                        <div className="mb-6">
+                            <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-3">New Images to Upload</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {newImagePreviews.map((src, idx) => (
+                                    <div key={idx} className="relative group aspect-video bg-gray-100 rounded-xl overflow-hidden border border-green-200 shadow-sm shadow-green-100">
+                                        <img src={src} alt={`new-${idx}`} className="w-full h-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeNewImage(idx)}
+                                            className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
+                                            title="Remove New Image"
+                                        >✕</button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div id="field-images" className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors ${errors.images ? 'border-red-400 bg-red-50/50' : 'border-[#708ca4]/30 hover:border-[#19456d] bg-white'}`}>
                         <input
                             type="file"
                             multiple
                             accept="image/*"
                             ref={fileInputRef}
-                            onChange={handleImageChange}
+                            onChange={handleNewImageChange}
                             className="hidden"
                             id="blog-image-upload"
                         />
@@ -250,11 +315,11 @@ const AddBlog = () => {
                             </div>
                             <div>
                                 <span className="font-bold text-[#19456d] hover:underline">Click to browse</span>
-                                <span className="text-[#708ca4]"> or drag images here</span>
+                                <span className="text-[#708ca4]"> or drag new images here</span>
                             </div>
-                            <p className="text-xs text-[#708ca4]">JPG, PNG, WEBP • Max 5MB per file • Max 5 images</p>
+                            <p className="text-xs text-[#708ca4]">Total active images must be between 1 and 5.</p>
                         </label>
-                        {errors.blogImages && <p className="text-red-500 text-sm font-bold mt-2">{errors.blogImages}</p>}
+                        {errors.images && <p className="text-red-500 text-sm font-bold mt-2">{errors.images}</p>}
                     </div>
                 </div>
 
@@ -262,11 +327,11 @@ const AddBlog = () => {
                 <div className="flex gap-4 sticky bottom-6 z-10 p-4 bg-white/80 backdrop-blur-md rounded-2xl border border-gray-200 shadow-lg">
                     <button
                         type="button"
-                        onClick={handleReset}
+                        onClick={goBack}
                         disabled={loading}
                         className="px-6 py-3 border-2 border-[#708ca4]/20 text-[#19456d] font-bold rounded-xl hover:bg-[#fafbf8] transition-colors"
                     >
-                        Reset Form
+                        Cancel
                     </button>
                     <button
                         type="submit"
@@ -276,10 +341,10 @@ const AddBlog = () => {
                         {loading ? (
                             <>
                                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                Publishing Blog...
+                                Updating Blog...
                             </>
                         ) : (
-                            "Publish Blog"
+                            "Update Blog"
                         )}
                     </button>
                 </div>
@@ -288,4 +353,4 @@ const AddBlog = () => {
     );
 };
 
-export default AddBlog;
+export default EditBlog;

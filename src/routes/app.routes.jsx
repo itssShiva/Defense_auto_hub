@@ -8,6 +8,8 @@ import DealerDashboard from "../Dealer/pages/DealerDashboard.jsx";
 import AdminRoute from "../ProtectiveRoutes/adminRoutes.jsx";
 import DealerRoute from "../ProtectiveRoutes/dealerRoutes.jsx";
 import GuestRoute from "../ProtectiveRoutes/guestRoutes.jsx";
+import Blogs from "../Pages/Blogs.jsx";
+import BlogDetails from "../Pages/BlogDetails.jsx";
 
 const router = createBrowserRouter([
     {
@@ -50,6 +52,14 @@ const router = createBrowserRouter([
                     </DealerRoute>
                 )
             },
+            {
+                path: '/blogs',
+                element: <Blogs />
+            },
+            {
+                path: '/blogs/:id',
+                element: <BlogDetails />
+            }
         ]
     }
 ]);
