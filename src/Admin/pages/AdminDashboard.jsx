@@ -19,6 +19,9 @@ import UsedCarApproval from "./usedCarApproval.jsx";
 import AddBlog from "./AddBlog.jsx";
 import AllBlogs from "./AllBlogs.jsx";
 import EditBlog from "./EditBlog.jsx";
+import AddBrands from "./AddBrands.jsx";
+import AllBrands from "./AllBrands.jsx";
+import EditBrand from "./EditBrand.jsx";
 
 const NAV = [
     { id: "All Users", icon: "👥", label: "All Users" },
@@ -30,6 +33,8 @@ const NAV = [
     { id: "Add Cars", icon: "🆕", label: "Add Car" },
     { id: "Add Model", icon: "✨", label: "Add Model" },
     { id: "Add Variant", icon: "🔧", label: "Add Variant" },
+    { id: "All Brands", icon: "🏷️", label: "All Brands" },
+    { id: "Add Brand", icon: "➕", label: "Add Brand" },
     { id: "Add Used Car", icon: "🚗", label: "Add Used Car" },
     { id: "Used Car Approvals", icon: "✅", label: "Used Car Approvals" },
     { id: "All Blogs", icon: "📰", label: "All Blogs" },
@@ -45,6 +50,7 @@ const AdminDashboard = () => {
     const [selectedModelId, setSelectedModelId] = useState(null);
     const [selectedVariantId, setSelectedVariantId] = useState(null);
     const [selectedBlogId, setSelectedBlogId] = useState(null);
+    const [selectedBrandId, setSelectedBrandId] = useState(null);
 
     const { logoutUser, user } = useAuth();
     const navigate = useNavigate();
@@ -85,6 +91,12 @@ const AdminDashboard = () => {
         setActivePage("Edit Blog");
     };
 
+    /* ── Edit brand ── */
+    const handleEditBrandClick = (id) => {
+        setSelectedBrandId(id);
+        setActivePage("Edit Brand");
+    };
+
     /* ── Header title ── */
     const pageTitle = () => {
         if (activePage === "Update User") return "Update Account";
@@ -92,6 +104,7 @@ const AdminDashboard = () => {
         if (activePage === "Edit Model") return "Edit Model";
         if (activePage === "Edit Variant") return "Edit Variant";
         if (activePage === "Edit Blog") return "Edit Blog Post";
+        if (activePage === "Edit Brand") return "Edit Brand";
         return activePage;
     };
 
@@ -103,18 +116,24 @@ const AdminDashboard = () => {
         if (activePage === "Edit Model" && id === "All Models") return true;
         if (activePage === "Edit Variant" && id === "All Variants") return true;
         if (activePage === "Edit Blog" && id === "All Blogs") return true;
+        if (activePage === "Edit Brand" && id === "All Brands") return true;
         return false;
     };
 
     return (
         <div className="flex h-screen bg-background font-sans">
             {/* 1. SIDEBAR */}
-            <aside className="w-64 bg-[#19456d] text-white hidden md:flex flex-col justify-between">
-                <div className="p-5">
+            <aside className="w-64 bg-[#19456d] text-white hidden md:flex flex-col h-full">
+                {/* Logo Section */}
+                <div className="p-5 shrink-0">
                     <h2 className="text-2xl font-bold tracking-wider text-[#b48001]">
                         Fouji<span className="text-white">Mart</span>
                     </h2>
-                    <nav className="mt-8 space-y-1">
+                </div>
+
+                {/* Scrollable Navigation */}
+                <div className="flex-1 overflow-y-auto px-5 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+                    <nav className="space-y-1 pb-4 mt-2">
                         {NAV.map(({ id, icon, label }) => (
                             <button
                                 key={id}
@@ -268,6 +287,27 @@ const AdminDashboard = () => {
                             <EditBlog
                                 blogId={selectedBlogId}
                                 goBack={() => setActivePage("All Blogs")}
+                            />
+                        </div>
+                    )}
+
+                    {activePage === "All Brands" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AllBrands handleEditBrandClick={handleEditBrandClick} />
+                        </div>
+                    )}
+
+                    {activePage === "Add Brand" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <AddBrands />
+                        </div>
+                    )}
+
+                    {activePage === "Edit Brand" && (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <EditBrand
+                                brandId={selectedBrandId}
+                                goBack={() => setActivePage("All Brands")}
                             />
                         </div>
                     )}

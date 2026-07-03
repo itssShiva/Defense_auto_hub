@@ -266,7 +266,7 @@ const EditBlog = ({ blogId, goBack }) => {
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 {existingImages.map((src, idx) => (
                                     <div key={idx} className="relative group aspect-video bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
-                                        <img src={`http://localhost:3000${src}`} alt={`existing-${idx}`} className="w-full h-full object-cover" />
+                                        <img src={`${import.meta.env.VITE_BACKEND_URL}${src}`} alt={`existing-${idx}`} className="w-full h-full object-cover" />
                                         <button
                                             type="button"
                                             onClick={() => removeExistingImage(idx)}

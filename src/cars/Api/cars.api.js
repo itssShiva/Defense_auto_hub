@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const carsApi = axios.create({
-    baseURL: "http://localhost:3000/api/v1/car",
+    baseURL: `${import.meta.env.VITE_BACKEND_URL}/api/v1/car`,
     withCredentials: true  // needed for auth cookie to be sent
 });
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { useBrand } from "../../brand/hooks/useBrand";
 
@@ -19,13 +19,38 @@ const Field = ({ label, required, children }) => (
 const inputCls =
     "w-full px-4 py-3 rounded-xl border border-[#708ca4]/40 focus:outline-none focus:border-[#19456d] focus:ring-1 focus:ring-[#19456d] transition-all bg-white text-[#19456d] font-medium";
 
-const AddBrands = () => {
-    const { createBrand, loading } = useBrand();
+const EditBrand = ({ brandId, goBack }) => {
+    const { getBrandById, updateBrand, loading } = useBrand();
+
     const [form, setForm] = useState(INITIAL);
     const [logoPreview, setLogoPreview] = useState(null);
     const [logoFile, setLogoFile] = useState(null);
     const [errors, setErrors] = useState({});
+    const [isFetching, setIsFetching] = useState(true);
     const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        const fetchBrand = async () => {
+            setIsFetching(true);
+            const res = await getBrandById(brandId);
+            if (res?.success && res.brand) {
+                setForm({
+                    brandName: res.brand.brandName,
+                    brandCountry: res.brand.brandCountry,
+                });
+
+                const logoUrl = res.brand.logo?.startsWith('http')
+                    ? res.brand.logo
+                    : `${import.meta.env.VITE_BACKEND_URL}${res.brand.logo}`;
+                setLogoPreview(logoUrl);
+            } else {
+                toast.error("Failed to load brand details.");
+                goBack();
+            }
+            setIsFetching(false);
+        };
+        fetchBrand();
+    }, [brandId, getBrandById, goBack]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -69,7 +94,7 @@ const AddBrands = () => {
             return;
         }
 
-        const toastId = toast.loading("Adding brand...");
+        const toastId = toast.loading("Updating brand...");
 
         try {
             const formData = new FormData();
@@ -79,47 +104,45 @@ const AddBrands = () => {
                 formData.append("logo", logoFile);
             }
 
-            // Using standard API but wrapped in hook
-            const response = await createBrand(formData);
+            const response = await updateBrand(id, formData);
 
             if (response?.success) {
-                toast.success(`Brand "${form.brandName}" added successfully!`, { id: toastId });
-                handleReset();
+                toast.success(`Brand updated successfully!`, { id: toastId });
+                goBack();
             } else {
-                toast.error(response?.message || "Failed to add brand.", { id: toastId });
+                toast.error(response?.message || "Failed to update brand.", { id: toastId });
             }
         } catch (err) {
             toast.error("Something went wrong. Please try again.", { id: toastId });
         }
     };
 
-    const handleReset = () => {
-        setForm(INITIAL);
-        removeImage();
-        setErrors({});
-    };
-
     const errCls = (field) =>
         errors[field] ? "border-red-400 focus:border-red-500 focus:ring-red-400" : "";
 
+    if (isFetching) {
+        return (
+            <div className="flex justify-center items-center min-h-[400px]">
+                <div className="animate-spin w-10 h-10 border-4 border-[#19456d] border-t-transparent rounded-full"></div>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-3xl mx-auto py-8">
+        <div className="max-w-3xl mx-auto py-8 px-4">
             <div className="mb-8">
-                <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">Add New Brand</h2>
-                <p className="text-[#708ca4]">
-                    Add a new car brand to the system catalogue.
-                </p>
+                <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">Edit Brand</h2>
+                <p className="text-[#708ca4]">Update details for the selected brand.</p>
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="space-y-6 bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
-                
+
                 <Field label="Brand Name" required>
                     <input
                         type="text"
                         name="brandName"
                         value={form.brandName}
                         onChange={handleChange}
-                        placeholder="e.g. Maruti Suzuki"
                         className={`${inputCls} ${errCls("brandName")}`}
                     />
                     {errors.brandName && <p className="mt-1 text-xs text-red-500">{errors.brandName}</p>}
@@ -131,7 +154,6 @@ const AddBrands = () => {
                         name="brandCountry"
                         value={form.brandCountry}
                         onChange={handleChange}
-                        placeholder="e.g. Japan, India"
                         className={`${inputCls} ${errCls("brandCountry")}`}
                     />
                     {errors.brandCountry && <p className="mt-1 text-xs text-red-500">{errors.brandCountry}</p>}
@@ -139,10 +161,10 @@ const AddBrands = () => {
 
                 <div className="mb-5">
                     <h3 className="block text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">Brand Logo</h3>
-                    
+
                     {logoPreview && (
-                        <div className="relative w-32 h-32 mb-4 group rounded-xl overflow-hidden border border-[#708ca4]/30 bg-white">
-                            <img src={logoPreview} alt="preview" className="w-full h-full object-contain p-2" />
+                        <div className="relative w-32 h-32 mb-4 group rounded-xl overflow-hidden border border-[#708ca4]/30 bg-white flex items-center justify-center p-2">
+                            <img src={logoPreview} alt="preview" className="max-w-full max-h-full object-contain" />
                             <button
                                 type="button"
                                 onClick={removeImage}
@@ -161,23 +183,23 @@ const AddBrands = () => {
                             file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
                             hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1`}
                     />
+                    <p className="text-xs text-[#708ca4] mt-2">Leave empty to keep the existing logo.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
                     <button
                         type="button"
-                        onClick={handleReset}
-                        disabled={loading}
-                        className="px-6 py-3 rounded-xl font-bold border-2 border-[#708ca4]/40 text-[#708ca4] hover:border-[#19456d] hover:text-[#19456d] transition-all disabled:opacity-50"
+                        onClick={() => goBack()}
+                        className="px-6 py-3 rounded-xl font-bold border-2 border-[#708ca4]/40 text-[#708ca4] hover:border-[#19456d] hover:text-[#19456d] transition-all"
                     >
-                        Reset
+                        Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
                         className="px-8 py-3 rounded-xl font-bold text-white bg-[#19456d] hover:bg-[#113150] transition-all shadow-lg hover:shadow-xl disabled:opacity-70 flex justify-center items-center min-w-[150px]"
                     >
-                        {loading ? "Saving..." : "Add Brand"}
+                        {loading ? "Updating..." : "Update Brand"}
                     </button>
                 </div>
             </form>
@@ -185,4 +207,4 @@ const AddBrands = () => {
     );
 };
 
-export default AddBrands;
+export default EditBrand;

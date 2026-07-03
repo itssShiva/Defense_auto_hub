@@ -56,7 +56,7 @@ const UsedCarApproval = () => {
                         <div key={car._id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
                             <div className="h-48 overflow-hidden bg-gray-100">
                                 <img
-                                    src={car.carImages?.[0] ? `http://localhost:3000${car.carImages[0]}` : 'https://via.placeholder.com/400x300?text=No+Image'}
+                                    src={car.carImages?.[0] ? `${import.meta.env.VITE_BACKEND_URL}${car.carImages[0]}` : 'https://via.placeholder.com/400x300?text=No+Image'}
                                     alt={car.modelName}
                                     className="w-full h-full object-cover"
                                     onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=No+Image'; }}
@@ -127,7 +127,7 @@ const UsedCarApproval = () => {
                             {/* Left: Images */}
                             <div className="md:w-2/5 bg-gray-100 flex flex-col">
                                 <img
-                                    src={selectedCar.carImages?.[0] ? `http://localhost:3000${selectedCar.carImages[0]}` : 'https://via.placeholder.com/400x300?text=No+Image'}
+                                    src={selectedCar.carImages?.[0] ? `${import.meta.env.VITE_BACKEND_URL}${selectedCar.carImages[0]}` : 'https://via.placeholder.com/400x300?text=No+Image'}
                                     alt={selectedCar.modelName}
                                     className="w-full object-cover min-h-[300px] flex-1"
                                     onError={(e) => { e.target.src = 'https://via.placeholder.com/400x300?text=No+Image'; }}
@@ -135,7 +135,7 @@ const UsedCarApproval = () => {
                                 {selectedCar.carImages?.length > 1 && (
                                     <div className="flex gap-1.5 p-2 bg-gray-200 overflow-x-auto">
                                         {selectedCar.carImages.map((img, i) => (
-                                            <img key={i} src={`http://localhost:3000${img}`} alt={`img-${i}`}
+                                            <img key={i} src={`${import.meta.env.VITE_BACKEND_URL}${img}`} alt={`img-${i}`}
                                                 className="h-14 w-20 object-cover rounded shrink-0 border-2 border-white"
                                                 onError={(e) => { e.target.style.display = 'none'; }}
                                             />

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const brandApi = axios.create({
-    baseURL: "http://localhost:3000/api/v1/brand",
+    baseURL: `${import.meta.env.VITE_BACKEND_URL}/api/v1/brand`,
     withCredentials: true
 });
 

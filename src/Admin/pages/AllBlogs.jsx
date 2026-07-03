@@ -22,7 +22,7 @@ const BlogModal = ({ blog, onClose }) => {
                 {/* Header */}
                 <div className="bg-linear-to-r from-[#19456d] to-[#2a6094] px-6 py-5 flex items-center gap-4 shrink-0">
                     <img
-                        src={blog.blogImages?.[0] ? `http://localhost:3000${blog.blogImages[0]}` : "https://via.placeholder.com/150"}
+                        src={blog.blogImages?.[0] ? `${import.meta.env.VITE_BACKEND_URL}${blog.blogImages[0]}` : "https://via.placeholder.com/150"}
                         alt={blog.title}
                         className="w-20 h-14 rounded-xl object-cover border-2 border-white/30 shadow bg-white/10"
                     />
@@ -59,7 +59,7 @@ const BlogModal = ({ blog, onClose }) => {
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {blog.blogImages.map((img, idx) => (
                                     <div key={idx} className="aspect-video rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                                        <img src={`http://localhost:3000${img}`} alt={`blog-img-${idx}`} className="w-full h-full object-cover" />
+                                        <img src={`${import.meta.env.VITE_BACKEND_URL}${img}`} alt={`blog-img-${idx}`} className="w-full h-full object-cover" />
                                     </div>
                                 ))}
                             </div>
@@ -153,7 +153,7 @@ const AllBlogs = ({ handleEditBlogClick }) => {
                             <div className="h-48 bg-gray-100 relative group overflow-hidden">
                                 {b.blogImages?.[0] ? (
                                     <img
-                                        src={`http://localhost:3000${b.blogImages[0]}`}
+                                        src={`${import.meta.env.VITE_BACKEND_URL}${b.blogImages[0]}`}
                                         alt={b.title}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
