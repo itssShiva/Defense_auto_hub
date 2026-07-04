@@ -11,7 +11,7 @@ export const useBrand = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const createBrand = async (formData) => {
+    const createBrand = useCallback(async (formData) => {
         setLoading(true);
         setError(null);
         const res = await createBrandApi(formData);
@@ -20,7 +20,7 @@ export const useBrand = () => {
             setError(res.message);
         }
         return res;
-    };
+    }, []);
 
     const getAllBrands = useCallback(async () => {
         setLoading(true);
@@ -33,7 +33,7 @@ export const useBrand = () => {
         return res;
     }, []);
 
-    const getBrandById = async (id) => {
+    const getBrandById = useCallback(async (id) => {
         setLoading(true);
         setError(null);
         const res = await getBrandByIdApi(id);
@@ -42,9 +42,9 @@ export const useBrand = () => {
             setError(res.message);
         }
         return res;
-    };
+    }, []);
 
-    const updateBrand = async (id, formData) => {
+    const updateBrand = useCallback(async (id, formData) => {
         setLoading(true);
         setError(null);
         const res = await updateBrandApi(id, formData);
@@ -53,9 +53,9 @@ export const useBrand = () => {
             setError(res.message);
         }
         return res;
-    };
+    }, []);
 
-    const deleteBrand = async (id) => {
+    const deleteBrand = useCallback(async (id) => {
         setLoading(true);
         setError(null);
         const res = await deleteBrandApi(id);
@@ -64,7 +64,7 @@ export const useBrand = () => {
             setError(res.message);
         }
         return res;
-    };
+    }, []);
 
     return {
         loading,

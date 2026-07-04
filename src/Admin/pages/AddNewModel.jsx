@@ -1,9 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
+import { useBrand } from "../../brand/hooks/useBrand.js";
 import { toast } from "react-hot-toast";
 
 /* ─── Initial form state ────────────────────────────────────────── */
 const INITIAL = {
+    brandId: "",
     brandName: "",
     modelName: "",
     category: "",
@@ -79,10 +81,34 @@ const AddNewModel = () => {
     const [errors, setErrors] = useState({});
     const fileInputRef = useRef(null);
 
+    const { getAllBrands } = useBrand();
+    const [brands, setBrands] = useState([]);
+
+    useEffect(() => {
+        const fetchBrands = async () => {
+            const res = await getAllBrands();
+            if (res?.success && res.brands) {
+                setBrands(res.brands);
+            }
+        };
+        fetchBrands();
+    }, [getAllBrands]);
+
     /* ── Two-way binding ── */
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        
+        if (name === "brandId") {
+            const selectedBrand = brands.find(b => b._id === value);
+            setForm((prev) => ({ 
+                ...prev, 
+                brandId: value,
+                brandName: selectedBrand ? selectedBrand.brandName : "" 
+            }));
+        } else {
+            setForm((prev) => ({ ...prev, [name]: value }));
+        }
+        
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
@@ -110,8 +136,10 @@ const AddNewModel = () => {
     /* ── Client-side validation ── */
     const validate = () => {
         const errs = {};
+        if (!form.brandId) errs.brandId = "Please select a brand.";
+        
         const textFields = [
-            "brandName", "modelName", "category", "fuelType",
+            "modelName", "category", "fuelType",
             "transmissionType", "engine", "maxPower",
             "mileage", "bootSpace", "bodyType",
         ];
@@ -194,11 +222,15 @@ const AddNewModel = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <SectionTitle icon="🚗">Car Identity</SectionTitle>
 
-                        <Field label="Brand Name" required error={errors.brandName}>
-                            <input id="model-field-brandName" type="text" name="brandName"
-                                value={form.brandName} onChange={handleChange}
-                                placeholder="e.g. Maruti Suzuki, Tata, Hyundai"
-                                className={inputCls(errors.brandName)} />
+                        <Field label="Brand" required error={errors.brandId}>
+                            <select id="model-field-brandId" name="brandId"
+                                value={form.brandId} onChange={handleChange}
+                                className={inputCls(errors.brandId)}>
+                                <option value="">Select a Brand</option>
+                                {brands.map(b => (
+                                    <option key={b._id} value={b._id}>{b.brandName}</option>
+                                ))}
+                            </select>
                         </Field>
 
                         <Field label="Model Name" required error={errors.modelName}>

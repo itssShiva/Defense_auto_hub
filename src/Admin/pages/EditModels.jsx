@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
+import { useBrand } from "../../brand/hooks/useBrand.js";
 import { toast } from "react-hot-toast";
 
 /* ─── Reusable field components ─────────────────────────────────── */
@@ -31,6 +32,7 @@ const EditModels = ({ modelId, goBack }) => {
     const { fetchAllModels, updateModel, loading } = useCars();
 
     const [form, setForm] = useState({
+        brandId: "",
         brandName: "",
         modelName: "",
         category: "",
@@ -79,6 +81,19 @@ const EditModels = ({ modelId, goBack }) => {
     const [errors, setErrors] = useState({});
     const fileInputRef = useRef(null);
 
+    const { getAllBrands } = useBrand();
+    const [brands, setBrands] = useState([]);
+
+    useEffect(() => {
+        const fetchBrands = async () => {
+            const res = await getAllBrands();
+            if (res?.success && res.brands) {
+                setBrands(res.brands);
+            }
+        };
+        fetchBrands();
+    }, [getAllBrands]);
+
     /* ── Load existing data ── */
     useEffect(() => {
         const loadModel = async () => {
@@ -89,7 +104,8 @@ const EditModels = ({ modelId, goBack }) => {
                 const existingModel = res.models.find((m) => m._id === modelId);
                 if (existingModel) {
                     const initialValues = {
-                        brandName: existingModel.brandName || "",
+                        brandId: existingModel.brandId?._id || existingModel.brandId || "",
+                        brandName: existingModel.brandId?.brandName || existingModel.brandName || "",
                         modelName: existingModel.modelName || "",
                         category: existingModel.category || "",
                         year: existingModel.year || "",
@@ -147,7 +163,18 @@ const EditModels = ({ modelId, goBack }) => {
     /* ── Two-way binding ── */
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        
+        if (name === "brandId") {
+            const selectedBrand = brands.find(b => b._id === value);
+            setForm((prev) => ({ 
+                ...prev, 
+                brandId: value,
+                brandName: selectedBrand ? selectedBrand.brandName : "" 
+            }));
+        } else {
+            setForm((prev) => ({ ...prev, [name]: value }));
+        }
+        
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
@@ -176,8 +203,10 @@ const EditModels = ({ modelId, goBack }) => {
     /* ── Client-side validation ── */
     const validate = () => {
         const errs = {};
+        if (!form.brandId) errs.brandId = "Please select a brand.";
+        
         const textFields = [
-            "brandName", "modelName", "category", "fuelType",
+            "modelName", "category", "fuelType",
             "transmissionType", "engine", "maxPower", "maxTorque",
             "mileage", "bootSpace", "bodyType",
         ];
@@ -278,11 +307,15 @@ const EditModels = ({ modelId, goBack }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <SectionTitle icon="🚗">Car Identity</SectionTitle>
 
-                        <Field label="Brand Name" required error={errors.brandName}>
-                            <input id="model-field-brandName" type="text" name="brandName"
-                                value={form.brandName} onChange={handleChange}
-                                placeholder="e.g. Maruti Suzuki, Tata, Hyundai"
-                                className={inputCls(errors.brandName)} />
+                        <Field label="Brand" required error={errors.brandId}>
+                            <select id="model-field-brandId" name="brandId"
+                                value={form.brandId} onChange={handleChange}
+                                className={inputCls(errors.brandId)}>
+                                <option value="">Select a Brand</option>
+                                {brands.map(b => (
+                                    <option key={b._id} value={b._id}>{b.brandName}</option>
+                                ))}
+                            </select>
                         </Field>
 
                         <Field label="Model Name" required error={errors.modelName}>

@@ -104,7 +104,7 @@ const EditBrand = ({ brandId, goBack }) => {
                 formData.append("logo", logoFile);
             }
 
-            const response = await updateBrand(id, formData);
+            const response = await updateBrand(brandId, formData);
 
             if (response?.success) {
                 toast.success(`Brand updated successfully!`, { id: toastId });

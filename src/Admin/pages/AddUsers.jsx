@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { Country, State, City } from "country-state-city";
 import { registerUser, registerDealer } from "../../auth/Api/auth.api";
 import { toast } from "react-hot-toast";
+import { useBrand } from "../../brand/hooks/useBrand";
 
 const INITIAL_USER = { name: "", email: "", phone: "", role: "User", password: "" };
 const INITIAL_DEALER = { dealerName: "", contactPerson: "", email: "", phone: "", password: "", address: "", pincode: "" };
@@ -15,6 +16,7 @@ const AddUsers = () => {
     // States
     const [userForm, setUserForm] = useState(INITIAL_USER);
     const [dealerForm, setDealerForm] = useState(INITIAL_DEALER);
+    const [brandsHandled, setBrandsHandled] = useState([]);
     const [profileImage, setProfileImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
 
@@ -22,6 +24,17 @@ const AddUsers = () => {
     const [countryCode, setCountryCode] = useState("");
     const [stateCode, setStateCode] = useState("");
     const [city, setCity] = useState("");
+
+    const { getAllBrands } = useBrand();
+    const [brands, setBrands] = useState([]);
+
+    React.useEffect(() => {
+        const fetchBrands = async () => {
+            const res = await getAllBrands();
+            if (res?.success) setBrands(res.brands || []);
+        };
+        fetchBrands();
+    }, [getAllBrands]);
 
     const countries = Country.getAllCountries();
     const states = countryCode ? State.getStatesOfCountry(countryCode) : [];
@@ -52,6 +65,7 @@ const AddUsers = () => {
         setCountryCode("");
         setStateCode("");
         setCity("");
+        setBrandsHandled([]);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -84,6 +98,7 @@ const AddUsers = () => {
                 fd.append("country", Country.getCountryByCode(countryCode)?.name || "");
                 fd.append("state", State.getStateByCodeAndCountry(stateCode, countryCode)?.name || "");
                 fd.append("city", city);
+                fd.append("brandsHandled", JSON.stringify(brandsHandled));
                 if (profileImage) fd.append("profileImage", profileImage);
                 res = await registerDealer(fd);
             }
@@ -178,6 +193,27 @@ const AddUsers = () => {
                             <div><label className={labelCls}>Email <span className="text-red-500">*</span></label><input type="email" name="email" required value={dealerForm.email} onChange={handleDealerChange} className={inputCls} placeholder="Dealership email" /></div>
                             <div><label className={labelCls}>Phone <span className="text-red-500">*</span></label><input type="tel" name="phone" required value={dealerForm.phone} onChange={handleDealerChange} className={inputCls} placeholder="Dealership phone" /></div>
                             <div><label className={labelCls}>Password <span className="text-red-500">*</span></label><input type="password" name="password" required value={dealerForm.password} onChange={handleDealerChange} className={inputCls} placeholder="Create a password" /></div>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className={labelCls}>Brands Handled</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+                                {brands?.map(b => (
+                                    <label key={b._id} className="flex items-center gap-2 text-sm font-medium text-[#19456d] cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            value={b._id} 
+                                            checked={brandsHandled.includes(b._id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) setBrandsHandled([...brandsHandled, b._id]);
+                                                else setBrandsHandled(brandsHandled.filter(id => id !== b._id));
+                                            }}
+                                            className="w-4 h-4 text-[#b48001] rounded border-[#708ca4]/40 focus:ring-[#b48001]" 
+                                        />
+                                        {b.brandName}
+                                    </label>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="mb-2 border-b border-[#708ca4]/20 pb-2 mt-4">

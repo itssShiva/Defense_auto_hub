@@ -1,240 +1,184 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useBlog } from '../blogs/hooks/useBlog';
-import { Search, Calendar, ArrowRight, Loader2, BookOpen, Clock, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Search, Clock, Tag, ChevronRight, BookOpen } from 'lucide-react';
+import { getAllBlogs } from '../blogs/api/blog.api';
+import Pagination from '../cars/components/Pagination';
+import EmptyState from '../cars/components/EmptyState';
+import { BlogCardSkeleton } from '../cars/components/LoadingSkeleton';
+import { getImageUrl, truncateText, getReadingTime, FALLBACK_IMAGE } from '../cars/utils/helpers';
 
-const CATEGORIES = [
-    "All",
-    "Car Reviews",
-    "Buying Guide",
-    "News",
-    "Electric Vehicles",
-    "Tips & Tricks",
-    "Comparisons",
-];
+const PER_PAGE = 9;
+
+const BlogCard = ({ blog, featured }) => {
+  const img = getImageUrl(blog.image || blog.thumbnail) || FALLBACK_IMAGE;
+  const date = blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const readTime = getReadingTime(blog.content || blog.body || '');
+
+  if (featured) {
+    return (
+      <Link to={`/blogs/${blog._id}`}
+        className="group relative block rounded-3xl overflow-hidden border border-[#708ca4]/15 shadow-lg hover:shadow-2xl transition-all duration-400 bg-white">
+        <div className="relative h-72 md:h-96 overflow-hidden">
+          <img src={img} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            onError={(e) => { e.target.src = FALLBACK_IMAGE; }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-8">
+            {blog.category && (
+              <span className="inline-block px-3 py-1 bg-[#b48001] text-white text-xs font-bold rounded-full mb-3 uppercase tracking-widest">
+                {blog.category}
+              </span>
+            )}
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-2 leading-tight group-hover:text-[#b48001] transition-colors">{blog.title}</h2>
+            {blog.content && <p className="text-white/70 text-sm line-clamp-2 mb-4">{truncateText(blog.content, 160)}</p>}
+            <div className="flex items-center gap-4 text-white/60 text-xs">
+              {date && <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{date}</span>}
+              <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" />{readTime}</span>
+              <span className="ml-auto flex items-center gap-1 font-bold text-[#b48001] group-hover:gap-2 transition-all">
+                Read More <ChevronRight className="w-4 h-4" />
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
+  return (
+    <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.22 }}>
+      <Link to={`/blogs/${blog._id}`}
+        className="group block bg-white rounded-2xl border border-[#708ca4]/15 overflow-hidden shadow-sm hover:shadow-xl hover:border-[#b48001]/30 transition-all duration-300">
+        <div className="relative h-48 overflow-hidden bg-[#fafbf8]">
+          <img src={img} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => { e.target.src = FALLBACK_IMAGE; }} />
+          {blog.category && (
+            <div className="absolute top-3 left-3 px-2.5 py-1 bg-[#19456d]/85 backdrop-blur-sm text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+              {blog.category}
+            </div>
+          )}
+        </div>
+        <div className="p-5">
+          <h3 className="font-extrabold text-[#19456d] group-hover:text-[#b48001] transition-colors leading-snug mb-2 text-base">
+            {blog.title}
+          </h3>
+          {blog.content && (
+            <p className="text-[#708ca4] text-sm leading-relaxed mb-3">{truncateText(blog.content, 100)}</p>
+          )}
+          <div className="flex items-center gap-3 text-xs text-[#708ca4]">
+            {date && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{date}</span>}
+            <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" />{readTime}</span>
+            <ChevronRight className="w-3.5 h-3.5 ml-auto text-[#b48001] group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+};
 
 const Blogs = () => {
-    const navigate = useNavigate();
-    const { blogs, loading, fetchAllBlogs, fetchBlogsByCategory } = useBlog();
-    const [activeCategory, setActiveCategory] = useState("All");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [hoveredCard, setHoveredCard] = useState(null);
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [page, setPage] = useState(1);
 
-    useEffect(() => {
-        if (activeCategory === "All") {
-            fetchAllBlogs();
-        } else {
-            fetchBlogsByCategory(activeCategory);
-        }
-    }, [activeCategory, fetchAllBlogs, fetchBlogsByCategory]);
+  useEffect(() => {
+    document.title = 'Blogs — Defence Auto Hub';
+    (async () => {
+      setLoading(true);
+      const res = await getAllBlogs();
+      if (res?.success) setBlogs(res.blogs || []);
+      setLoading(false);
+    })();
+  }, []);
 
-    const filteredBlogs = blogs?.filter(blog =>
-        blog?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog?.shortDescription?.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+  const categories = useMemo(() => {
+    const set = new Set(blogs.map((b) => b.category).filter(Boolean));
+    return ['All', ...Array.from(set)];
+  }, [blogs]);
 
-    return (
-        <div className="min-h-screen bg-slate-50 font-sans selection:bg-[#b48001] selection:text-white">
-            {/* Dynamic Hero Section with Abstract Background */}
-            <div className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden bg-[#19456d]">
-                {/* Decorative background shapes */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
-                        className="absolute top-[20%] right-[10%] w-[60%] h-[60%] rounded-full bg-linear-to-br from-[#b48001]/30 to-transparent blur-3xl mix-blend-overlay"
-                    />
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut', delay: 0.5 }}
-                        className="absolute -ottom-[20%] left-[10%] w-[50%] h-[50%] rounded-full bg-linear-to-tr from-blue-400/20 to-transparent blur-3xl mix-blend-overlay"
-                    />
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                </div>
+  const filtered = useMemo(() => {
+    let list = [...blogs];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((b) => b.title?.toLowerCase().includes(q) || b.category?.toLowerCase().includes(q));
+    }
+    if (activeCategory !== 'All') list = list.filter((b) => b.category === activeCategory);
+    return list;
+  }, [blogs, search, activeCategory]);
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                    >
-                        <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 text-white/90 text-sm font-semibold tracking-wider mb-6 backdrop-blur-md uppercase">
-                            FoujiAdda Journal
-                        </span>
-                        <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
-                            Discover the <span className="text-transparent bg-clip-text bg-linear-to-r from-[#b48001] to-yellow-300">Future</span><br /> of Driving
-                        </h1>
-                        <p className="text-lg md:text-xl text-blue-100/80 max-w-2xl mx-auto font-medium leading-relaxed">
-                            Expert reviews, industry insights, and the ultimate guides to making your next automotive decision.
-                        </p>
-                    </motion.div>
-                </div>
-            </div>
+  const featured = filtered[0];
+  const rest = filtered.slice(1);
+  const totalPages = Math.ceil(rest.length / PER_PAGE);
+  const paged = rest.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
-                {/* Advanced Search & Filter Bar */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    className="bg-white/80 backdrop-blur-xl rounded-3xl p-4 shadow-2xl shadow-blue-900/5 border border-white/40 flex flex-col xl:flex-row justify-between items-center gap-6"
-                >
-                    {/* Animated Tab Bar */}
-                    <div className="flex overflow-x-auto w-full lg:flex-1 hide-scrollbar gap-1 md:gap-2 px-1 items-center pb-2 lg:pb-0">
-                        {CATEGORIES.map(category => (
-                            <button
-                                key={category}
-                                onClick={() => setActiveCategory(category)}
-                                className={`relative px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors duration-300 z-10 shrink-0 ${activeCategory === category
-                                    ? 'text-white'
-                                    : 'text-[#19456d] hover:text-[#b48001] hover:bg-slate-50'
-                                    }`}
-                            >
-                                {activeCategory === category && (
-                                    <motion.div
-                                        layoutId="activeCategoryIndicator"
-                                        className="absolute inset-0 bg-linear-to-r from-[#19456d] to-[#2a629a] rounded-xl -z-10 shadow-md shadow-[#19456d]/20"
-                                        initial={false}
-                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                    />
-                                )}
-                                {category}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Search Bar */}
-                    <div className="relative w-full lg:w-80 xl:w-96 group shrink-0">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-slate-400 group-focus-within:text-[#b48001] transition-colors" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search by title or keyword..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-[#b48001] focus:ring-4 focus:ring-[#b48001]/10 transition-all duration-300 outline-none text-slate-700 font-medium placeholder-slate-400 shadow-inner"
-                        />
-                    </div>
-                </motion.div>
-
-                {/* Main Content Area */}
-                <div className="py-16">
-                    {loading ? (
-                        <div className="flex flex-col justify-center items-center h-64 space-y-4">
-                            <div className="relative w-16 h-16">
-                                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="absolute inset-0 rounded-full border-4 border-slate-200 border-t-[#b48001]" />
-                            </div>
-                            <p className="text-slate-500 font-semibold animate-pulse">Curating insights for you...</p>
-                        </div>
-                    ) : (
-                        <>
-                            {filteredBlogs.length > 0 ? (
-                                <motion.div
-                                    layout
-                                    className="grid grid-cols-1 md:grid-cols-3 gap-8"
-                                >
-                                    <AnimatePresence mode='popLayout'>
-                                        {filteredBlogs.map((blog, idx) => (
-                                            <motion.div
-                                                key={blog._id}
-                                                layout
-                                                initial={{ opacity: 0, y: 30 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 20 }}
-                                                transition={{ duration: 0.4, delay: idx * 0.05 }}
-                                                onClick={() => navigate(`/blogs/${blog._id}`)}
-                                                className="group cursor-pointer bg-white rounded-3xl border border-[#708ca4]/30 p-5 hover:shadow-xl transition-shadow"
-                                            >
-                                                {/* Image */}
-                                                <div className="relative h-64 rounded-2xl overflow-hidden mb-6">
-                                                    <img
-                                                        src={blog.blogImages?.[0] || 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=600&q=80'}
-                                                        alt={blog.title}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                    />
-                                                    {/* Category pill */}
-                                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold text-[#b48001] uppercase tracking-wider">
-                                                        {blog.category}
-                                                    </div>
-                                                </div>
-
-                                                {/* Meta */}
-                                                <div className="flex items-center gap-3 text-xs font-semibold text-slate-400 mb-3 px-1">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Calendar className="w-3.5 h-3.5 text-[#b48001]" />
-                                                        {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                    </div>
-                                                    <div className="w-1 h-1 rounded-full bg-slate-300" />
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Clock className="w-3.5 h-3.5 text-[#b48001]" />
-                                                        5 min read
-                                                    </div>
-                                                </div>
-
-                                                {/* Title */}
-                                                <h3 className="text-2xl font-bold text-[#19456d] mb-3 group-hover:text-[#b48001] transition-colors px-1 line-clamp-2">
-                                                    {blog.title}
-                                                </h3>
-
-                                                {/* Description */}
-                                                <p className="text-[#19456d]/70 mb-4 line-clamp-2 px-1 leading-relaxed">
-                                                    {blog.shortDescription}
-                                                </p>
-
-                                                {/* CTA */}
-                                                <span className="text-[#b48001] font-bold flex items-center gap-2 group-hover:gap-3 transition-all px-1">
-                                                    Read Article <ArrowRight className="w-4 h-4" />
-                                                </span>
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
-                                </motion.div>
-                            ) : (
-                                /* Interactive Empty State */
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="flex flex-col items-center justify-center py-32 px-4 text-center bg-white rounded-3xl border border-dashed border-slate-300 shadow-sm"
-                                >
-                                    <div className="relative mb-6">
-                                        <div className="absolute inset-0 bg-[#b48001]/20 blur-2xl rounded-full" />
-                                        <div className="relative bg-white p-6 rounded-3xl shadow-xl shadow-[#19456d]/5 border border-slate-100">
-                                            <Search className="w-12 h-12 text-[#19456d]" />
-                                        </div>
-                                    </div>
-                                    <h3 className="text-3xl font-extrabold text-slate-800 mb-3">No articles found</h3>
-                                    <p className="text-slate-500 text-lg max-w-md mb-8">We couldn't find anything matching your current search or category filters.</p>
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => { setActiveCategory("All"); setSearchTerm(""); }}
-                                        className="px-8 py-4 bg-[#19456d] text-white rounded-2xl font-bold shadow-lg shadow-[#19456d]/30 hover:bg-[#123351] transition-colors flex items-center gap-2"
-                                    >
-                                        Clear all filters
-                                    </motion.button>
-                                </motion.div>
-                            )}
-                        </>
-                    )}
-                </div>
-            </div>
-
-            {/* CSS for hiding scrollbar in horizontal lists */}
-            <style jsx>{`
-                .hide-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .hide-scrollbar {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-            `}</style>
+  return (
+    <div className="min-h-screen bg-[#fafbf8]">
+      {/* Hero */}
+      <div className="bg-gradient-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#b48001] text-xs font-bold uppercase tracking-[4px] mb-3">
+            Defence Auto Hub
+          </motion.p>
+          <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="text-4xl md:text-5xl font-extrabold text-white mb-3">
+            Auto <span className="text-[#b48001]">Insights</span>
+          </motion.h1>
+          <p className="text-[#708ca4] mb-8">{loading ? '…' : `${blogs.length} articles for defence auto enthusiasts`}</p>
+          <div className="max-w-xl mx-auto relative">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#708ca4]" />
+            <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search articles…"
+              className="w-full pl-14 pr-5 py-4 rounded-2xl bg-white text-[#19456d] font-medium focus:outline-none shadow-2xl text-base" />
+          </div>
         </div>
-    );
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        {/* Category tabs */}
+        {categories.length > 2 && (
+          <div className="flex gap-2 mb-8 overflow-x-auto pb-1">
+            {categories.map((cat) => (
+              <button key={cat} onClick={() => { setActiveCategory(cat); setPage(1); }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-all flex-shrink-0 ${
+                  activeCategory === cat ? 'bg-[#b48001] text-white shadow-md' : 'bg-white border border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
+                }`}>
+                <Tag className="w-3.5 h-3.5" />{cat}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Content */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => <BlogCardSkeleton key={i} />)}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState title="No articles found" message="Try a different search or category." action={{ label: 'Clear', onClick: () => { setSearch(''); setActiveCategory('All'); } }} />
+        ) : (
+          <>
+            {featured && (
+              <div className="mb-8">
+                <BlogCard blog={featured} featured />
+              </div>
+            )}
+            {paged.length > 0 && (
+              <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paged.map((blog) => (
+                  <motion.div key={blog._id} variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }}>
+                    <BlogCard blog={blog} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default Blogs;

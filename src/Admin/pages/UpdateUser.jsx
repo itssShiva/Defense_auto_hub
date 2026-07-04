@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Country, State, City } from "country-state-city";
 import { getUserById, getDealerById, updateUser, updateDealer } from "../../auth/Api/auth.api";
 import { toast } from "react-hot-toast";
+import { useBrand } from "../../brand/hooks/useBrand";
 
 const UpdateUser = ({ userId, userType, goBack }) => {
     const fileInputRef = useRef(null);
@@ -25,6 +26,10 @@ const UpdateUser = ({ userId, userType, goBack }) => {
     const [stateLocation, setStateLocation] = useState("");
     const [pincode, setPincode] = useState("");
     const [country, setCountry] = useState("");
+    const [brandsHandled, setBrandsHandled] = useState([]);
+
+    const { getAllBrands } = useBrand();
+    const [brands, setBrands] = useState([]);
 
     // ISO codes for fetching subsequent dropdowns
     const [countryCode, setCountryCode] = useState("");
@@ -40,6 +45,12 @@ const UpdateUser = ({ userId, userType, goBack }) => {
     const [initialLoading, setInitialLoading] = useState(true);
 
     useEffect(() => {
+        const fetchBrands = async () => {
+            const res = await getAllBrands();
+            if (res?.success) setBrands(res.brands || []);
+        };
+        fetchBrands();
+        
         const fetchDetails = async () => {
             setInitialLoading(true);
             try {
@@ -69,6 +80,9 @@ const UpdateUser = ({ userId, userType, goBack }) => {
                         setPincode(d.pincode || "");
                         setCountry(d.country || "");
                         setCurrentImage(d.profileImage || "");
+                        if (d.brandsHandled) {
+                            setBrandsHandled(d.brandsHandled.map(b => typeof b === 'object' ? b._id : b));
+                        }
 
                         // Attempt to reverse match Country/State codes for dropdowns
                         const matchedCountry = countries.find(c => c.name === d.country);
@@ -125,6 +139,7 @@ const UpdateUser = ({ userId, userType, goBack }) => {
                 formData.append("state", stateLocation);
                 formData.append("pincode", pincode);
                 formData.append("country", country);
+                formData.append("brandsHandled", JSON.stringify(brandsHandled));
                 if (password) formData.append("password", password); // Only send if changed
                 if (profileImage) formData.append("profileImage", profileImage);
 
@@ -248,6 +263,27 @@ const UpdateUser = ({ userId, userType, goBack }) => {
                                 className="w-full px-4 py-3 rounded-xl border border-[#708ca4]/40 focus:outline-none focus:border-[#b48001] focus:ring-1 focus:ring-[#b48001] transition-all bg-white text-[#19456d] font-medium"
                                 placeholder="Full Name"
                             />
+                        </div>
+
+                        <div className="group sm:col-span-2 mb-4">
+                            <label className="block text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">Brands Handled</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+                                {brands?.map(b => (
+                                    <label key={b._id} className="flex items-center gap-2 text-sm font-medium text-[#19456d] cursor-pointer">
+                                        <input 
+                                            type="checkbox" 
+                                            value={b._id} 
+                                            checked={brandsHandled.includes(b._id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) setBrandsHandled([...brandsHandled, b._id]);
+                                                else setBrandsHandled(brandsHandled.filter(id => id !== b._id));
+                                            }}
+                                            className="w-4 h-4 text-[#b48001] rounded border-[#708ca4]/40 focus:ring-[#b48001]" 
+                                        />
+                                        {b.brandName}
+                                    </label>
+                                ))}
+                            </div>
                         </div>
 
                         <div className="group">

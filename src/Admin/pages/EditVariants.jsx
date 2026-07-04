@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
+import { useBrand } from "../../brand/hooks/useBrand.js";
 import { toast } from "react-hot-toast";
 
 /* ─── Reusable field components ─────────────────────────────────── */
@@ -40,6 +41,19 @@ const EditVariants = ({ variantId, handleBack }) => {
     const [pageLoading, setPageLoading] = useState(true);
     const fileInputRef = useRef(null);
 
+    const { getAllBrands } = useBrand();
+    const [brands, setBrands] = useState([]);
+    
+    useEffect(() => {
+        const fetchBrands = async () => {
+            const res = await getAllBrands();
+            if (res?.success && res.brands) {
+                setBrands(res.brands);
+            }
+        };
+        fetchBrands();
+    }, [getAllBrands]);
+
     /* ── Load car models & variant data ── */
     useEffect(() => {
         const load = async () => {
@@ -56,7 +70,8 @@ const EditVariants = ({ variantId, handleBack }) => {
                 if (variantRes?.success && variantRes.variant) {
                     const v = variantRes.variant;
                     setForm({
-                        modelId: v.modelId || "",
+                        brandId: v.brandId?._id || v.brandId || "",
+                        modelId: v.modelId?._id || v.modelId || "",
                         variantName: v.variantName || "",
                         fuelType: v.fuelType || "",
                         transmissionType: v.transmissionType || "",
@@ -112,7 +127,13 @@ const EditVariants = ({ variantId, handleBack }) => {
     /* ── Two-way binding ── */
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        
+        if (name === "brandId") {
+            setForm((prev) => ({ ...prev, brandId: value, modelId: "" }));
+        } else {
+            setForm((prev) => ({ ...prev, [name]: value }));
+        }
+        
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
@@ -144,6 +165,7 @@ const EditVariants = ({ variantId, handleBack }) => {
     const validate = () => {
         const errs = {};
 
+        if (!form.brandId) errs.brandId = "Please select a brand.";
         if (!form.modelId) errs.modelId = "Please select a car model.";
         if (!form.variantName?.trim()) errs.variantName = "Variant name is required.";
 
@@ -230,23 +252,30 @@ const EditVariants = ({ variantId, handleBack }) => {
                     <div className="grid grid-cols-1 gap-5">
                         <SectionTitle icon="🚗">Base Car Model</SectionTitle>
 
-                        <Field label="Select Car Model" required error={errors.modelId}>
-                            <select
-                                id="variant-field-modelId"
-                                name="modelId"
-                                value={form.modelId}
-                                onChange={handleChange}
-                                disabled={modelsLoading}
-                                className={inputCls(errors.modelId)}
-                            >
-                                <option value="">
-                                    {modelsLoading ? "Loading models…" : "-- Select a base model --"}
-                                </option>
-                                {models.map((m) => (
-                                    <option key={m._id} value={m._id}>
-                                        {m.brandName} {m.modelName} ({m.year}) — {m.fuelType} / {m.transmissionType}
-                                    </option>
+                        <Field label="Brand" required error={errors.brandId}>
+                            <select id="variant-field-brandId" name="brandId"
+                                value={form.brandId} onChange={handleChange}
+                                className={inputCls(errors.brandId)}>
+                                <option value="">Select a Brand</option>
+                                {brands.map(b => (
+                                    <option key={b._id} value={b._id}>{b.brandName}</option>
                                 ))}
+                            </select>
+                        </Field>
+
+                        <Field label="Parent Model" required error={errors.modelId}>
+                            <select id="variant-field-modelId" name="modelId"
+                                value={form.modelId} onChange={handleChange}
+                                className={inputCls(errors.modelId)}
+                                disabled={!form.brandId}>
+                                <option value="">Select a Car Model</option>
+                                {models
+                                    .filter(m => m.brandId?._id === form.brandId || m.brandId === form.brandId)
+                                    .map(m => (
+                                        <option key={m._id} value={m._id}>
+                                            {m.brandName} {m.modelName} ({m.year})
+                                        </option>
+                                    ))}
                             </select>
                         </Field>
 
