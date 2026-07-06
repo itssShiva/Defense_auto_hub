@@ -69,7 +69,7 @@ export const VariantListSkeleton = ({ count = 4 }) => (
   <div className="space-y-3">
     {Array.from({ length: count }).map((_, i) => (
       <div key={i} className="flex gap-4 p-4 bg-white rounded-xl border border-[#708ca4]/10">
-        <SkeletonBox className="w-24 h-20 flex-shrink-0 rounded-lg" />
+        <SkeletonBox className="w-24 h-20 shrink-0 rounded-lg" />
         <div className="flex-1 space-y-2">
           <SkeletonBox className="h-5 w-1/2" />
           <div className="flex gap-2">

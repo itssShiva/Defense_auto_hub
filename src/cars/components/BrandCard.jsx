@@ -16,7 +16,7 @@ const BrandCard = ({ brand, modelCount }) => {
                    relative overflow-hidden"
       >
         {/* Top accent bar */}
-        <span className="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-[#b48001] to-[#19456d] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left rounded-t-2xl" />
+        <span className="absolute top-0 inset-x-0 h-[3px] bg-linear-to-r from-[#b48001] to-[#19456d] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left rounded-t-2xl" />
 
         {/* Logo */}
         <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-[#fafbf8] border border-[#708ca4]/10 flex items-center justify-center overflow-hidden p-2">

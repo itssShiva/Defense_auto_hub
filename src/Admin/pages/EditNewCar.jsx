@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
+import { getAllBrands, createBrand } from "../../brand/api/brand.api";
 import { toast } from "react-hot-toast";
 
 /* ─── Reusable field components ─────────────────────────────────── */
@@ -30,8 +31,25 @@ const EditNewCar = ({ carId, goBack }) => {
     const [newImages, setNewImages] = useState([]);
     const [newImagePreviews, setNewImagePreviews] = useState([]);
     const [existingImages, setExistingImages] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [isOtherBrand, setIsOtherBrand] = useState(false);
+    const [customBrandName, setCustomBrandName] = useState("");
     const [errors, setErrors] = useState({});
     const [initialLoading, setInitialLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchBrands = async () => {
+            try {
+                const res = await getAllBrands();
+                if (res?.success) {
+                    setBrands(res.brands || []);
+                }
+            } catch (err) {
+                console.error("Failed to fetch brands", err);
+            }
+        };
+        fetchBrands();
+    }, []);
 
     /* ── Load existing car on mount ── */
     useEffect(() => {
@@ -41,6 +59,8 @@ const EditNewCar = ({ carId, goBack }) => {
             if (res?.success && res.car) {
                 const c = res.car;
                 setForm({
+                    brandId: c.brandId || "",
+                    brandName: c.brandName || "",
                     IndexNo: c.IndexNo || "",
                     Model: c.Model || "",
                     FuelType: c.FuelType || "",
@@ -99,10 +119,10 @@ const EditNewCar = ({ carId, goBack }) => {
         if (!files.length) return;
         const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
         if (oversized.length) toast.error(`${oversized.length} file(s) exceed 5 MB and were skipped.`);
-        
+
         const valid = files.filter(f => f.size <= 5 * 1024 * 1024 && f.type.startsWith("image/"));
         if (!valid.length) { e.target.value = ""; return; }
-        
+
         setNewImages(prev => [...prev, ...valid]);
         setNewImagePreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))]);
         e.target.value = "";
@@ -121,7 +141,7 @@ const EditNewCar = ({ carId, goBack }) => {
     const validate = () => {
         const newErrors = {};
         const requiredTextFields = [
-            "IndexNo", "Model", "FuelType", "TransmissionType", "BodyType",
+            "brandId", "brandName", "IndexNo", "Model", "FuelType", "TransmissionType", "BodyType",
             "Entitlement", "engineDisplacement", "MaxPower", "CityMileage",
             "BootSpace", "RegistraionFee", "details",
         ];
@@ -158,19 +178,43 @@ const EditNewCar = ({ carId, goBack }) => {
             document.getElementById(`edit-field-${firstErrorKey}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
+        try {
+            if (isOtherBrand) {
+                if (!customBrandName.trim()) {
+                    toast.error("Please enter the custom brand name.");
+                    return;
+                }
+                const brandFormData = new FormData();
+                brandFormData.append("brandName", customBrandName.trim());
+                brandFormData.append("brandCountry", "Unknown");
 
-        const formData = new FormData();
-        Object.entries(form).forEach(([key, value]) => {
-            formData.append(key, value);
-        });
-        if (newImages.length) {
+                const brandRes = await createBrand(brandFormData);
+                if (brandRes?.success) {
+                    form.brandId = brandRes.brand._id;
+                    form.brandName = brandRes.brand.brandName;
+
+                    setBrands(prev => [...prev, brandRes.brand]);
+                } else {
+                    toast.error(brandRes?.message || "Failed to create custom brand.");
+                    return;
+                }
+            }
+
+            const formData = new FormData();
+            Object.entries(form).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+
             newImages.forEach(img => formData.append("carImages", img));
-        }
-        formData.append("existingImages", JSON.stringify(existingImages));
+            formData.append("existingImages", JSON.stringify(existingImages));
 
-        const res = await updateCar(carId, formData);
-        if (res?.success) {
-            goBack();
+            const res = await updateCar(carId, formData);
+            if (res?.success) {
+                goBack();
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to update car. Please try again.");
         }
     };
 
@@ -215,6 +259,49 @@ const EditNewCar = ({ carId, goBack }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <SectionTitle>Car Identity</SectionTitle>
 
+                        {/* Brand */}
+                        <Field label="Brand" required>
+                            <select id="field-brandId" name="brandId"
+                                value={isOtherBrand ? "others" : form.brandId}
+                                onChange={(e) => {
+                                    if (e.target.value === "others") {
+                                        setIsOtherBrand(true);
+                                        setForm(prev => ({ ...prev, brandId: "", brandName: "" }));
+                                    } else {
+                                        setIsOtherBrand(false);
+                                        const selectedBrand = brands.find(b => b._id === e.target.value);
+                                        setForm(prev => ({
+                                            ...prev,
+                                            brandId: e.target.value,
+                                            brandName: selectedBrand ? selectedBrand.brandName : ""
+                                        }));
+                                    }
+                                    if (errors.brandId) setErrors(prev => ({ ...prev, brandId: "" }));
+                                }}
+                                className={`${inputCls} ${errCls("brandId")}`}>
+                                <option value="">Select Brand</option>
+                                {brands.map((b) => (
+                                    <option key={b._id} value={b._id}>{b.brandName}</option>
+                                ))}
+                                <option value="others">Others (Add New)</option>
+                            </select>
+                            {errors.brandId && !isOtherBrand && <p className="mt-1 text-xs text-red-500">{errors.brandId}</p>}
+
+                            {isOtherBrand && (
+                                <div className="mt-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter new brand name"
+                                        value={customBrandName}
+                                        onChange={(e) => setCustomBrandName(e.target.value)}
+                                        className={`${inputCls} ${!customBrandName.trim() ? "border-red-400 focus:border-red-500 focus:ring-red-400" : ""}`}
+                                    />
+                                    {!customBrandName.trim() && <p className="mt-1 text-xs text-red-500">Brand name is required.</p>}
+                                </div>
+                            )}
+                        </Field>
+
+                        {/* Index No */}
                         <Field label="Index No" required>
                             <input id="edit-field-IndexNo" type="text" name="IndexNo"
                                 value={form.IndexNo} onChange={handleChange}

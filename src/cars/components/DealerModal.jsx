@@ -7,7 +7,7 @@ const DealerModal = ({ isOpen, onClose, dealer }) => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -43,7 +43,7 @@ const DealerModal = ({ isOpen, onClose, dealer }) => {
                     <p className="text-sm font-bold text-[#19456d]">{dealer.dealerName || 'Unknown Dealer'}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-4 p-4 bg-[#fafbf8] border border-[#708ca4]/15 rounded-xl">
                   <Phone className="w-5 h-5 text-[#b48001] mt-0.5" />
                   <div>
@@ -73,7 +73,7 @@ const DealerModal = ({ isOpen, onClose, dealer }) => {
                 </div>
               </>
             )}
-            
+
             <button
               onClick={onClose}
               className="w-full mt-2 py-3.5 bg-[#19456d] text-white text-sm font-bold rounded-xl hover:bg-[#b48001] transition-colors"

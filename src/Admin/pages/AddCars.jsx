@@ -1,9 +1,12 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { addNewCar } from "../../cars/Api/cars.api";
+import { getAllBrands, createBrand } from "../../brand/api/brand.api";
 import { toast } from "react-hot-toast";
 
 /* ─── Initial form state ────────────────────────────────────────── */
 const INITIAL = {
+    brandId: "",
+    brandName: "",
     IndexNo: "",
     Model: "",
     FuelType: "",
@@ -62,9 +65,26 @@ const AddCars = () => {
     const [form, setForm] = useState(INITIAL);
     const [carImages, setCarImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [isOtherBrand, setIsOtherBrand] = useState(false);
+    const [customBrandName, setCustomBrandName] = useState("");
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        const fetchBrands = async () => {
+            try {
+                const res = await getAllBrands();
+                if (res?.success) {
+                    setBrands(res.brands || []);
+                }
+            } catch (err) {
+                console.error("Failed to fetch brands", err);
+            }
+        };
+        fetchBrands();
+    }, []);
 
     /* ── Two-way binding handler ── */
     const handleChange = (e) => {
@@ -99,7 +119,7 @@ const AddCars = () => {
     const validate = () => {
         const newErrors = {};
         const requiredTextFields = [
-            "IndexNo", "Model", "FuelType", "TransmissionType", "BodyType",
+            "brandId", "brandName", "IndexNo", "Model", "FuelType", "TransmissionType", "BodyType",
             "Entitlement", "engineDisplacement", "MaxPower", "CityMileage",
             "BootSpace", "RegistraionFee", "details",
         ];
@@ -144,6 +164,31 @@ const AddCars = () => {
         const toastId = toast.loading("Adding car to database…");
 
         try {
+            // Handle creating new brand if 'Others' is selected
+            if (isOtherBrand) {
+                if (!customBrandName.trim()) {
+                    toast.error("Please enter the custom brand name.", { id: toastId });
+                    setLoading(false);
+                    return;
+                }
+                const brandFormData = new FormData();
+                brandFormData.append("brandName", customBrandName.trim());
+                brandFormData.append("brandCountry", "Unknown"); // Default for now
+                
+                const brandRes = await createBrand(brandFormData);
+                if (brandRes?.success) {
+                    form.brandId = brandRes.brand._id;
+                    form.brandName = brandRes.brand.brandName;
+                    
+                    // Add to brands list locally so we have it
+                    setBrands(prev => [...prev, brandRes.brand]);
+                } else {
+                    toast.error(brandRes?.message || "Failed to create custom brand.", { id: toastId });
+                    setLoading(false);
+                    return;
+                }
+            }
+
             const formData = new FormData();
             // Append all text/number fields
             Object.entries(form).forEach(([key, value]) => {
@@ -161,6 +206,8 @@ const AddCars = () => {
                 setCarImages([]);
                 setImagePreviews([]);
                 setErrors({});
+                setIsOtherBrand(false);
+                setCustomBrandName("");
                 if (fileInputRef.current) fileInputRef.current.value = "";
             } else {
                 toast.error(response?.message || "Failed to add car. Please try again.", { id: toastId });
@@ -200,6 +247,48 @@ const AddCars = () => {
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <SectionTitle>Car Identity</SectionTitle>
+
+                        {/* Brand */}
+                        <Field label="Brand" required>
+                            <select id="field-brandId" name="brandId"
+                                value={isOtherBrand ? "others" : form.brandId} 
+                                onChange={(e) => {
+                                    if (e.target.value === "others") {
+                                        setIsOtherBrand(true);
+                                        setForm(prev => ({ ...prev, brandId: "", brandName: "" }));
+                                    } else {
+                                        setIsOtherBrand(false);
+                                        const selectedBrand = brands.find(b => b._id === e.target.value);
+                                        setForm(prev => ({ 
+                                            ...prev, 
+                                            brandId: e.target.value,
+                                            brandName: selectedBrand ? selectedBrand.brandName : ""
+                                        }));
+                                    }
+                                    if (errors.brandId) setErrors(prev => ({ ...prev, brandId: "" }));
+                                }}
+                                className={`${inputCls} ${errCls("brandId")}`}>
+                                <option value="">Select Brand</option>
+                                {brands.map((b) => (
+                                    <option key={b._id} value={b._id}>{b.brandName}</option>
+                                ))}
+                                <option value="others">Others (Add New)</option>
+                            </select>
+                            {errors.brandId && !isOtherBrand && <p className="mt-1 text-xs text-red-500">{errors.brandId}</p>}
+                            
+                            {isOtherBrand && (
+                                <div className="mt-3">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Enter new brand name" 
+                                        value={customBrandName}
+                                        onChange={(e) => setCustomBrandName(e.target.value)}
+                                        className={`${inputCls} ${!customBrandName.trim() ? "border-red-400 focus:border-red-500 focus:ring-red-400" : ""}`}
+                                    />
+                                    {!customBrandName.trim() && <p className="mt-1 text-xs text-red-500">Brand name is required.</p>}
+                                </div>
+                            )}
+                        </Field>
 
                         {/* Index No */}
                         <Field label="Index No" required>

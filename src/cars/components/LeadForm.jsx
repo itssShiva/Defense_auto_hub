@@ -111,7 +111,7 @@ const LeadForm = ({ isOpen, onClose, type = 'bestPrice', carName = '' }) => {
                   {carName && <p className="text-[#b48001] font-bold text-sm mt-0.5">{carName}</p>}
                   <p className="text-[#708ca4] text-sm mt-1">{cfg.subtitle}</p>
                 </div>
-                <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-[#708ca4]/12 hover:bg-red-100 text-[#708ca4] hover:text-red-500 transition-all ml-3 flex-shrink-0">
+                <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-[#708ca4]/12 hover:bg-red-100 text-[#708ca4] hover:text-red-500 transition-all ml-3 shrink-0">
                   <X className="w-4 h-4" />
                 </button>
               </div>

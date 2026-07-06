@@ -43,21 +43,21 @@ const VariantDetailPage = () => {
 
   const specRows = variant
     ? [
-        ['Brand', variant.brandName || variant.brandId?.brandName],
-        ['Model', variant.modelName || variant.modelId?.modelName],
-        ['Variant', variant.variantName],
-        ['Year', variant.year],
-        ['Category', variant.category],
-        ['Body Type', variant.bodyType],
-        ['Fuel Type', variant.fuelType],
-        ['Transmission', variant.transmissionType],
-        ['Engine', variant.engine],
-        ['Max Power', variant.maxPower],
-        ['Max Torque', variant.maxTorque],
-        ['Mileage', variant.mileage],
-        ['Seating Capacity', variant.seatingCapacity ? `${variant.seatingCapacity} persons` : null],
-        ['Boot Space', variant.bootSpace],
-      ]
+      ['Brand', variant.brandName || variant.brandId?.brandName],
+      ['Model', variant.modelName || variant.modelId?.modelName],
+      ['Variant', variant.variantName],
+      ['Year', variant.year],
+      ['Category', variant.category],
+      ['Body Type', variant.bodyType],
+      ['Fuel Type', variant.fuelType],
+      ['Transmission', variant.transmissionType],
+      ['Engine', variant.engine],
+      ['Max Power', variant.maxPower],
+      ['Max Torque', variant.maxTorque],
+      ['Mileage', variant.mileage],
+      ['Seating Capacity', variant.seatingCapacity ? `${variant.seatingCapacity} persons` : null],
+      ['Boot Space', variant.bootSpace],
+    ]
     : [];
 
   const features = variant?.features
@@ -149,7 +149,7 @@ const VariantDetailPage = () => {
                 </div>
 
                 {/* Price card */}
-                <div className="bg-gradient-to-br from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
+                <div className="bg-linear-to-br from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
                   <div className="grid grid-cols-2 gap-4 mb-3">
                     {variant.CSDPrice && (
                       <div>
@@ -215,9 +215,8 @@ const VariantDetailPage = () => {
             <div className="flex gap-1 bg-white rounded-2xl border border-[#708ca4]/15 p-1.5 mb-8 overflow-x-auto shadow-sm">
               {TABS.map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
-                  className={`flex-1 min-w-max px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${
-                    activeTab === tab ? 'bg-[#19456d] text-white shadow-md' : 'text-[#708ca4] hover:text-[#19456d]'
-                  }`}>{tab}</button>
+                  className={`flex-1 min-w-max px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${activeTab === tab ? 'bg-[#19456d] text-white shadow-md' : 'text-[#708ca4] hover:text-[#19456d]'
+                    }`}>{tab}</button>
               ))}
             </div>
 
@@ -277,7 +276,7 @@ const VariantDetailPage = () => {
                           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.04 }}
                           className="flex items-start gap-3 p-3 bg-[#fafbf8] rounded-xl border border-[#708ca4]/10">
-                          <CheckCircle className="w-4 h-4 text-[#b48001] flex-shrink-0 mt-0.5" />
+                          <CheckCircle className="w-4 h-4 text-[#b48001] shrink-0 mt-0.5" />
                           <span className="text-sm text-[#19456d] font-medium">{feat}</span>
                         </motion.div>
                       ))}

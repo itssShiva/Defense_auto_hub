@@ -200,15 +200,15 @@ const AddUsers = () => {
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
                                 {brands?.map(b => (
                                     <label key={b._id} className="flex items-center gap-2 text-sm font-medium text-[#19456d] cursor-pointer">
-                                        <input 
-                                            type="checkbox" 
-                                            value={b._id} 
+                                        <input
+                                            type="checkbox"
+                                            value={b._id}
                                             checked={brandsHandled.includes(b._id)}
                                             onChange={(e) => {
                                                 if (e.target.checked) setBrandsHandled([...brandsHandled, b._id]);
                                                 else setBrandsHandled(brandsHandled.filter(id => id !== b._id));
                                             }}
-                                            className="w-4 h-4 text-[#b48001] rounded border-[#708ca4]/40 focus:ring-[#b48001]" 
+                                            className="w-4 h-4 text-[#b48001] rounded border-[#708ca4]/40 focus:ring-[#b48001]"
                                         />
                                         {b.brandName}
                                     </label>

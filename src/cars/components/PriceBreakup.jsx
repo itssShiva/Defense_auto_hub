@@ -10,8 +10,8 @@ const PriceRow = ({ label, value, isTotal }) => {
   return (
     <div
       className={`flex items-center justify-between py-3 ${isTotal
-          ? 'border-t-2 border-[#b48001]/30 mt-1'
-          : 'border-b border-[#708ca4]/8'
+        ? 'border-t-2 border-[#b48001]/30 mt-1'
+        : 'border-b border-[#708ca4]/8'
         } last:border-b-0`}
     >
       <span className={`text-sm ${isTotal ? 'font-extrabold text-[#19456d]' : 'text-[#708ca4] font-medium'}`}>
@@ -87,7 +87,7 @@ const PriceBreakup = ({ item }) => {
     <div className="space-y-4">
       {item.Remarks && (
         <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <p className="text-sm text-amber-800 leading-relaxed">{item.Remarks}</p>
         </div>
       )}

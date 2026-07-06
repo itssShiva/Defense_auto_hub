@@ -14,7 +14,7 @@ const CarCard = ({ car, linkTo, layout = 'grid' }) => {
     return (
       <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.18 }}>
         <Link to={finalLink} className="flex gap-5 bg-white rounded-2xl border border-[#708ca4]/15 p-4 shadow-sm hover:shadow-md hover:border-[#b48001]/30 transition-all">
-          <div className="w-48 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-[#fafbf8] relative">
+          <div className="w-48 h-32 shrink-0 rounded-xl overflow-hidden bg-[#fafbf8] relative">
             <img src={imageSrc} alt={name} className="w-full h-full object-cover" onError={(e) => { e.target.src = FALLBACK_IMAGE; }} />
             {car.category && <div className="absolute top-2 left-2 px-2 py-0.5 bg-[#19456d]/85 backdrop-blur-sm text-white text-[9px] font-bold rounded-full uppercase">{car.category}</div>}
           </div>
@@ -22,8 +22,8 @@ const CarCard = ({ car, linkTo, layout = 'grid' }) => {
             <p className="text-[10px] font-bold text-[#b48001] uppercase tracking-widest">{car.brandName}</p>
             <h3 className="text-lg font-extrabold text-[#19456d] leading-tight mb-2">{name}</h3>
             <div className="flex flex-wrap gap-2 mb-2">
-              {car.fuelType && <span className="flex items-center gap-1 text-xs text-[#708ca4]"><Fuel className="w-3 h-3 text-[#b48001]" />{car.fuelType}</span>}
-              {car.transmissionType && <span className="flex items-center gap-1 text-xs text-[#708ca4]"><Settings2 className="w-3 h-3 text-[#b48001]" />{car.transmissionType}</span>}
+              {car.FuelType && <span className="flex items-center gap-1 text-xs text-[#708ca4]"><Fuel className="w-3 h-3 text-[#b48001]" />{car.FuelType}</span>}
+              {car.TransmissionType && <span className="flex items-center gap-1 text-xs text-[#708ca4]"><Settings2 className="w-3 h-3 text-[#b48001]" />{car.TransmissionType}</span>}
             </div>
             {price && <p className="text-xl font-extrabold text-[#19456d]">{formatCompactPrice(price)}</p>}
           </div>
@@ -48,7 +48,7 @@ const CarCard = ({ car, linkTo, layout = 'grid' }) => {
             onError={(e) => { e.target.src = FALLBACK_IMAGE; }}
           />
           {/* Gradient overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
           {/* Category chip */}
           {car.category && (
@@ -74,14 +74,14 @@ const CarCard = ({ car, linkTo, layout = 'grid' }) => {
 
           {/* Spec chips */}
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {car.fuelType && (
+            {car.FuelType && (
               <span className="flex items-center gap-1 px-2.5 py-1 bg-[#fafbf8] border border-[#708ca4]/20 text-[#19456d] text-[11px] font-semibold rounded-full">
-                <Fuel className="w-3 h-3 text-[#b48001]" />{car.fuelType}
+                <Fuel className="w-3 h-3 text-[#b48001]" />{car.FuelType}
               </span>
             )}
-            {car.transmissionType && (
+            {car.TransmissionType && (
               <span className="flex items-center gap-1 px-2.5 py-1 bg-[#fafbf8] border border-[#708ca4]/20 text-[#19456d] text-[11px] font-semibold rounded-full">
-                <Settings2 className="w-3 h-3 text-[#b48001]" />{car.transmissionType}
+                <Settings2 className="w-3 h-3 text-[#b48001]" />{car.TransmissionType}
               </span>
             )}
           </div>

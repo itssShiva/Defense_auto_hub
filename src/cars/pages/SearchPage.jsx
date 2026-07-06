@@ -97,7 +97,7 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-[#fafbf8]">
       {/* Search Hero */}
-      <div className="bg-gradient-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
+      <div className="bg-linear-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
             className="text-3xl md:text-4xl font-extrabold text-white mb-6">
@@ -129,9 +129,8 @@ const SearchPage = () => {
           <div className="flex gap-2 mb-8 overflow-x-auto pb-1">
             {TABS.map((tab) => (
               <button key={tab} onClick={() => { setActiveTab(tab); setPage(1); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-all flex-shrink-0 ${
-                  activeTab === tab ? 'bg-[#19456d] text-white shadow-md' : 'bg-white border border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
-                }`}>
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-all shrink-0 ${activeTab === tab ? 'bg-[#19456d] text-white shadow-md' : 'bg-white border border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
+                  }`}>
                 {tab}
                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === tab ? 'bg-white/20' : 'bg-[#708ca4]/10'}`}>
                   {counts[tab]}

@@ -21,7 +21,7 @@ const UsedCarDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
-  
+
   // Dealer Modal
   const [dealerModalOpen, setDealerModalOpen] = useState(false);
 
@@ -48,14 +48,14 @@ const UsedCarDetailPage = () => {
 
   const specRows = car
     ? [
-        ['Year', car.year],
-        ['Kilometers Driven', car.kmTravelled || car.kmDriven ? `${(car.kmTravelled || car.kmDriven).toLocaleString('en-IN')} km` : null],
-        ['Fuel Type', car.fuelType],
-        ['Transmission', car.transmissionType],
-        ['Color', car.color],
-        ['Owner', car.owner],
-        ['Location', car.City || car.city || car.Address || car.location],
-      ]
+      ['Year', car.year],
+      ['Kilometers Driven', car.kmTravelled || car.kmDriven ? `${(car.kmTravelled || car.kmDriven).toLocaleString('en-IN')} km` : null],
+      ['Fuel Type', car.fuelType],
+      ['Transmission', car.transmissionType],
+      ['Color', car.color],
+      ['Owner', car.owner],
+      ['Location', car.City || car.city || car.Address || car.location],
+    ]
     : [];
 
   if (!loading && !car) {
@@ -104,7 +104,7 @@ const UsedCarDetailPage = () => {
                 <div className="flex items-center justify-between gap-4">
                   <h1 className="text-3xl md:text-4xl font-extrabold text-[#19456d] leading-tight mb-3">{name}</h1>
                   {(car.status === 'approved' || car.isApproved || car.isVerified === 'Approved' || car.isVerified === 'approved' || car.isVerified === 'Verified' || car.isVerified === 'verified') && (
-                    <span className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 text-sm font-bold rounded-full flex-shrink-0">
+                    <span className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 text-sm font-bold rounded-full shrink-0">
                       <CheckCircle className="w-4 h-4" /> Verified
                     </span>
                   )}
@@ -127,7 +127,7 @@ const UsedCarDetailPage = () => {
 
               {/* Price block */}
               {price && (
-                <div className="bg-gradient-to-r from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
+                <div className="bg-linear-to-r from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
                   <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">Asking Price</p>
                   <p className="text-3xl font-extrabold mb-1">{formatCompactPrice(price)}</p>
                   {emi && (

@@ -122,11 +122,18 @@ const AllCars = ({ handleEditCarClick }) => {
     const FUEL_TYPES = ["All", "Petrol", "Diesel", "Electric", "CNG", "Hybrid"];
 
     const filtered = cars.filter((c) => {
-        const matchSearch =
-            c.Model?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.IndexNo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.BodyType?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchFuel = fuelFilter === "All" || c.FuelType === fuelFilter;
+        const sq = searchQuery.toLowerCase().trim();
+        const matchSearch = !sq || 
+            String(c.Model || "").toLowerCase().includes(sq) ||
+            String(c.brandName || "").toLowerCase().includes(sq) ||
+            String(c.IndexNo || "").toLowerCase().includes(sq) ||
+            String(c.BodyType || "").toLowerCase().includes(sq) ||
+            String(c.FuelType || "").toLowerCase().includes(sq) ||
+            String(c.TransmissionType || "").toLowerCase().includes(sq);
+            
+        const matchFuel = fuelFilter === "All" || 
+            String(c.FuelType || "").toLowerCase().trim() === fuelFilter.toLowerCase();
+            
         return matchSearch && matchFuel;
     });
 

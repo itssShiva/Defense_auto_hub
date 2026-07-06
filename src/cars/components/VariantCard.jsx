@@ -15,7 +15,7 @@ const VariantCard = ({ variant }) => {
                    shadow-sm hover:shadow-md hover:border-[#b48001]/30 transition-all duration-250"
       >
         {/* Thumbnail */}
-        <div className="w-28 h-20 flex-shrink-0 rounded-xl overflow-hidden bg-[#fafbf8]">
+        <div className="w-28 h-20 shrink-0 rounded-xl overflow-hidden bg-[#fafbf8]">
           <img
             src={imageSrc}
             alt={variant.variantName}
@@ -54,7 +54,7 @@ const VariantCard = ({ variant }) => {
           )}
         </div>
 
-        <ChevronRight className="w-4 h-4 text-[#708ca4] self-center flex-shrink-0 group-hover:translate-x-1 group-hover:text-[#b48001] transition-all" />
+        <ChevronRight className="w-4 h-4 text-[#708ca4] self-center shrink-0 group-hover:translate-x-1 group-hover:text-[#b48001] transition-all" />
       </Link>
     </motion.div>
   );

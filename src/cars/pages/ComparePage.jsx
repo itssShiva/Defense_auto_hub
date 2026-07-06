@@ -94,7 +94,7 @@ const ComparePage = () => {
   return (
     <div className="min-h-screen bg-[#fafbf8]">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
+      <div className="bg-linear-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="text-[#b48001] text-xs font-bold uppercase tracking-[4px] mb-3">Defence Auto Hub</motion.p>
@@ -162,7 +162,7 @@ const ComparePage = () => {
                 {chosen && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3 p-3 bg-[#fafbf8] rounded-xl border border-[#708ca4]/10">
                     <img src={getImageUrl(chosen.variantImages?.[0]) || FALLBACK_IMAGE} alt=""
-                      className="w-16 h-12 object-cover rounded-lg flex-shrink-0" onError={(e) => { e.target.src = FALLBACK_IMAGE; }} />
+                      className="w-16 h-12 object-cover rounded-lg shrink-0" onError={(e) => { e.target.src = FALLBACK_IMAGE; }} />
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-[#19456d] truncate">{chosen.variantName}</p>
                       <p className="text-[#b48001] text-xs font-bold">{formatCompactPrice(chosen.CSDPrice) || 'Price N/A'}</p>

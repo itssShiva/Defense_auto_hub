@@ -33,7 +33,7 @@ const ImageViewer = ({ images = [], initialIndex = 0, isOpen, onClose }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/96 backdrop-blur-md"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/96 backdrop-blur-md"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
           {/* Close */}
@@ -70,9 +70,8 @@ const ImageViewer = ({ images = [], initialIndex = 0, isOpen, onClose }) => {
             <img
               src={getImageUrl(images[current]) || FALLBACK_IMAGE}
               alt={`Image ${current + 1}`}
-              className={`transition-all duration-300 ${
-                zoomed ? 'max-w-none w-[160%]' : 'max-w-full max-h-[80vh] object-contain mx-auto block'
-              }`}
+              className={`transition-all duration-300 ${zoomed ? 'max-w-none w-[160%]' : 'max-w-full max-h-[80vh] object-contain mx-auto block'
+                }`}
               onError={(e) => { e.target.src = FALLBACK_IMAGE; }}
             />
           </motion.div>
@@ -91,9 +90,8 @@ const ImageViewer = ({ images = [], initialIndex = 0, isOpen, onClose }) => {
                 <button
                   key={i}
                   onClick={() => setCurrent(i)}
-                  className={`flex-shrink-0 w-12 h-9 rounded-lg overflow-hidden border-2 transition-all ${
-                    i === current ? 'border-[#b48001] opacity-100' : 'border-transparent opacity-45 hover:opacity-75'
-                  }`}
+                  className={`shrink-0 w-12 h-9 rounded-lg overflow-hidden border-2 transition-all ${i === current ? 'border-[#b48001] opacity-100' : 'border-transparent opacity-45 hover:opacity-75'
+                    }`}
                 >
                   <img src={getImageUrl(img) || FALLBACK_IMAGE} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.src = FALLBACK_IMAGE; }} />
                 </button>

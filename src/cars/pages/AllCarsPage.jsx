@@ -49,9 +49,9 @@ const AllCarsPage = () => {
 
   // Derived filter options
   const brands = useMemo(() => ['All', ...new Set(cars.map(c => c.brand?.brandName || c.brandName).filter(Boolean))], [cars]);
-  const fuels = useMemo(() => ['All', ...new Set(cars.map(c => c.fuelType).filter(Boolean))], [cars]);
-  const transmissions = useMemo(() => ['All', ...new Set(cars.map(c => c.transmissionType).filter(Boolean))], [cars]);
-  const bodyTypes = useMemo(() => ['All', ...new Set(cars.map(c => c.bodyType).filter(Boolean))], [cars]);
+  const fuels = useMemo(() => ['All', ...new Set(cars.map(c => c.FuelType).filter(Boolean))], [cars]);
+  const transmissions = useMemo(() => ['All', ...new Set(cars.map(c => c.TransmissionType).filter(Boolean))], [cars]);
+  const bodyTypes = useMemo(() => ['All', ...new Set(cars.map(c => c.BodyType).filter(Boolean))], [cars]);
 
   // Derived location options from dealers
   const states = useMemo(() => {
@@ -67,13 +67,12 @@ const AllCarsPage = () => {
   const processedCars = useMemo(() => {
     let list = [...cars];
 
-    // Search
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(c =>
-        (c.name || '').toLowerCase().includes(q) ||
+        (c.Model || '').toLowerCase().includes(q) ||
         (c.brand?.brandName || c.brandName || '').toLowerCase().includes(q) ||
-        (c.modelName || '').toLowerCase().includes(q)
+        (c.IndexNo || '').toLowerCase().includes(q)
       );
     }
 
@@ -81,9 +80,9 @@ const AllCarsPage = () => {
     if (filters.brand !== 'All') {
       list = list.filter(c => (c.brand?.brandName || c.brandName) === filters.brand);
     }
-    if (filters.fuel !== 'All') list = list.filter(c => c.fuelType === filters.fuel);
-    if (filters.transmission !== 'All') list = list.filter(c => c.transmissionType === filters.transmission);
-    if (filters.bodyType !== 'All') list = list.filter(c => c.bodyType === filters.bodyType);
+    if (filters.fuel !== 'All') list = list.filter(c => c.FuelType === filters.fuel);
+    if (filters.transmission !== 'All') list = list.filter(c => c.TransmissionType === filters.transmission);
+    if (filters.bodyType !== 'All') list = list.filter(c => c.BodyType === filters.bodyType);
 
     // Location (Dealer Mapping) Filter
     if (filters.state !== 'All' || filters.city !== 'All') {
@@ -134,7 +133,7 @@ const AllCarsPage = () => {
   return (
     <div className="min-h-screen bg-[#fafbf8]">
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
+      <div className="bg-linear-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#b48001] text-xs font-bold uppercase tracking-[4px] mb-3">
             Explore Collection

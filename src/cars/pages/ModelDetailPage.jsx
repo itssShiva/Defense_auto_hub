@@ -66,20 +66,20 @@ const ModelDetailPage = () => {
 
   const specRows = model
     ? [
-        ['Brand', model.brandName],
-        ['Model Name', model.modelName],
-        ['Year', model.year],
-        ['Category', model.category],
-        ['Body Type', model.bodyType],
-        ['Fuel Type', model.fuelType],
-        ['Transmission', model.transmissionType],
-        ['Engine', model.engine],
-        ['Max Power', model.maxPower],
-        ['Max Torque', model.maxTorque],
-        ['Mileage', model.mileage],
-        ['Seating Capacity', model.seatingCapacity ? `${model.seatingCapacity} persons` : null],
-        ['Boot Space', model.bootSpace],
-      ]
+      ['Brand', model.brandName],
+      ['Model Name', model.modelName],
+      ['Year', model.year],
+      ['Category', model.category],
+      ['Body Type', model.bodyType],
+      ['Fuel Type', model.fuelType],
+      ['Transmission', model.transmissionType],
+      ['Engine', model.engine],
+      ['Max Power', model.maxPower],
+      ['Max Torque', model.maxTorque],
+      ['Mileage', model.mileage],
+      ['Seating Capacity', model.seatingCapacity ? `${model.seatingCapacity} persons` : null],
+      ['Boot Space', model.bootSpace],
+    ]
     : [];
 
   if (!loading && !model) {
@@ -135,7 +135,7 @@ const ModelDetailPage = () => {
 
               {/* Price */}
               {model.CSDPrice && (
-                <div className="bg-gradient-to-r from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
+                <div className="bg-linear-to-r from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
                   <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">CSD Price</p>
                   <p className="text-3xl font-extrabold mb-1">{formatCompactPrice(model.CSDPrice)}</p>
                   {emi && (
@@ -183,9 +183,8 @@ const ModelDetailPage = () => {
             <div className="flex gap-1 bg-white rounded-2xl border border-[#708ca4]/15 p-1.5 mb-8 overflow-x-auto shadow-sm">
               {TABS.map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
-                  className={`flex-1 min-w-max px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${
-                    activeTab === tab ? 'bg-[#19456d] text-white shadow-md' : 'text-[#708ca4] hover:text-[#19456d]'
-                  }`}>{tab}</button>
+                  className={`flex-1 min-w-max px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${activeTab === tab ? 'bg-[#19456d] text-white shadow-md' : 'text-[#708ca4] hover:text-[#19456d]'
+                    }`}>{tab}</button>
               ))}
             </div>
 
@@ -234,9 +233,8 @@ const ModelDetailPage = () => {
                   <div className="flex gap-2 mb-5 flex-wrap">
                     {fuelTypes.map((f) => (
                       <button key={f} onClick={() => setFuelFilter(f)}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
-                          fuelFilter === f ? 'bg-[#b48001] text-white border-transparent' : 'bg-white border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
-                        }`}>{f}</button>
+                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${fuelFilter === f ? 'bg-[#b48001] text-white border-transparent' : 'bg-white border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
+                          }`}>{f}</button>
                     ))}
                   </div>
                 )}

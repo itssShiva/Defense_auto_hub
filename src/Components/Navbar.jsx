@@ -75,9 +75,8 @@ const Navbar = () => {
                   <div className="absolute left-0 top-full mt-0 w-48 bg-white border border-[#708ca4]/15 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-left -translate-y-2 group-hover:translate-y-0 flex flex-col p-2 overflow-hidden z-50">
                     {link.items.map(subItem => (
                       <Link key={subItem.name} to={subItem.path}
-                        className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                          isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/5' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#fafbf8]'
-                        }`}>
+                        className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/5' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#fafbf8]'
+                          }`}>
                         {subItem.name}
                       </Link>
                     ))}
@@ -87,14 +86,12 @@ const Navbar = () => {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`relative group text-sm font-bold overflow-hidden px-1 py-2 transition-colors ${
-                    isActive(link.path) ? 'text-[#b48001]' : 'text-[#19456d] hover:text-[#b48001]'
-                  }`}
+                  className={`relative group text-sm font-bold overflow-hidden px-1 py-2 transition-colors ${isActive(link.path) ? 'text-[#b48001]' : 'text-[#19456d] hover:text-[#b48001]'
+                    }`}
                 >
                   <span className="relative z-10">{link.name}</span>
-                  <span className={`absolute left-0 bottom-0 h-[2.5px] bg-[#b48001] transition-all duration-300 rounded-full ${
-                    isActive(link.path) ? 'w-full' : 'w-0 group-hover:w-full'
-                  }`} />
+                  <span className={`absolute left-0 bottom-0 h-[2.5px] bg-[#b48001] transition-all duration-300 rounded-full ${isActive(link.path) ? 'w-full' : 'w-0 group-hover:w-full'
+                    }`} />
                 </Link>
               )
             ))}
@@ -120,10 +117,7 @@ const Navbar = () => {
                   className="px-5 py-2 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all duration-300 text-sm">
                   Login
                 </Link>
-                <Link to="/register"
-                  className="px-5 py-2 rounded-full font-bold text-white bg-[#b48001] hover:bg-[#19456d] transition-all duration-300 shadow-md text-sm">
-                  Register
-                </Link>
+
               </>
             ) : (
               <>
@@ -172,18 +166,16 @@ const Navbar = () => {
                 <div className="px-4 py-2 text-[10px] font-bold text-[#708ca4] uppercase tracking-widest">{link.name}</div>
                 {link.items.map(subItem => (
                   <Link key={subItem.name} to={subItem.path} onClick={() => setIsOpen(false)}
-                    className={`block pl-6 pr-4 py-3 text-sm font-bold rounded-xl transition-all ${
-                      isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
-                    }`}>
+                    className={`block pl-6 pr-4 py-3 text-sm font-bold rounded-xl transition-all ${isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
+                      }`}>
                     {subItem.name}
                   </Link>
                 ))}
               </div>
             ) : (
               <Link key={link.name} to={link.path} onClick={() => setIsOpen(false)}
-                className={`block px-4 py-3 text-sm font-bold rounded-xl transition-all ${
-                  isActive(link.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
-                }`}>
+                className={`block px-4 py-3 text-sm font-bold rounded-xl transition-all ${isActive(link.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
+                  }`}>
                 {link.name}
               </Link>
             )
@@ -193,7 +185,8 @@ const Navbar = () => {
             {!user ? (
               <>
                 <Link to="/login" onClick={() => setIsOpen(false)} className="w-full text-center py-3 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all">Login</Link>
-                <Link to="/register" onClick={() => setIsOpen(false)} className="w-full text-center py-3 rounded-full font-bold text-white bg-[#b48001] hover:bg-[#19456d] transition-all shadow-md">Register</Link>
+
+
               </>
             ) : (
               <>

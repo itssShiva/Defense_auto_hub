@@ -40,9 +40,10 @@ const CarDetailPage = () => {
           if (modelsRes?.success) {
             const rel = (modelsRes.models || []).filter(
               (m) =>
-                m.brandId?._id === (found.brandId?._id || found.brandId) ||
-                m.brandId === found.brandId ||
-                m.brandName?.toLowerCase() === found.brandName?.toLowerCase()
+                m._id !== found._id &&
+                ((m.brandId && m.brandId?._id === (found.brandId?._id || found.brandId)) ||
+                (m.brandId && m.brandId === found.brandId) ||
+                (m.brandName && m.brandName?.toLowerCase() === found.brandName?.toLowerCase()))
             );
             setRelatedModels(rel);
           }
@@ -55,22 +56,23 @@ const CarDetailPage = () => {
   const emi = useMemo(() => calculateEMI(car?.CSDPrice), [car]);
   const images = car?.carImages || [];
   const name = car?.Model || car?.modelName || '';
+  const currentBrand = car?.brandName || car?.brandId?.brandName || '';
 
   const openLead = (type) => setLeadForm({ open: true, type });
 
   const specRows = car
     ? [
-        ['Body Type', car.BodyType || car.bodyType],
-        ['Fuel Type', car.FuelType || car.fuelType],
-        ['Transmission', car.TransmissionType || car.transmissionType],
-        ['Engine', car.engineDisplacement || car.engine],
-        ['Max Power', car.MaxPower || car.maxPower],
-        ['Max Torque', car.maxTorque],
-        ['Mileage', car.CityMileage || car.mileage],
-        ['Seating Capacity', (car.SeatingCapacity || car.seatingCapacity) ? `${car.SeatingCapacity || car.seatingCapacity} persons` : null],
-        ['Boot Space', car.BootSpace || car.bootSpace],
-        ['Category', car.category],
-      ]
+      ['Body Type', car.BodyType || car.bodyType],
+      ['Fuel Type', car.FuelType || car.fuelType],
+      ['Transmission', car.TransmissionType || car.transmissionType],
+      ['Engine', car.engineDisplacement || car.engine],
+      ['Max Power', car.MaxPower || car.maxPower],
+      ['Max Torque', car.maxTorque],
+      ['Mileage', car.CityMileage || car.mileage],
+      ['Seating Capacity', (car.SeatingCapacity || car.seatingCapacity) ? `${car.SeatingCapacity || car.seatingCapacity} persons` : null],
+      ['Boot Space', car.BootSpace || car.bootSpace],
+      ['Category', car.category],
+    ]
     : [];
 
   if (!loading && !car) {
@@ -140,7 +142,7 @@ const CarDetailPage = () => {
 
               {/* Price block */}
               {(car.CSDPrice || car.OnRoadPrice) && (
-                <div className="bg-gradient-to-r from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
+                <div className="bg-linear-to-r from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
                   <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">CSD Price</p>
                   <p className="text-3xl font-extrabold mb-1">{formatCompactPrice(car.CSDPrice || car.OnRoadPrice)}</p>
                   {car.CSDPrice && car.OnRoadPrice && (
@@ -187,9 +189,8 @@ const CarDetailPage = () => {
             <div className="flex gap-1 bg-white rounded-2xl border border-[#708ca4]/15 p-1.5 mb-8 overflow-x-auto shadow-sm">
               {TABS.map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
-                  className={`flex-1 min-w-max px-5 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${
-                    activeTab === tab ? 'bg-[#19456d] text-white shadow-md' : 'text-[#708ca4] hover:text-[#19456d]'
-                  }`}>
+                  className={`flex-1 min-w-max px-5 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${activeTab === tab ? 'bg-[#19456d] text-white shadow-md' : 'text-[#708ca4] hover:text-[#19456d]'
+                    }`}>
                   {tab}
                 </button>
               ))}
@@ -233,11 +234,13 @@ const CarDetailPage = () => {
             <div className="mt-16 border-t border-[#708ca4]/15 pt-12">
               <div className="flex items-end justify-between mb-8">
                 <div>
-                  <h2 className="text-3xl font-extrabold text-[#19456d] mb-2">Explore Models</h2>
-                  <p className="text-[#708ca4]">Available models for {name}</p>
+                  <h2 className="text-3xl font-extrabold text-[#19456d] mb-2">Explore More Cars</h2>
+                  <p className="text-[#708ca4]">
+                    {currentBrand ? `Other models from ${currentBrand}` : "Available related models"}
+                  </p>
                 </div>
               </div>
-              
+
               {relatedModels.length === 0 ? (
                 <EmptyState title="No models found" message="No related models available for this car." />
               ) : (

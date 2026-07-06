@@ -87,7 +87,7 @@ const BrandDetailPage = () => {
   return (
     <div className="min-h-screen bg-[#fafbf8]">
       {/* ── Hero ── */}
-      <div className="relative bg-gradient-to-br from-[#19456d] via-[#19456d] to-[#1a3a5c] pt-10 pb-24 px-4 overflow-hidden">
+      <div className="relative bg-linear-to-br from-[#19456d] via-[#19456d] to-[#1a3a5c] pt-10 pb-24 px-4 overflow-hidden">
         <motion.div animate={{ scale: [1, 1.12, 1] }} transition={{ duration: 16, repeat: Infinity }}
           className="absolute -top-28 -right-28 w-[450px] h-[450px] bg-[#b48001]/12 rounded-full blur-3xl pointer-events-none" />
 
@@ -99,7 +99,7 @@ const BrandDetailPage = () => {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
             {/* Logo */}
             <motion.div initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }}
-              className="w-28 h-28 bg-white rounded-3xl p-4 shadow-2xl flex items-center justify-center flex-shrink-0">
+              className="w-28 h-28 bg-white rounded-3xl p-4 shadow-2xl flex items-center justify-center shrink-0">
               {loading ? (
                 <div className="w-full h-full bg-[#708ca4]/15 rounded-2xl animate-pulse" />
               ) : logoSrc ? (
@@ -164,9 +164,8 @@ const BrandDetailPage = () => {
             <div className="flex gap-2 flex-wrap">
               {fuelTypes.map((f) => (
                 <button key={f} onClick={() => { setFuelFilter(f); setPage(1); }}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
-                    fuelFilter === f ? 'bg-[#b48001] text-white border-transparent' : 'bg-white border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
-                  }`}>{f}</button>
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${fuelFilter === f ? 'bg-[#b48001] text-white border-transparent' : 'bg-white border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
+                    }`}>{f}</button>
               ))}
             </div>
           )}

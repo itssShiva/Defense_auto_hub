@@ -18,7 +18,7 @@ const GalleryCarousel = ({ images = [], onFullscreen, layout = 'horizontal' }) =
     <div className={`flex ${layout === 'vertical' ? 'flex-col-reverse md:flex-row gap-3' : 'flex-col gap-3'}`}>
       {/* ── Thumbnails ── */}
       {imgs.length > 1 && (
-        <div className={`${layout === 'vertical' ? 'md:w-24' : 'w-full'} flex-shrink-0`}>
+        <div className={`${layout === 'vertical' ? 'md:w-24' : 'w-full'} shrink-0`}>
           <Swiper
             modules={[FreeMode, Thumbs]}
             onSwiper={setThumbsSwiper}

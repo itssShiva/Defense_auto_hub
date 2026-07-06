@@ -33,13 +33,13 @@ const UsedCarsPage = () => {
       if (res?.success) {
         // Only show approved/verified cars
         const approved = (res.usedCars || res.cars || []).filter(
-          (c) => c.status === 'approved' || 
-                 c.isVerified === 'Approved' || 
-                 c.isVerified === 'approved' || 
-                 c.isVerified === 'Verified' || 
-                 c.isVerified === 'verified' || 
-                 c.isApproved === true || 
-                 c.approved === true
+          (c) => c.status === 'approved' ||
+            c.isVerified === 'Approved' ||
+            c.isVerified === 'approved' ||
+            c.isVerified === 'Verified' ||
+            c.isVerified === 'verified' ||
+            c.isApproved === true ||
+            c.approved === true
         );
         setCars(approved);
       }
@@ -95,7 +95,7 @@ const UsedCarsPage = () => {
       return (
         <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.18 }}
           className="flex gap-5 bg-white rounded-2xl border border-[#708ca4]/15 p-4 shadow-sm hover:shadow-md hover:border-[#b48001]/30 transition-all">
-          <div className="w-44 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-[#fafbf8]">
+          <div className="w-44 h-32 shrink-0 rounded-xl overflow-hidden bg-[#fafbf8]">
             <img src={img} alt={name} className="w-full h-full object-cover" onError={(e) => { e.target.src = FALLBACK_IMAGE; }} />
           </div>
           <div className="flex-1 min-w-0">
@@ -105,7 +105,7 @@ const UsedCarsPage = () => {
                 <h3 className="text-lg font-extrabold text-[#19456d] leading-tight">{name}</h3>
               </div>
               {(car.status === 'approved' || car.isApproved || car.isVerified === 'Approved' || car.isVerified === 'approved' || car.isVerified === 'Verified' || car.isVerified === 'verified') && (
-                <span className="flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full flex-shrink-0">
+                <span className="flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full shrink-0">
                   <CheckCircle className="w-3 h-3" /> Verified
                 </span>
               )}
@@ -175,7 +175,7 @@ const UsedCarsPage = () => {
     <div className="min-h-screen bg-[#fafbf8]">
       <DealerModal isOpen={dealerModalOpen} onClose={() => { setDealerModalOpen(false); setSelectedDealer(null); }} dealer={selectedDealer} />
       {/* Hero */}
-      <div className="bg-gradient-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
+      <div className="bg-linear-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#b48001] text-xs font-bold uppercase tracking-[4px] mb-3">
             Defence Auto Hub
@@ -202,9 +202,8 @@ const UsedCarsPage = () => {
         <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
           <div className="flex items-center gap-3">
             <button onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm border transition-all ${
-                showFilters ? 'bg-[#19456d] text-white border-transparent' : 'bg-white border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
-              }`}>
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm border transition-all ${showFilters ? 'bg-[#19456d] text-white border-transparent' : 'bg-white border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
+                }`}>
               <SlidersHorizontal className="w-4 h-4" />
               Filters
               {activeFiltersCount > 0 && (

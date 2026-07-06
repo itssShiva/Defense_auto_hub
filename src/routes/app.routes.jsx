@@ -3,6 +3,7 @@ import { Suspense, lazy } from "react";
 import App from "../App.jsx";
 import Home from "../Pages/Home.jsx";
 import Contact from "../Pages/Contact.jsx";
+import FindDealers from "../Pages/FindDealers.jsx";
 import Login from "../auth/pages/Login.jsx";
 import AdminDashboard from "../Admin/pages/AdminDashboard.jsx";
 import DealerDashboard from "../Dealer/pages/DealerDashboard.jsx";
@@ -13,16 +14,16 @@ import Blogs from "../Pages/Blogs.jsx";
 import BlogDetails from "../Pages/BlogDetails.jsx";
 
 /* ── Lazy-loaded public car platform pages ── */
-const AllCarsPage      = lazy(() => import("../cars/pages/AllCarsPage.jsx"));
-const BrandsPage       = lazy(() => import("../cars/pages/BrandsPage.jsx"));
-const BrandDetailPage  = lazy(() => import("../cars/pages/BrandDetailPage.jsx"));
-const CarDetailPage    = lazy(() => import("../cars/pages/CarDetailPage.jsx"));
-const ModelDetailPage  = lazy(() => import("../cars/pages/ModelDetailPage.jsx"));
+const AllCarsPage = lazy(() => import("../cars/pages/AllCarsPage.jsx"));
+const BrandsPage = lazy(() => import("../cars/pages/BrandsPage.jsx"));
+const BrandDetailPage = lazy(() => import("../cars/pages/BrandDetailPage.jsx"));
+const CarDetailPage = lazy(() => import("../cars/pages/CarDetailPage.jsx"));
+const ModelDetailPage = lazy(() => import("../cars/pages/ModelDetailPage.jsx"));
 const VariantDetailPage = lazy(() => import("../cars/pages/VariantDetailPage.jsx"));
-const ComparePage      = lazy(() => import("../cars/pages/ComparePage.jsx"));
-const SearchPage       = lazy(() => import("../cars/pages/SearchPage.jsx"));
-const UsedCarsPage     = lazy(() => import("../cars/pages/UsedCarsPage.jsx"));
-const UsedCarDetailPage= lazy(() => import("../cars/pages/UsedCarDetailPage.jsx"));
+const ComparePage = lazy(() => import("../cars/pages/ComparePage.jsx"));
+const SearchPage = lazy(() => import("../cars/pages/SearchPage.jsx"));
+const UsedCarsPage = lazy(() => import("../cars/pages/UsedCarsPage.jsx"));
+const UsedCarDetailPage = lazy(() => import("../cars/pages/UsedCarDetailPage.jsx"));
 
 /* ── Loading fallback ── */
 const PageLoader = () => (
@@ -57,19 +58,20 @@ const router = createBrowserRouter([
       },
 
       /* ── Blog routes (existing) ── */
-      { path: "/blogs",     element: <Blogs /> },
+      { path: "/blogs", element: <Blogs /> },
       { path: "/blogs/:id", element: <BlogDetails /> },
+      { path: "/CSD/Dealers", element: <FindDealers /> },
 
       /* ── Car Platform routes ── */
-      { path: "/cars",            element: <Lazy element={<AllCarsPage />} /> },
-      { path: "/cars/:slug",      element: <Lazy element={<CarDetailPage />} /> },
-      { path: "/brands",          element: <Lazy element={<BrandsPage />} /> },
-      { path: "/brands/:slug",    element: <Lazy element={<BrandDetailPage />} /> },
-      { path: "/models/:slug",    element: <Lazy element={<ModelDetailPage />} /> },
-      { path: "/variants/:slug",  element: <Lazy element={<VariantDetailPage />} /> },
-      { path: "/compare",         element: <Lazy element={<ComparePage />} /> },
-      { path: "/search",          element: <Lazy element={<SearchPage />} /> },
-      { path: "/used-cars",       element: <Lazy element={<UsedCarsPage />} /> },
+      { path: "/cars", element: <Lazy element={<AllCarsPage />} /> },
+      { path: "/cars/:slug", element: <Lazy element={<CarDetailPage />} /> },
+      { path: "/brands", element: <Lazy element={<BrandsPage />} /> },
+      { path: "/brands/:slug", element: <Lazy element={<BrandDetailPage />} /> },
+      { path: "/models/:slug", element: <Lazy element={<ModelDetailPage />} /> },
+      { path: "/variants/:slug", element: <Lazy element={<VariantDetailPage />} /> },
+      { path: "/compare", element: <Lazy element={<ComparePage />} /> },
+      { path: "/search", element: <Lazy element={<SearchPage />} /> },
+      { path: "/used-cars", element: <Lazy element={<UsedCarsPage />} /> },
       { path: "/used-cars/:slug", element: <Lazy element={<UsedCarDetailPage />} /> },
     ],
   },

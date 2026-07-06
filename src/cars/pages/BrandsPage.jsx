@@ -84,7 +84,7 @@ const BrandsPage = () => {
   return (
     <div className="min-h-screen bg-[#fafbf8]">
       {/* ── Hero ── */}
-      <div className="relative bg-gradient-to-br from-[#19456d] via-[#19456d] to-[#1a3a5c] pt-24 pb-20 px-4 overflow-hidden">
+      <div className="relative bg-linear-to-br from-[#19456d] via-[#19456d] to-[#1a3a5c] pt-24 pb-20 px-4 overflow-hidden">
         <motion.div animate={{ scale: [1, 1.15, 1], rotate: [0, 15, 0] }} transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
           className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-[#b48001]/15 rounded-full blur-3xl pointer-events-none" />
         <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
@@ -131,7 +131,7 @@ const BrandsPage = () => {
             ].map(({ label, value, icon: Icon }) => (
               <motion.div key={label} variants={fadeUp}
                 className="bg-white rounded-2xl border border-[#708ca4]/15 p-5 flex items-center gap-4 shadow-sm">
-                <div className="w-11 h-11 bg-[#b48001]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-11 h-11 bg-[#b48001]/10 rounded-xl flex items-center justify-center shrink-0">
                   <Icon className="w-5 h-5 text-[#b48001]" />
                 </div>
                 <div>
@@ -150,11 +150,10 @@ const BrandsPage = () => {
               <button
                 key={l}
                 onClick={() => setFilter(l, setActiveLetter)}
-                className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${
-                  activeLetter === l
+                className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${activeLetter === l
                     ? 'bg-[#b48001] text-white shadow-md'
                     : 'bg-white border border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001] hover:text-[#b48001]'
-                } ${l === 'All' ? 'px-4 w-auto' : ''}`}
+                  } ${l === 'All' ? 'px-4 w-auto' : ''}`}
               >
                 {l}
               </button>
