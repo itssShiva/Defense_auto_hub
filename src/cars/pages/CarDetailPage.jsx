@@ -5,7 +5,7 @@ import {
   ArrowLeft, Fuel, Settings2, Gauge, Users, Box, Zap,
   BadgeIndianRupee, PhoneCall, Calendar, Share2, Heart
 } from 'lucide-react';
-import { getAllCars, getAllModels } from '../Api/cars.api';
+import { getAllVehicles, getAllModels } from '../Api/cars.api';
 import GalleryCarousel from '../components/GalleryCarousel';
 import ImageViewer from '../components/ImageViewer';
 import LeadForm from '../components/LeadForm';
@@ -30,20 +30,20 @@ const CarDetailPage = () => {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [carsRes, modelsRes] = await Promise.all([getAllCars(), getAllModels()]);
+      const [vehiclesRes, modelsRes] = await Promise.all([getAllVehicles(), getAllModels()]);
 
-      if (carsRes?.success) {
-        const found = (carsRes.cars || []).find((c) => c.slug === slug || c._id === slug);
+      if (vehiclesRes?.success) {
+        const found = (vehiclesRes.vehicles || []).find((c) => c.slug === slug || c._id === slug);
         setCar(found || null);
         if (found) {
-          document.title = `${found.Model || found.modelName} — Defence Auto Hub`;
+          document.title = `${found.vehicleName || found.Model || found.modelName} — Defence Auto Hub`;
           if (modelsRes?.success) {
+            // Find models that belong to THIS vehicle OR share the exact same legacy brand/model string
             const rel = (modelsRes.models || []).filter(
               (m) =>
-                m._id !== found._id &&
-                ((m.brandId && m.brandId?._id === (found.brandId?._id || found.brandId)) ||
-                (m.brandId && m.brandId === found.brandId) ||
-                (m.brandName && m.brandName?.toLowerCase() === found.brandName?.toLowerCase()))
+                m.vehicleId?._id === found._id ||
+                m.vehicleId === found._id ||
+                (found.Model && m.modelName?.toLowerCase() === found.Model.toLowerCase())
             );
             setRelatedModels(rel);
           }
@@ -53,32 +53,39 @@ const CarDetailPage = () => {
     })();
   }, [slug]);
 
-  const emi = useMemo(() => calculateEMI(car?.CSDPrice), [car]);
-  const images = car?.carImages || [];
-  const name = car?.Model || car?.modelName || '';
-  const currentBrand = car?.brandName || car?.brandId?.brandName || '';
+  const primaryModel = relatedModels[0] || {};
+  const emi = useMemo(() => calculateEMI(car?.CSDPrice || primaryModel?.CSDPrice), [car, primaryModel]);
+  const images = car?.vehicleImages || car?.carImages || primaryModel?.modelImages || [];
+  const name = car?.vehicleName || car?.Model || car?.modelName || '';
+  const currentBrand = car?.brandId?.brandName || car?.brandName || '';
 
   const openLead = (type) => setLeadForm({ open: true, type });
 
   const specRows = car
     ? [
-      ['Body Type', car.BodyType || car.bodyType],
-      ['Fuel Type', car.FuelType || car.fuelType],
-      ['Transmission', car.TransmissionType || car.transmissionType],
-      ['Engine', car.engineDisplacement || car.engine],
-      ['Max Power', car.MaxPower || car.maxPower],
-      ['Max Torque', car.maxTorque],
-      ['Mileage', car.CityMileage || car.mileage],
-      ['Seating Capacity', (car.SeatingCapacity || car.seatingCapacity) ? `${car.SeatingCapacity || car.seatingCapacity} persons` : null],
-      ['Boot Space', car.BootSpace || car.bootSpace],
-      ['Category', car.category],
+      ['Body Type', car.bodyType || car.BodyType || primaryModel.bodyType],
+      ['Fuel Type', car.fuelType || car.FuelType || primaryModel.fuelType],
+      ['Transmission', car.transmissionType || car.TransmissionType || primaryModel.transmissionType],
+      ['Engine', car.engine || car.engineDisplacement || primaryModel.engine],
+      ['Max Power', car.maxPower || car.MaxPower || primaryModel.maxPower],
+      ['Max Torque', car.maxTorque || primaryModel.maxTorque],
+      ['Mileage', car.mileage || car.CityMileage || primaryModel.mileage],
+      ['Seating Capacity', (car.seatingCapacity || car.SeatingCapacity || primaryModel.seatingCapacity) ? `${car.seatingCapacity || car.SeatingCapacity || primaryModel.seatingCapacity} persons` : null],
+      ['Boot Space', car.bootSpace || car.BootSpace || primaryModel.bootSpace],
+      ['Fuel Tank', car.fuelTankCapacity],
+      ['Ground Clearance', car.groundClearance],
+      ['Length', car.length],
+      ['Width', car.width],
+      ['Height', car.height],
+      ['Wheelbase', car.wheelbase],
+      ['Category', car.category || primaryModel.category],
     ]
     : [];
 
   if (!loading && !car) {
     return (
       <div className="min-h-screen bg-[#fafbf8] flex items-center justify-center">
-        <EmptyState title="Car not found" message="This listing may have been removed." />
+        <EmptyState title="Vehicle not found" message="This listing may have been removed." />
       </div>
     );
   }
@@ -89,7 +96,7 @@ const CarDetailPage = () => {
       <div className="bg-white border-b border-[#708ca4]/10 px-4 py-3">
         <div className="max-w-7xl mx-auto">
           <Link to="/cars" className="inline-flex items-center gap-2 text-[#708ca4] hover:text-[#19456d] text-sm font-semibold transition-colors">
-            <ArrowLeft className="w-4 h-4" /> All Cars
+            <ArrowLeft className="w-4 h-4" /> All Vehicles
           </Link>
         </div>
       </div>
@@ -127,12 +134,12 @@ const CarDetailPage = () => {
               {/* Quick spec chips */}
               <div className="flex flex-wrap gap-2">
                 {[
-                  { icon: Fuel, label: car.FuelType || car.fuelType },
-                  { icon: Settings2, label: car.TransmissionType || car.transmissionType },
-                  { icon: Users, label: (car.SeatingCapacity || car.seatingCapacity) ? `${car.SeatingCapacity || car.seatingCapacity} Seats` : null },
-                  { icon: Gauge, label: car.CityMileage || car.mileage },
-                  { icon: Zap, label: car.MaxPower || car.maxPower },
-                  { icon: Box, label: (car.BootSpace || car.bootSpace) ? `${car.BootSpace || car.bootSpace} Boot` : null },
+                  { icon: Fuel, label: car.FuelType || car.fuelType || primaryModel.fuelType },
+                  { icon: Settings2, label: car.TransmissionType || car.transmissionType || primaryModel.transmissionType },
+                  { icon: Users, label: (car.SeatingCapacity || car.seatingCapacity || primaryModel.seatingCapacity) ? `${car.SeatingCapacity || car.seatingCapacity || primaryModel.seatingCapacity} Seats` : null },
+                  { icon: Gauge, label: car.CityMileage || car.mileage || primaryModel.mileage },
+                  { icon: Zap, label: car.MaxPower || car.maxPower || primaryModel.maxPower },
+                  { icon: Box, label: (car.BootSpace || car.bootSpace || primaryModel.bootSpace) ? `${car.BootSpace || car.bootSpace || primaryModel.bootSpace} Boot` : null },
                 ].filter((s) => s.label).map(({ icon: Icon, label }) => (
                   <span key={label} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#708ca4]/20 text-[#19456d] text-xs font-semibold rounded-full">
                     <Icon className="w-3.5 h-3.5 text-[#b48001]" />{label}
@@ -141,12 +148,12 @@ const CarDetailPage = () => {
               </div>
 
               {/* Price block */}
-              {(car.CSDPrice || car.OnRoadPrice) && (
+              {(car.CSDPrice || car.OnRoadPrice || primaryModel.CSDPrice) && (
                 <div className="bg-linear-to-r from-[#19456d] to-[#1a3a5c] rounded-2xl p-5 text-white">
-                  <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">CSD Price</p>
-                  <p className="text-3xl font-extrabold mb-1">{formatCompactPrice(car.CSDPrice || car.OnRoadPrice)}</p>
-                  {car.CSDPrice && car.OnRoadPrice && (
-                    <p className="text-white/60 text-sm">On-Road: {formatCompactPrice(car.OnRoadPrice)}</p>
+                  <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">Starting CSD Price</p>
+                  <p className="text-3xl font-extrabold mb-1">{formatCompactPrice(car.CSDPrice || primaryModel.CSDPrice || car.OnRoadPrice)}</p>
+                  {(car.OnRoadPrice || primaryModel.OnRoadPrice) && (
+                    <p className="text-white/60 text-sm">On-Road: {formatCompactPrice(car.OnRoadPrice || primaryModel.OnRoadPrice)}</p>
                   )}
                   {emi && (
                     <p className="text-[#b48001] text-sm font-semibold mt-2 flex items-center gap-1">
@@ -234,7 +241,7 @@ const CarDetailPage = () => {
             <div className="mt-16 border-t border-[#708ca4]/15 pt-12">
               <div className="flex items-end justify-between mb-8">
                 <div>
-                  <h2 className="text-3xl font-extrabold text-[#19456d] mb-2">Explore More Cars</h2>
+                  <h2 className="text-3xl font-extrabold text-[#19456d] mb-2">Explore More Models </h2>
                   <p className="text-[#708ca4]">
                     {currentBrand ? `Other models from ${currentBrand}` : "Available related models"}
                   </p>
@@ -242,7 +249,7 @@ const CarDetailPage = () => {
               </div>
 
               {relatedModels.length === 0 ? (
-                <EmptyState title="No models found" message="No related models available for this car." />
+                <EmptyState title="No models found" message="No related models available for this vehicle." />
               ) : (
                 <div className="flex overflow-x-auto pb-6 gap-6 snap-x snap-mandatory">
                   {relatedModels.map((m) => (

@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
 import { useBrand } from "../../brand/hooks/useBrand.js";
 import { toast } from "react-hot-toast";
+import CustomSelect from "../components/CustomSelect.jsx";
 
 /* ─── Initial form state ────────────────────────────────────────── */
 const INITIAL = {
     brandId: "",
-    brandName: "",
+    vehicleId: "",
     modelName: "",
     category: "",
     year: "",
@@ -43,7 +44,7 @@ const INITIAL = {
     MonthlyEMI: "",
     // Additional
     Entitlement: "",
-    Remarks: "Please verify the details with car dealer before placing order on CSD AFD Portal.",
+    Remarks: "Please verify the details with vehicle dealer before placing order on CSD AFD Portal.",
     details: "",
 };
 
@@ -73,40 +74,34 @@ const SectionTitle = ({ icon, children }) => (
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const AddNewModel = () => {
-    const { addModel, loading } = useCars();
+    const { addModel, fetchVehiclesByBrandId, vehicles, loading } = useCars();
+    const { getAllBrands } = useBrand();
 
     const [form, setForm] = useState(INITIAL);
     const [carImages, setCarImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [errors, setErrors] = useState({});
     const fileInputRef = useRef(null);
-
-    const { getAllBrands } = useBrand();
     const [brands, setBrands] = useState([]);
 
     useEffect(() => {
         const fetchBrands = async () => {
             const res = await getAllBrands();
-            if (res?.success && res.brands) {
-                setBrands(res.brands);
-            }
+            if (res?.success && res.brands) setBrands(res.brands);
         };
         fetchBrands();
     }, [getAllBrands]);
 
     /* ── Two-way binding ── */
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
         const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
         
         if (name === "brandId") {
-            const selectedBrand = brands.find(b => b._id === value);
-            setForm((prev) => ({ 
-                ...prev, 
-                brandId: value,
-                brandName: selectedBrand ? selectedBrand.brandName : "" 
-            }));
-        } else {
-            setForm((prev) => ({ ...prev, [name]: value }));
+            setForm((prev) => ({ ...prev, vehicleId: "" })); // reset cascade
+            if (value) {
+                await fetchVehiclesByBrandId(value);
+            }
         }
         
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -117,9 +112,7 @@ const AddNewModel = () => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
         const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
-        if (oversized.length > 0) {
-            toast.error(`${oversized.length} file(s) exceed 5 MB and were skipped.`);
-        }
+        if (oversized.length > 0) toast.error(`${oversized.length} file(s) exceed 5 MB and were skipped.`);
         const valid = files.filter(f => f.size <= 5 * 1024 * 1024);
         if (!valid.length) { e.target.value = ""; return; }
         setCarImages(prev => [...prev, ...valid]);
@@ -137,6 +130,7 @@ const AddNewModel = () => {
     const validate = () => {
         const errs = {};
         if (!form.brandId) errs.brandId = "Please select a brand.";
+        if (!form.vehicleId) errs.vehicleId = "Please select a vehicle.";
         
         const textFields = [
             "modelName", "category", "fuelType",
@@ -164,7 +158,7 @@ const AddNewModel = () => {
         }
 
         // Image
-        if (!carImages.length) errs.carImages = "At least one car image is required.";
+        if (!carImages.length) errs.carImages = "At least one vehicle image is required.";
         if (carImages.length > 10) errs.carImages = "Maximum 10 images allowed.";
 
         return errs;
@@ -207,12 +201,9 @@ const AddNewModel = () => {
 
     return (
         <div className="max-w-4xl mx-auto">
-            {/* Header */}
             <div className="mb-8">
-                <h2 className="text-2xl font-extrabold text-[#19456d] mb-1">Add New Car Model</h2>
-                <p className="text-[#708ca4] text-sm">
-                    Fill in all the details to register a new car model in the catalogue.
-                </p>
+                <h2 className="text-2xl font-extrabold text-[#19456d] mb-1">Add New Vehicle Model</h2>
+                <p className="text-[#708ca4] text-sm">Fill in all the details to register a new car model in the catalogue.</p>
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="space-y-6">
@@ -220,20 +211,34 @@ const AddNewModel = () => {
                 {/* ═══ SECTION 1: Identity ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle icon="🚗">Car Identity</SectionTitle>
+                        <SectionTitle icon="🚗">Vehicle Identity (Cascade)</SectionTitle>
 
                         <Field label="Brand" required error={errors.brandId}>
-                            <select id="model-field-brandId" name="brandId"
-                                value={form.brandId} onChange={handleChange}
-                                className={inputCls(errors.brandId)}>
-                                <option value="">Select a Brand</option>
-                                {brands.map(b => (
-                                    <option key={b._id} value={b._id}>{b.brandName}</option>
-                                ))}
-                            </select>
+                            <CustomSelect
+                                id="model-field-brandId"
+                                name="brandId"
+                                value={form.brandId}
+                                onChange={handleChange}
+                                error={errors.brandId}
+                                placeholder="Select a Brand"
+                                options={brands.map(b => ({ value: b._id, label: b.brandName }))}
+                            />
                         </Field>
 
-                        <Field label="Model Name" required error={errors.modelName}>
+                        <Field label="Vehicle Entity" required error={errors.vehicleId}>
+                            <CustomSelect
+                                id="model-field-vehicleId"
+                                name="vehicleId"
+                                value={form.vehicleId}
+                                onChange={handleChange}
+                                error={errors.vehicleId}
+                                disabled={!form.brandId}
+                                placeholder={form.brandId ? "Select a Vehicle" : "Select Brand First"}
+                                options={vehicles.map(v => ({ value: v._id, label: v.vehicleName }))}
+                            />
+                        </Field>
+
+                        <Field label="Model Designation" required error={errors.modelName}>
                             <input id="model-field-modelName" type="text" name="modelName"
                                 value={form.modelName} onChange={handleChange}
                                 placeholder="e.g. Swift ZXI, Nexon XZ+"
@@ -261,13 +266,6 @@ const AddNewModel = () => {
                                 min="1980" max={new Date().getFullYear() + 2}
                                 className={inputCls(errors.year)} />
                         </Field>
-
-                        <Field label="Price (₹)" required error={errors.price}>
-                            <input id="model-field-price" type="number" name="price"
-                                value={form.price} onChange={handleChange}
-                                placeholder="e.g. 850000" min="0"
-                                className={inputCls(errors.price)} />
-                        </Field>
                     </div>
                 </div>
 
@@ -277,25 +275,27 @@ const AddNewModel = () => {
                         <SectionTitle icon="⚙️">Powertrain</SectionTitle>
 
                         <Field label="Fuel Type" required error={errors.fuelType}>
-                            <select id="model-field-fuelType" name="fuelType"
-                                value={form.fuelType} onChange={handleChange}
-                                className={inputCls(errors.fuelType)}>
-                                <option value="">Select Fuel Type</option>
-                                {["Petrol", "Diesel", "Electric", "CNG", "Hybrid"].map((f) => (
-                                    <option key={f} value={f}>{f}</option>
-                                ))}
-                            </select>
+                            <CustomSelect
+                                id="model-field-fuelType"
+                                name="fuelType"
+                                value={form.fuelType}
+                                onChange={handleChange}
+                                error={errors.fuelType}
+                                placeholder="Select Fuel Type"
+                                options={["Petrol","Diesel","Electric","CNG","Hybrid"].map(f => ({ value: f, label: f }))}
+                            />
                         </Field>
 
                         <Field label="Transmission Type" required error={errors.transmissionType}>
-                            <select id="model-field-transmissionType" name="transmissionType"
-                                value={form.transmissionType} onChange={handleChange}
-                                className={inputCls(errors.transmissionType)}>
-                                <option value="">Select Transmission</option>
-                                {["Manual", "Automatic", "AMT", "CVT", "DCT"].map((t) => (
-                                    <option key={t} value={t}>{t}</option>
-                                ))}
-                            </select>
+                            <CustomSelect
+                                id="model-field-transmissionType"
+                                name="transmissionType"
+                                value={form.transmissionType}
+                                onChange={handleChange}
+                                error={errors.transmissionType}
+                                placeholder="Select Transmission"
+                                options={["Manual","Automatic","AMT","CVT","DCT"].map(t => ({ value: t, label: t }))}
+                            />
                         </Field>
 
                         <Field label="Engine Displacement" required error={errors.engine}>
@@ -423,7 +423,7 @@ const AddNewModel = () => {
                         <Field label="Details" error={errors.details}>
                             <textarea id="model-field-details" name="details"
                                 value={form.details} onChange={handleChange}
-                                placeholder="Describe the car model, features, and any important notes…"
+                                placeholder="Describe the vehicle model, features, and any important notes…"
                                 rows={3}
                                 className={`${inputCls(errors.details)} resize-none`} />
                         </Field>
@@ -443,7 +443,7 @@ const AddNewModel = () => {
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5 flex items-center gap-2">
                         <span className="text-lg">🖼️</span>
                         <div>
-                            <h3 className="text-base font-bold text-[#19456d]">Car Images</h3>
+                            <h3 className="text-base font-bold text-[#19456d]">Vehicle Images</h3>
                             <p className="text-xs text-[#708ca4]">Upload up to 10 images. First image will be the main thumbnail.</p>
                         </div>
                     </div>
@@ -488,19 +488,10 @@ const AddNewModel = () => {
 
                 {/* ═══ Action Buttons ═══ */}
                 <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
-                    <button
-                        type="button"
-                        onClick={handleReset}
-                        disabled={loading}
-                        className="px-6 py-3.5 rounded-xl font-bold border-2 border-[#708ca4]/40 text-[#708ca4] hover:border-[#19456d] hover:text-[#19456d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                    <button type="button" onClick={handleReset} disabled={loading} className="px-6 py-3.5 rounded-xl font-bold border-2 border-[#708ca4]/40 text-[#708ca4] hover:border-[#19456d] hover:text-[#19456d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                         Reset Form
                     </button>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-8 py-3.5 rounded-xl font-bold text-white bg-[#19456d] hover:bg-[#113150] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center min-w-[220px] disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
+                    <button type="submit" disabled={loading} className="px-8 py-3.5 rounded-xl font-bold text-white bg-[#19456d] hover:bg-[#113150] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center min-w-[220px] disabled:opacity-70 disabled:cursor-not-allowed">
                         {loading ? (
                             <div className="flex items-center gap-2">
                                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -510,7 +501,7 @@ const AddNewModel = () => {
                                 Adding Model…
                             </div>
                         ) : (
-                            <span>🚗 Add Car Model</span>
+                            <span>🚗 Add Vehicle Model</span>
                         )}
                     </button>
                 </div>

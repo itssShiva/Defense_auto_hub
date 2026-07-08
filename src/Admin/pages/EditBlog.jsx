@@ -3,7 +3,7 @@ import { useBlog } from "../../blogs/hooks/useBlog";
 import { toast } from "react-hot-toast";
 
 const CATEGORIES = [
-    "Car Reviews",
+    "Vehicle Reviews",
     "Buying Guide",
     "News",
     "Electric Vehicles",

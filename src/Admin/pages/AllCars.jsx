@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
 
-/* ─── Currency formatter ───────────────────────────────────────── */
+/* ── Image URL helper ── */
+const imgUrl = (src) =>
+    src ? (src.startsWith("http") ? src : `${import.meta.env.VITE_BACKEND_URL}${src}`) : "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png";
+
+/* ── Currency formatter ───────────────────────────────────────── */
 const fmt = (n) =>
     n !== undefined && n !== null
         ? `₹${Number(n).toLocaleString("en-IN")}`
@@ -28,16 +32,16 @@ const CarModal = ({ car, onClose }) => {
                 {/* Header */}
                 <div className="bg-linear-to-r from-[#19456d] to-[#2a6094] px-6 py-5 flex items-center gap-4 shrink-0">
                     <img
-                        src={car.carImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
-                        alt={car.Model}
+                        src={imgUrl(car.vehicleImages?.[0])}
+                        alt={car.vehicleName}
                         className="w-20 h-14 rounded-xl object-cover border-2 border-white/30 shadow bg-white/10"
                     />
                     <div className="flex-1 min-w-0">
-                        <h3 className="text-xl font-extrabold text-white truncate">{car.Model}</h3>
+                        <h3 className="text-xl font-extrabold text-white truncate">{car.vehicleName}</h3>
                         <div className="flex flex-wrap gap-2 mt-1.5">
-                            <span className="px-2.5 py-0.5 bg-[#b48001] text-white text-xs font-bold rounded-full">{car.FuelType}</span>
-                            <span className="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">{car.TransmissionType}</span>
-                            <span className="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">{car.BodyType}</span>
+                            <span className="px-2.5 py-0.5 bg-[#b48001] text-white text-xs font-bold rounded-full">{car.brandId?.brandName || "Unknown Brand"}</span>
+                            <span className="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">{car.vehicleType}</span>
+                            <span className="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">{car.category}</span>
                         </div>
                     </div>
                     <button
@@ -53,11 +57,8 @@ const CarModal = ({ car, onClose }) => {
                         <p className="text-xs font-bold text-[#b48001] uppercase tracking-widest mb-2">Identity</p>
                         <DetailRow label="Index No" value={car.IndexNo} />
                         <DetailRow label="Entitlement" value={car.Entitlement} />
-                        <DetailRow label="Seating Capacity" value={car.SeatingCapacity} />
-                        <DetailRow label="Engine Displacement" value={car.engineDisplacement} />
-                        <DetailRow label="Max Power" value={car.MaxPower} />
-                        <DetailRow label="City Mileage" value={car.CityMileage} />
-                        <DetailRow label="Boot Space" value={car.BootSpace} />
+                        <DetailRow label="Vehicle Type" value={car.vehicleType} />
+                        <DetailRow label="Category" value={car.category} />
                         <DetailRow label="Monthly EMI" value={fmt(car.MonthlyEMI)} />
                     </div>
 
@@ -90,10 +91,10 @@ const CarModal = ({ car, onClose }) => {
                     </div>
 
                     {/* Details & Remarks */}
-                    {car.details && (
+                    {car.description && (
                         <div>
-                            <p className="text-xs font-bold text-[#b48001] uppercase tracking-widest mb-2">Details</p>
-                            <p className="text-sm text-[#19456d] leading-relaxed">{car.details}</p>
+                            <p className="text-xs font-bold text-[#b48001] uppercase tracking-widest mb-2">Description</p>
+                            <p className="text-sm text-[#19456d] leading-relaxed">{car.description}</p>
                         </div>
                     )}
                     {car.Remarks && (
@@ -124,15 +125,14 @@ const AllCars = ({ handleEditCarClick }) => {
     const filtered = cars.filter((c) => {
         const sq = searchQuery.toLowerCase().trim();
         const matchSearch = !sq || 
-            String(c.Model || "").toLowerCase().includes(sq) ||
-            String(c.brandName || "").toLowerCase().includes(sq) ||
+            String(c.vehicleName || "").toLowerCase().includes(sq) ||
+            String(c.brandId?.brandName || "").toLowerCase().includes(sq) ||
             String(c.IndexNo || "").toLowerCase().includes(sq) ||
-            String(c.BodyType || "").toLowerCase().includes(sq) ||
-            String(c.FuelType || "").toLowerCase().includes(sq) ||
-            String(c.TransmissionType || "").toLowerCase().includes(sq);
+            String(c.category || "").toLowerCase().includes(sq) ||
+            String(c.vehicleType || "").toLowerCase().includes(sq);
             
         const matchFuel = fuelFilter === "All" || 
-            String(c.FuelType || "").toLowerCase().trim() === fuelFilter.toLowerCase();
+            String(c.vehicleType || "").toLowerCase().trim() === fuelFilter.toLowerCase();
             
         return matchSearch && matchFuel;
     });
@@ -142,9 +142,10 @@ const AllCars = ({ handleEditCarClick }) => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
-                    <h2 className="text-2xl font-extrabold text-[#19456d]">All Cars</h2>
+                    <h2 className="text-2xl font-extrabold text-[#19456d]">All Vehicles</h2>
+                    <p className="text-[#708ca4]">Manage your new vehicles catalogue</p>
                     <p className="text-[#708ca4] text-sm mt-1">
-                        {cars.length} car{cars.length !== 1 ? "s" : ""} in catalogue
+                        {cars.length} vehicle{cars.length !== 1 ? "s" : ""} in catalogue
                     </p>
                 </div>
 
@@ -200,9 +201,9 @@ const AllCars = ({ handleEditCarClick }) => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-gray-200 bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                                    <th className="px-6 py-4">Car</th>
-                                    <th className="px-6 py-4">Fuel / Trans.</th>
-                                    <th className="px-6 py-4">Body Type</th>
+                                    <th className="px-6 py-4">Vehicle</th>
+                                    <th className="px-6 py-4">Type / Category</th>
+                                    <th className="px-6 py-4">Brand</th>
                                     <th className="px-6 py-4">CSD Price</th>
                                     <th className="px-6 py-4">On-Road Price</th>
                                     <th className="px-6 py-4 text-center">Actions</th>
@@ -215,31 +216,31 @@ const AllCars = ({ handleEditCarClick }) => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center gap-3">
                                                 <img
-                                                    src={car.carImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
-                                                    alt={car.Model}
+                                                    src={imgUrl(car.vehicleImages?.[0])}
+                                                    alt={car.vehicleName}
                                                     className="h-10 w-16 rounded-lg object-cover border border-gray-200 bg-gray-50"
                                                 />
                                                 <div>
-                                                    <p className="text-sm font-semibold text-gray-800">{car.Model}</p>
-                                                    <p className="text-xs text-[#708ca4]">#{car.IndexNo}</p>
+                                                    <p className="text-sm font-semibold text-gray-800">{car.vehicleName}</p>
+                                                    <p className="text-xs text-[#708ca4]">#{car.IndexNo || "N/A"}</p>
                                                 </div>
                                             </div>
                                         </td>
 
-                                        {/* Fuel + Transmission */}
+                                        {/* Type + Category */}
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex flex-col gap-1">
-                                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-green-50 text-green-700">
-                                                    ⛽ {car.FuelType}
+                                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-green-50 text-green-700 w-fit">
+                                                    🚗 {car.vehicleType}
                                                 </span>
-                                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-50 text-blue-700">
-                                                    ⚙️ {car.TransmissionType}
+                                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 w-fit">
+                                                    🏷️ {car.category}
                                                 </span>
                                             </div>
                                         </td>
 
-                                        {/* Body Type */}
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{car.BodyType || "—"}</td>
+                                        {/* Brand */}
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{car.brandId?.brandName || "—"}</td>
 
                                         {/* CSD Price */}
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#19456d]">

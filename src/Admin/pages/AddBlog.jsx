@@ -11,7 +11,7 @@ const INITIAL = {
 };
 
 const CATEGORIES = [
-    "Car Reviews",
+    "Vehicle Reviews",
     "Buying Guide",
     "News",
     "Electric Vehicles",
@@ -164,7 +164,7 @@ const AddBlog = () => {
                                     name="title"
                                     value={form.title}
                                     onChange={handleChange}
-                                    placeholder="e.g. Top 10 Electric Cars in 2026"
+                                    placeholder="e.g. Top 10 Electric Vehicles in 2026"
                                     className={inputCls(errors.title)}
                                 />
                             </Field>

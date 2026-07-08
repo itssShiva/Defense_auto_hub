@@ -7,6 +7,10 @@
     --color-primary-navy: #19456d;
     --color-secondary-slate: #708ca4;
     --color-accent-gold: #b48001;
+    /* LoanHome tokens */
+    --color-gold: #F2A73B;
+    --color-navyblue: #0E1A2B;
+    --color-blue: #1B4FD8;
 }
 
 @theme {
@@ -16,6 +20,10 @@
   --color-primary-navy: var(--color-primary-navy);
   --color-secondary-slate: var(--color-secondary-slate);
   --color-accent-gold: var(--color-accent-gold);
+  /* LoanHome tokens */
+  --color-gold: var(--color-gold);
+  --color-navyblue: var(--color-navyblue);
+  --color-blue: var(--color-blue);
 }
 
 .animate-marquee {
@@ -30,4 +38,27 @@
     100% {
         transform: translateX(-50%);
     }
+}
+
+/* ── Fix native <select> / <option> visibility across all themes ── */
+select {
+    color-scheme: light;
+    background-color: #ffffff;
+    color: #19456d;
+}
+
+select option {
+    background-color: #ffffff;
+    color: #19456d;
+}
+
+select:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+select option:disabled {
+    color: #94a3b8;
 }

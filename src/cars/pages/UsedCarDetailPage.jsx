@@ -44,7 +44,7 @@ const UsedCarDetailPage = () => {
   const price = car?.CSDPrice || car?.price || car?.askingPrice;
   const emi = useMemo(() => calculateEMI(price), [price]);
   const images = car?.carImages || [];
-  const name = car?.modelName || car?.Model || 'Used Car';
+  const name = car?.modelName || car?.Model || 'Used Vehicle';
 
   const specRows = car
     ? [
@@ -61,7 +61,7 @@ const UsedCarDetailPage = () => {
   if (!loading && !car) {
     return (
       <div className="min-h-screen bg-[#fafbf8] flex items-center justify-center">
-        <EmptyState title="Used Car not found" message="This listing may have been removed or sold." action={{ label: "Go Back", onClick: () => navigate('/used-cars') }} />
+        <EmptyState title="Used Vehicle not found" message="This listing may have been removed or sold." action={{ label: "Go Back", onClick: () => navigate('/used-cars') }} />
       </div>
     );
   }
@@ -74,7 +74,7 @@ const UsedCarDetailPage = () => {
       <div className="bg-white border-b border-[#708ca4]/10 px-4 py-3">
         <div className="max-w-7xl mx-auto">
           <Link to="/used-cars" className="inline-flex items-center gap-2 text-[#708ca4] hover:text-[#19456d] text-sm font-semibold transition-colors">
-            <ArrowLeft className="w-4 h-4" /> All Used Cars
+            <ArrowLeft className="w-4 h-4" /> All Used Vehicles
           </Link>
         </div>
       </div>
@@ -153,7 +153,7 @@ const UsedCarDetailPage = () => {
         {/* ── Specifications ── */}
         {!loading && car && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <SpecificationTable title="Used Car Specifications" specs={specRows} />
+            <SpecificationTable title="Used Vehicle Specifications" specs={specRows} />
           </motion.div>
         )}
       </div>

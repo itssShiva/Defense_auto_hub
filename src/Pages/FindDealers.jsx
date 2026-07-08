@@ -1,294 +1,460 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Tag, FastForward, Car, Bike, Tv, Search, MapPin, ChevronDown, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Car, Bike, Tv, Search, MapPin, Phone, Mail, Map, X, Star, Clock, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
+import { getAllDealers } from '../auth/Api/auth.api';
+
+const CATEGORIES = {
+    all: { title: 'All Categories', icon: Search },
+    cars: { title: 'Vehicles', icon: Car },
+    bikes: { title: 'Bikes', icon: Bike },
+    electronics: { title: 'Electronics', icon: Tv }
+};
 
 const FindDealers = () => {
-    const [activeCategory, setActiveCategory] = useState('cars');
-    const [activeFaq, setActiveFaq] = useState(null);
+    // Data & loading state
+    const [dealers, setDealers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const benefits = [
-        { icon: Tag, title: 'Subsidized Rates', desc: 'Exclusive tax-free pricing for armed forces personnel.' },
-        { icon: Shield, title: 'No Hidden Costs', desc: 'Transparent pricing with absolutely zero hidden charges.' },
-        { icon: FastForward, title: 'Priority Delivery', desc: 'Fast-tracked delivery process for our premium members.' }
-    ];
+    // Filter State
+    const [filterState, setFilterState] = useState('All');
+    const [filterCity, setFilterCity] = useState('All');
+    const [filterBrand, setFilterBrand] = useState('All');
 
-    const categories = {
-        cars: {
-            title: 'Cars',
-            icon: Car,
-            brands: ['Maruti', 'Tata', 'Hyundai', 'Kia', 'Mahindra', 'Honda', 'Toyota']
-        },
-        bikes: {
-            title: 'Bikes',
-            icon: Bike,
-            brands: ['Hero', 'Bajaj', 'Yamaha', 'Royal Enfield', 'TVS', 'Suzuki', 'Jawa', 'Honda']
-        },
-        electronics: {
-            title: 'Electronics',
-            icon: Tv,
-            brands: ['Samsung', 'LG', 'IFB', 'Bosch', 'Whirlpool']
-        }
+    // Modal State
+    const [viewDealer, setViewDealer] = useState(null);
+    const [contactDealer, setContactDealer] = useState(null);
+    const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '' });
+    const [contactSubmitted, setContactSubmitted] = useState(false);
+
+    // Fetch dealers from backend on mount
+    useEffect(() => {
+        const fetchDealers = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const data = await getAllDealers();
+                if (data?.success) {
+                    setDealers(data.dealers || []);
+                } else {
+                    setError(data?.message || 'Failed to fetch dealers.');
+                }
+            } catch (err) {
+                setError('Could not connect to the server. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDealers();
+    }, []);
+
+    // Compute unique brands from fetched dealers
+    const availableBrands = useMemo(() => {
+        const brands = new Set();
+        dealers.forEach(d => {
+            (d.brandsHandled || []).forEach(b => {
+                if (b?.brandName) brands.add(b.brandName);
+            });
+        });
+        return ['All', ...Array.from(brands).sort()];
+    }, [dealers]);
+
+    // Compute unique states from fetched dealers
+    const availableStates = useMemo(() => {
+        const states = new Set(dealers.map(d => d.state).filter(Boolean));
+        return ['All', ...Array.from(states).sort()];
+    }, [dealers]);
+
+    // Compute cities filtered by selected state
+    const availableCities = useMemo(() => {
+        const source = filterState === 'All' ? dealers : dealers.filter(d => d.state === filterState);
+        const cities = new Set(source.map(d => d.city).filter(Boolean));
+        return ['All', ...Array.from(cities).sort()];
+    }, [dealers, filterState]);
+
+    // Reset city when state changes
+    const handleStateChange = (val) => {
+        setFilterState(val);
+        setFilterCity('All'); // clear city so it resets to the new state's cities
     };
 
-    const steps = [
-        { title: 'Download or Visit', desc: 'Get the Fouji Adda app or visit our website.' },
-        { title: 'Navigate to CSD', desc: 'Go to the CSD section in the main menu.' },
-        { title: 'Select Category', desc: 'Choose Cars, Bikes, or AFD Electronics.' },
-        { title: 'Enter Location', desc: 'Type in your city or pin code.' },
-        { title: 'View Dealers', desc: 'Instantly get a list of authorized dealers near you.' },
-        { title: 'Contact Dealer', desc: 'Click to view details and contact them for availability.' }
-    ];
+    // Filtered dealers (client-side filtering on fetched data)
+    const filteredDealers = useMemo(() => {
+        return dealers.filter(dealer => {
+            const matchState = filterState === 'All' || dealer.state === filterState;
+            const matchCity = filterCity === 'All' || dealer.city === filterCity;
+            const matchBrand = filterBrand === 'All' || (dealer.brandsHandled || []).some(b => b?.brandName === filterBrand);
+            return matchState && matchCity && matchBrand;
+        });
+    }, [dealers, filterState, filterCity, filterBrand]);
 
-    const faqs = [
-        { q: 'What is a CSD dealer?', a: 'A CSD dealer is an authorized dealership that offers products to armed forces personnel and their families at subsidized rates through the Canteen Stores Department (CSD).' },
-        { q: 'Who can purchase products from a CSD dealer?', a: 'Armed forces personnel and their families who meet the eligibility criteria can purchase products from a CSD dealer. Eligibility may vary by category.' },
-        { q: 'How can I find a CSD dealer in my area?', a: 'You can find a CSD dealer easily by using the Fouji Adda app or website. Our platform lists authorized dealerships based on your precise location.' },
-        { q: 'What are the benefits of purchasing from a CSD dealer?', a: 'Benefits include subsidized rates, priority delivery, easy financing options, and no hidden costs.' },
-        { q: 'Can I purchase products from a CSD dealer online?', a: 'No, you cannot purchase directly from a CSD dealer online. You must visit the authorized dealership in person, but orders are placed on the CSD AFD portal.' }
-    ];
+    const handleContactSubmit = (e) => {
+        e.preventDefault();
+        console.log("=== DEALER CONTACT SUBMITTED ===");
+        console.log("Dealer:", { id: contactDealer._id, name: contactDealer.dealerName, city: contactDealer.city });
+        console.log("Form Data:", contactForm);
+        console.log("================================");
+        setContactSubmitted(true);
+    };
+
+    const closeContactModal = () => {
+        setContactDealer(null);
+        setContactForm({ name: '', email: '', phone: '' });
+        setContactSubmitted(false);
+    };
 
     return (
-        <div className="min-h-screen bg-[#fafbf8] font-sans selection:bg-[#b48001] selection:text-white">
+        <div className="min-h-screen bg-[#fafbf8] font-sans selection:bg-[#b48001] selection:text-white pb-24">
 
             {/* Hero Section */}
-            <section className="relative overflow-hidden bg-[#19456d] pt-24 pb-32">
-                {/* Background decorative elements */}
+            <section className="relative overflow-hidden bg-[#19456d] pt-24 pb-20">
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#b48001] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
                     <div className="absolute top-40 -left-40 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2000ms' }} />
                 </div>
-
                 <div className="max-w-7xl mx-auto px-4 relative z-10 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                    >
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                         <span className="px-4 py-1.5 rounded-full bg-white/10 text-[#b48001] text-sm font-bold tracking-wider uppercase border border-white/20 backdrop-blur-md mb-6 inline-block">
                             Authorized Dealerships
                         </span>
-                        <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
                             Find CSD AFD Dealers <br />
                             <span className="text-transparent bg-clip-text bg-linear-to-r from-[#b48001] to-yellow-300">Near You</span>
                         </h1>
-                        <p className="text-lg md:text-xl text-[#708ca4] max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
-                            Discover authorized dealerships for Cars, Bikes, and Electronics offering exclusive subsidized rates for armed forces personnel.
+                        <p className="text-[#b8cede] max-w-xl mx-auto text-base font-medium">
+                            Discover authorized dealerships offering exclusive subsidized rates for armed forces personnel.
                         </p>
-
-                        {/* Search Bar Simulation */}
-                        <div className="max-w-xl mx-auto relative group">
-                            <div className="absolute -inset-1 bg-linear-to-r from-[#b48001] to-yellow-400 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                            <div className="relative flex items-center bg-white rounded-2xl p-2 shadow-2xl">
-                                <div className="p-3 text-[#708ca4]">
-                                    <MapPin size={24} />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Enter your city or pin code..."
-                                    className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-[#19456d] font-medium placeholder-[#708ca4]/50 outline-none w-full"
-                                />
-                                <button className="bg-[#19456d] hover:bg-[#143655] text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md flex items-center gap-2">
-                                    <Search size={18} />
-                                    <span className="hidden sm:inline">Search</span>
-                                </button>
-                            </div>
-                        </div>
                     </motion.div>
                 </div>
             </section>
 
-            {/* Core Benefits */}
-            <section className="py-20 px-4 -mt-16 relative z-20">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {benefits.map((b, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.1 }}
-                                className="bg-white rounded-3xl p-8 shadow-xl shadow-black/5 border border-[#19456d]/5 group hover:-translate-y-2 transition-transform duration-300"
-                            >
-                                <div className="w-14 h-14 bg-[#fafbf8] rounded-2xl flex items-center justify-center mb-6 border border-[#708ca4]/20 group-hover:bg-[#19456d] transition-colors duration-300">
-                                    <b.icon className="w-6 h-6 text-[#b48001]" />
-                                </div>
-                                <h3 className="text-xl font-bold text-[#19456d] mb-3">{b.title}</h3>
-                                <p className="text-[#708ca4] font-medium leading-relaxed">{b.desc}</p>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+            {/* Main Content */}
+            <section className="max-w-7xl mx-auto px-4 -mt-10 relative z-20">
+                <div className="flex flex-col lg:flex-row gap-8">
 
-            {/* Categories Showcase (Bento layout) */}
-            <section className="py-20 px-4 bg-white border-t border-[#708ca4]/10">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-[#19456d] mb-4">Explore Dealerships</h2>
-                        <p className="text-[#708ca4] text-lg max-w-2xl mx-auto">Browse authorized brands across premium vehicles and smart electronics.</p>
-                    </div>
+                    {/* LEFT: Filters */}
+                    <div className="w-full lg:w-72 shrink-0">
+                        <div className="bg-white rounded-3xl p-6 shadow-xl shadow-black/5 border border-[#19456d]/5 sticky top-24">
+                            <h2 className="text-lg font-extrabold text-[#19456d] mb-5 flex items-center gap-2">
+                                <Search size={18} className="text-[#b48001]" /> Search Filters
+                            </h2>
 
-                    {/* Custom Tabs */}
-                    <div className="flex flex-wrap justify-center gap-4 mb-12">
-                        {Object.entries(categories).map(([key, cat]) => {
-                            const Icon = cat.icon;
-                            const isActive = activeCategory === key;
-                            return (
-                                <button
-                                    key={key}
-                                    onClick={() => setActiveCategory(key)}
-                                    className={`flex items-center gap-3 px-6 py-3 rounded-full font-bold transition-all duration-300 ${isActive
-                                        ? 'bg-[#19456d] text-white shadow-lg shadow-[#19456d]/20 scale-105'
-                                        : 'bg-[#fafbf8] text-[#708ca4] hover:bg-gray-100 border border-transparent hover:border-gray-200'
-                                        }`}
-                                >
-                                    <Icon size={18} className={isActive ? 'text-[#b48001]' : ''} />
-                                    {cat.title}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Brands Grid */}
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeCategory}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className="grid grid-cols-2 md:grid-cols-4 gap-4"
-                        >
-                            {categories[activeCategory].brands.map((brand, idx) => (
-                                <Link to={activeCategory === 'cars' ? '/cars' : '#'} key={idx} className="block group">
-                                    <div className="bg-[#fafbf8] border border-[#708ca4]/15 rounded-2xl p-6 flex flex-col items-center justify-center gap-3 hover:bg-white hover:border-[#b48001]/50 hover:shadow-xl hover:shadow-[#b48001]/5 transition-all duration-300">
-                                        <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center border border-gray-100 group-hover:scale-110 transition-transform">
-                                            <span className="font-extrabold text-[#19456d] text-lg">{brand.charAt(0)}</span>
-                                        </div>
-                                        <span className="font-bold text-[#19456d]">{brand}</span>
-                                    </div>
-                                </Link>
-                            ))}
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-            </section>
-
-            {/* Timeline / How it works */}
-            <section className="py-24 px-4 bg-[#19456d] relative overflow-hidden">
-                <div className="max-w-4xl mx-auto relative z-10">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">How to Locate a Dealer</h2>
-                        <p className="text-[#708ca4] text-lg max-w-2xl mx-auto">Follow these simple steps on Fouji Adda to find the nearest authorized CSD dealer.</p>
-                    </div>
-
-                    <div className="space-y-6">
-                        {steps.map((step, idx) => (
-                            <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, x: -20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="flex gap-6 items-center bg-white/5 backdrop-blur-sm border border-white/10 p-5 rounded-2xl hover:bg-white/10 transition-colors"
-                            >
-                                <div className="w-12 h-12 shrink-0 bg-linear-to-br from-[#b48001] to-yellow-500 rounded-full flex items-center justify-center text-white font-extrabold shadow-lg shadow-black/20">
-                                    {idx + 1}
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-lg">{step.title}</h4>
-                                    <p className="text-[#708ca4] mt-1 text-sm md:text-base">{step.desc}</p>
-                                </div>
-                                <div className="ml-auto opacity-20 hidden sm:block">
-                                    <CheckCircle2 size={32} className="text-[#b48001]" />
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* FAQs */}
-            <section className="py-24 px-4 bg-white">
-                <div className="max-w-3xl mx-auto">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-[#19456d] mb-4">Frequently Asked Questions</h2>
-                        <p className="text-[#708ca4] text-lg max-w-2xl mx-auto">Everything you need to know about CSD Dealers.</p>
-                    </div>
-
-                    <div className="space-y-4">
-                        {faqs.map((faq, idx) => {
-                            const isOpen = activeFaq === idx;
-                            return (
-                                <motion.div
-                                    key={idx}
-                                    className={`border rounded-2xl overflow-hidden transition-all duration-300 ${isOpen ? 'border-[#b48001] bg-[#fafbf8] shadow-md' : 'border-[#708ca4]/20 hover:border-[#708ca4]/50 bg-white'}`}
-                                >
-                                    <button
-                                        onClick={() => setActiveFaq(isOpen ? null : idx)}
-                                        className="w-full flex items-center justify-between p-6 text-left"
+                            {/* State Filter */}
+                            <div className="mb-4">
+                                <label className="block text-xs font-bold text-[#19456d] uppercase tracking-wider mb-2">State</label>
+                                <div className="relative">
+                                    <select
+                                        value={filterState}
+                                        onChange={(e) => handleStateChange(e.target.value)}
+                                        className="w-full bg-[#fafbf8] border border-gray-200 rounded-xl py-3 pl-4 pr-9 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none"
                                     >
-                                        <span className={`font-bold pr-4 ${isOpen ? 'text-[#b48001]' : 'text-[#19456d]'}`}>
-                                            {faq.q}
-                                        </span>
-                                        <div className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center transition-colors ${isOpen ? 'bg-[#b48001] text-white' : 'bg-gray-100 text-[#19456d]'}`}>
-                                            <ChevronDown size={18} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-                                        </div>
-                                    </button>
-                                    <AnimatePresence>
-                                        {isOpen && (
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: 'auto', opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                className="overflow-hidden"
-                                            >
-                                                <div className="p-6 pt-0 text-[#708ca4] leading-relaxed font-medium">
-                                                    {faq.a}
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
-                            )
-                        })}
-                    </div>
-                </div>
-            </section>
+                                        {availableStates.map(state => (
+                                            <option key={state} value={state}>{state}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-3 top-3.5 text-[#708ca4] pointer-events-none" />
+                                </div>
+                            </div>
 
-            {/* Final CTA */}
-            <section className="py-20 px-4 bg-[#fafbf8]">
-                <div className="max-w-5xl mx-auto bg-linear-to-r from-[#19456d] to-[#12314e] rounded-3xl p-10 md:p-16 text-center relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full filter blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-                    <div className="relative z-10">
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6">Ready to find your dealer?</h2>
-                        <p className="text-lg text-blue-100 mb-10 max-w-2xl mx-auto font-medium">
-                            Join the Fouji Adda community today and get access to exclusive military discounts, CSD dealers, and more.
-                        </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-4">
-                            <Link to="/login" className="px-8 py-4 bg-[#b48001] hover:bg-yellow-600 text-white font-bold rounded-xl shadow-lg shadow-[#b48001]/30 transition-all flex items-center justify-center gap-2">
-                                Get Started <ArrowRight size={18} />
-                            </Link>
-                            <Link to="/contact" className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl backdrop-blur-sm border border-white/20 transition-all flex items-center justify-center">
-                                Contact Support
-                            </Link>
+                            {/* City Filter — cascades from selected State */}
+                            <div className="mb-4">
+                                <label className="block text-xs font-bold text-[#19456d] uppercase tracking-wider mb-2">City</label>
+                                <div className="relative">
+                                    <select
+                                        value={filterCity}
+                                        onChange={(e) => setFilterCity(e.target.value)}
+                                        disabled={filterState === 'All'}
+                                        className="w-full bg-[#fafbf8] border border-gray-200 rounded-xl py-3 pl-4 pr-9 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {availableCities.map(city => (
+                                            <option key={city} value={city}>{city}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-3 top-3.5 text-[#708ca4] pointer-events-none" />
+                                </div>
+                                {filterState === 'All' && (
+                                    <p className="text-[10px] text-[#708ca4] mt-1 pl-1">Select a state first to filter by city</p>
+                                )}
+                            </div>
+
+                            {/* Brand Filter */}
+                            <div className="mb-5">
+                                <label className="block text-xs font-bold text-[#19456d] uppercase tracking-wider mb-2">Brand</label>
+                                <div className="relative">
+                                    <select
+                                        value={filterBrand}
+                                        onChange={(e) => setFilterBrand(e.target.value)}
+                                        className="w-full bg-[#fafbf8] border border-gray-200 rounded-xl py-3 pl-4 pr-9 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none"
+                                    >
+                                        {availableBrands.map(brand => (
+                                            <option key={brand} value={brand}>{brand}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown size={16} className="absolute right-3 top-3.5 text-[#708ca4] pointer-events-none" />
+                                </div>
+                            </div>
+
+                            {/* Reset */}
+                            {(filterState !== 'All' || filterCity !== 'All' || filterBrand !== 'All') && (
+                                <button
+                                    onClick={() => { setFilterState('All'); setFilterCity('All'); setFilterBrand('All'); }}
+                                    className="w-full text-sm text-[#708ca4] hover:text-[#19456d] font-semibold py-2 border border-gray-200 rounded-xl transition-colors"
+                                >
+                                    Clear All Filters
+                                </button>
+                            )}
                         </div>
                     </div>
+
+                    {/* RIGHT: Results */}
+                    <div className="flex-1 min-w-0">
+
+                        {/* Loading State */}
+                        {loading && (
+                            <div className="flex flex-col items-center justify-center py-24 text-[#708ca4]">
+                                <Loader2 size={40} className="animate-spin mb-4 text-[#b48001]" />
+                                <p className="font-semibold">Fetching dealers...</p>
+                            </div>
+                        )}
+
+                        {/* Error State */}
+                        {!loading && error && (
+                            <div className="bg-white rounded-3xl p-10 text-center border border-red-100 shadow-sm">
+                                <AlertCircle size={40} className="text-red-400 mx-auto mb-4" />
+                                <h3 className="text-lg font-bold text-[#19456d] mb-1">Could not load dealers</h3>
+                                <p className="text-[#708ca4] text-sm">{error}</p>
+                            </div>
+                        )}
+
+                        {/* Results */}
+                        {!loading && !error && (
+                            <>
+                                <div className="flex items-center justify-between mb-5">
+                                    <h3 className="text-xl font-extrabold text-[#19456d]">
+                                        {filteredDealers.length} {filteredDealers.length === 1 ? 'Dealer' : 'Dealers'} Found
+                                    </h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <AnimatePresence mode="popLayout">
+                                        {filteredDealers.map(dealer => (
+                                            <motion.div
+                                                key={dealer._id}
+                                                layout
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="bg-white rounded-2xl p-6 shadow-md shadow-black/5 border border-gray-100 flex flex-col"
+                                            >
+                                                {/* Header */}
+                                                <div className="flex gap-4 items-start mb-4">
+                                                    <img
+                                                        src={dealer.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(dealer.dealerName)}&background=19456d&color=fff&bold=true`}
+                                                        alt={dealer.dealerName}
+                                                        className="w-14 h-14 rounded-2xl object-cover shrink-0 border border-gray-100 bg-gray-50"
+                                                        onError={e => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(dealer.dealerName)}&background=19456d&color=fff&bold=true`; }}
+                                                    />
+                                                    <div className="min-w-0">
+                                                        <h4 className="text-base font-extrabold text-[#19456d] leading-tight mb-0.5 truncate">{dealer.dealerName}</h4>
+                                                        <div className="flex items-center text-xs text-[#708ca4] gap-1 font-medium">
+                                                            <MapPin size={12} /> <span className="truncate">{dealer.city}{dealer.state ? `, ${dealer.state}` : ''}</span>
+                                                        </div>
+                                                        {/* Brands */}
+                                                        {dealer.brandsHandled?.length > 0 && (
+                                                            <div className="flex flex-wrap gap-1 mt-2">
+                                                                {dealer.brandsHandled.slice(0, 3).map(b => (
+                                                                    <span key={b._id || b.brandName} className="px-2 py-0.5 bg-[#fafbf8] border border-gray-200 text-[#19456d] text-[10px] font-bold rounded-md">
+                                                                        {b.brandName}
+                                                                    </span>
+                                                                ))}
+                                                                {dealer.brandsHandled.length > 3 && (
+                                                                    <span className="px-2 py-0.5 bg-[#fafbf8] border border-gray-200 text-[#708ca4] text-[10px] font-bold rounded-md">
+                                                                        +{dealer.brandsHandled.length - 3} more
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Buttons */}
+                                                <div className="mt-auto pt-4 border-t border-gray-50 flex gap-3">
+                                                    <button
+                                                        onClick={() => setViewDealer(dealer)}
+                                                        className="flex-1 bg-white border-2 border-[#19456d] text-[#19456d] hover:bg-[#19456d] hover:text-white py-2.5 rounded-xl font-bold transition-colors text-sm"
+                                                    >
+                                                        View Details
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { setContactDealer(dealer); setContactSubmitted(false); }}
+                                                        className="flex-1 bg-[#b48001] hover:bg-[#c99200] text-white py-2.5 rounded-xl font-bold transition-colors text-sm shadow-[0_4px_14px_-4px_rgba(180,128,1,0.5)]"
+                                                    >
+                                                        Contact Dealer
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+
+                                {filteredDealers.length === 0 && (
+                                    <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm">
+                                        <Search size={40} className="text-gray-300 mx-auto mb-4" />
+                                        <h3 className="text-lg font-bold text-[#19456d] mb-1">No dealers found</h3>
+                                        <p className="text-[#708ca4] text-sm">Try changing the city or clearing the brand filter.</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
             </section>
+
+            {/* VIEW DETAILS MODAL */}
+            <AnimatePresence>
+                {viewDealer && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewDealer(null)} className="absolute inset-0 bg-[#19456d]/60 backdrop-blur-sm" />
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl w-full max-w-md relative z-10 overflow-hidden shadow-2xl">
+                            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-[#fafbf8]">
+                                <h3 className="text-xl font-extrabold text-[#19456d]">Dealer Details</h3>
+                                <button onClick={() => setViewDealer(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors">
+                                    <X size={16} />
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-5">
+                                <div className="flex gap-4 items-center">
+                                    <img
+                                        src={viewDealer.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(viewDealer.dealerName)}&background=19456d&color=fff&bold=true`}
+                                        alt={viewDealer.dealerName}
+                                        className="w-16 h-16 rounded-2xl object-cover border border-gray-100"
+                                        onError={e => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(viewDealer.dealerName)}&background=19456d&color=fff&bold=true`; }}
+                                    />
+                                    <div>
+                                        <h4 className="text-lg font-extrabold text-[#19456d]">{viewDealer.dealerName}</h4>
+                                        <p className="text-sm text-[#708ca4] font-medium">{viewDealer.contactPerson}</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-3 bg-[#fafbf8] rounded-2xl p-4">
+                                    <div className="flex items-start gap-3 text-[#19456d]">
+                                        <Map className="text-[#b48001] shrink-0 mt-0.5" size={18} />
+                                        <span className="font-medium text-sm leading-relaxed">{viewDealer.address}, {viewDealer.city}, {viewDealer.state} – {viewDealer.pincode}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-[#19456d]">
+                                        <Phone className="text-[#b48001] shrink-0" size={18} />
+                                        <span className="font-medium text-sm">{viewDealer.phone}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-[#19456d]">
+                                        <Mail className="text-[#b48001] shrink-0" size={18} />
+                                        <span className="font-medium text-sm break-all">{viewDealer.email}</span>
+                                    </div>
+                                </div>
+                                {viewDealer.brandsHandled?.length > 0 && (
+                                    <div>
+                                        <p className="text-xs font-bold text-[#19456d] uppercase tracking-wider mb-2">Brands Handled</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {viewDealer.brandsHandled.map(b => (
+                                                <span key={b._id || b.brandName} className="px-3 py-1 bg-[#19456d]/10 text-[#19456d] text-xs font-bold rounded-lg">
+                                                    {b.brandName}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <button
+                                    onClick={() => { setViewDealer(null); setContactDealer(viewDealer); setContactSubmitted(false); }}
+                                    className="w-full bg-[#b48001] hover:bg-[#c99200] text-white py-3 rounded-xl font-bold transition-colors shadow-lg shadow-[#b48001]/20"
+                                >
+                                    Contact this Dealer
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* CONTACT DEALER MODAL */}
+            <AnimatePresence>
+                {contactDealer && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeContactModal} className="absolute inset-0 bg-[#19456d]/80 backdrop-blur-md" />
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl w-full max-w-md relative z-10 overflow-hidden shadow-2xl">
+                            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-lg font-extrabold text-[#19456d]">Contact Dealer</h3>
+                                    <p className="text-xs font-semibold text-[#708ca4] mt-0.5">To: {contactDealer.dealerName}</p>
+                                </div>
+                                <button onClick={closeContactModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
+                                    <X size={16} />
+                                </button>
+                            </div>
+                            <div className="p-6">
+                                {contactSubmitted ? (
+                                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-6">
+                                        <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <h4 className="text-lg font-extrabold text-[#19456d] mb-1">Request Sent!</h4>
+                                        <p className="text-sm text-[#708ca4]">Your contact details have been submitted. The dealer will reach out to you shortly.</p>
+                                        <button onClick={closeContactModal} className="mt-5 bg-[#19456d] text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#11304d] transition-colors">Close</button>
+                                    </motion.div>
+                                ) : (
+                                    <form onSubmit={handleContactSubmit} className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-[#19456d] uppercase tracking-wider mb-1.5">Your Name</label>
+                                            <input
+                                                required
+                                                type="text"
+                                                value={contactForm.name}
+                                                onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
+                                                className="w-full bg-[#fafbf8] border border-gray-200 rounded-xl py-2.5 px-4 text-sm text-[#19456d] focus:outline-none focus:ring-2 focus:ring-[#b48001]"
+                                                placeholder="Your full name"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-[#19456d] uppercase tracking-wider mb-1.5">Email Address</label>
+                                            <input
+                                                required
+                                                type="email"
+                                                value={contactForm.email}
+                                                onChange={e => setContactForm({ ...contactForm, email: e.target.value })}
+                                                className="w-full bg-[#fafbf8] border border-gray-200 rounded-xl py-2.5 px-4 text-sm text-[#19456d] focus:outline-none focus:ring-2 focus:ring-[#b48001]"
+                                                placeholder="you@example.com"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-[#19456d] uppercase tracking-wider mb-1.5">Phone Number</label>
+                                            <div className="relative">
+                                                <Phone size={15} className="absolute left-3.5 top-3.5 text-gray-400" />
+                                                <input
+                                                    required
+                                                    type="tel"
+                                                    value={contactForm.phone}
+                                                    onChange={e => setContactForm({ ...contactForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                                                    className="w-full bg-[#fafbf8] border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-sm text-[#19456d] focus:outline-none focus:ring-2 focus:ring-[#b48001]"
+                                                    placeholder="10-digit mobile number"
+                                                />
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            className="w-full bg-[#19456d] hover:bg-[#11304d] text-white py-3 rounded-xl font-bold transition-colors mt-1"
+                                        >
+                                            Submit Request
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
         </div>
     );
 };
-
-// Quick ArrowRight icon since it wasn't imported from lucide-react in the top list
-const ArrowRight = ({ size = 24, className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-        <polyline points="12 5 19 12 12 19"></polyline>
-    </svg>
-);
 
 export default FindDealers;

@@ -36,14 +36,35 @@ const Navbar = () => {
       name: 'Vehicles',
       isDropdown: true,
       items: [
-        { name: 'All Cars', path: '/cars' },
+        { name: 'All Vehicles', path: '/cars' },
         { name: 'Brands', path: '/brands' },
-        { name: 'Used Cars', path: '/used-cars' },
-        { name: 'Compare Cars', path: '/compare' },
+        { name: 'Used Vehicles', path: '/used-cars' },
+        { name: 'Compare Vehicles', path: '/compare' },
+        { name: 'Find Dealers', path: '/find-dealers' },
+
+      ],
+    },
+    {
+      name: 'Loan',
+      isDropdown: true,
+      items: [
+        { name: 'Car Loan', path: '/loans' },
+        { name: 'Check Eligibility', path: '/loan/eligibility-documents' },
+        { name: 'EMI Calculator', path: '/loan/emi-calculator' },
+      ],
+    },
+    {
+      name: 'Insurance',
+      isDropdown: true,
+      items: [
+        { name: 'Car Insurance', path: '/insurance' },
+        { name: 'Check Eligibility', path: '/loan/eligibility-documents' },
+        { name: 'EMI Calculator', path: '/loan/emi-calculator' },
       ],
     },
     { name: 'Blogs', path: '/blogs' },
     { name: 'Contact Us', path: '/contact' },
+
   ];
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -57,7 +78,7 @@ const Navbar = () => {
           <div className="shrink-0 flex items-center cursor-pointer group">
             <Link to="/">
               <span className="text-2xl font-extrabold text-[#19456d] tracking-wider group-hover:scale-105 transition-transform duration-300">
-                Defence<span className="text-[#b48001]">Auto</span><span className="text-[#708ca4] text-lg">Hub</span>
+                Fouji<span className="text-[#b48001]">Mart</span>
               </span>
             </Link>
           </div>
@@ -106,7 +127,7 @@ const Navbar = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search cars…"
+                placeholder="Search vehicles…"
                 className="pl-9 pr-4 py-2 rounded-xl border border-[#708ca4]/25 bg-white text-[#19456d] text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#b48001] w-40 focus:w-52 transition-all duration-300"
               />
             </form>
@@ -156,7 +177,7 @@ const Navbar = () => {
           <form onSubmit={handleSearch} className="relative mb-4">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#708ca4]" />
             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search cars, brands, models…"
+              placeholder="Search vehicles, brands, models…"
               className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#708ca4]/20 bg-white text-[#19456d] text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#b48001]" />
           </form>
 

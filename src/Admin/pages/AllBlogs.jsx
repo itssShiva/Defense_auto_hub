@@ -82,7 +82,7 @@ const AllBlogs = ({ handleEditBlogClick }) => {
         fetchAllBlogs();
     }, [fetchAllBlogs]);
 
-    const CATEGORIES = ["All", "Car Reviews", "Buying Guide", "News", "Electric Vehicles", "Tips & Tricks", "Comparisons"];
+    const CATEGORIES = ["All", "Vehicle Reviews", "Buying Guide", "News", "Electric Vehicles", "Tips & Tricks", "Comparisons"];
 
     const filtered = blogs.filter((b) => {
         const matchSearch =

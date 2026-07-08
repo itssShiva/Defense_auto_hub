@@ -145,7 +145,7 @@ const SearchPage = () => {
           <div className="text-center py-20">
             <Search className="w-16 h-16 text-[#708ca4]/40 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-[#19456d] mb-2">Start typing to search</h3>
-            <p className="text-[#708ca4]">Find brands, cars, models and variants across Defence Auto Hub</p>
+            <p className="text-[#708ca4]">Find brands, vehicles, models and variants across Defence Auto Hub</p>
           </div>
         ) : loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">

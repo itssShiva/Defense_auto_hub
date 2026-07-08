@@ -42,7 +42,7 @@ const AllBrands = ({ handleEditBrandClick }) => {
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">All Brands</h2>
-                    <p className="text-[#708ca4]">Manage your car brands catalogue</p>
+                    <p className="text-[#708ca4]">Manage your vehicle brands catalogue</p>
                 </div>
             </div>
 

@@ -41,7 +41,7 @@ const ComparePage = () => {
   ]);
 
   useEffect(() => {
-    document.title = 'Compare Cars — Defence Auto Hub';
+    document.title = 'Compare Vehicles — Defence Auto Hub';
     (async () => {
       const [br, mo, va] = await Promise.all([getAllBrands(), getAllModels(), getAllVariants()]);
       if (br?.success) setBrands(br.brands || []);
@@ -118,7 +118,7 @@ const ComparePage = () => {
               <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                 className="bg-white rounded-2xl border border-[#708ca4]/15 p-5 shadow-sm space-y-3">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest">Car {i + 1}</p>
+                  <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest">Vehicle {i + 1}</p>
                   {slots.length > 2 && (
                     <button onClick={() => removeSlot(i)} className="w-7 h-7 flex items-center justify-center text-[#708ca4] hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                       <X className="w-4 h-4" />
@@ -181,7 +181,7 @@ const ComparePage = () => {
               <div className="w-12 h-12 rounded-full border-2 border-current flex items-center justify-center group-hover:bg-[#b48001]/8 transition-colors">
                 <Plus className="w-6 h-6" />
               </div>
-              <span className="font-bold text-sm">Add Another Car</span>
+              <span className="font-bold text-sm">Add Another Vehicle</span>
             </motion.button>
           )}
         </div>
@@ -240,7 +240,7 @@ const ComparePage = () => {
               <BarChart3 className="w-10 h-10 text-[#708ca4]" />
             </div>
             <h3 className="text-xl font-bold text-[#19456d] mb-2">Select at least 2 variants to compare</h3>
-            <p className="text-[#708ca4] text-sm">Use the dropdowns above to pick cars for comparison</p>
+            <p className="text-[#708ca4] text-sm">Use the dropdowns above to pick vehicles for comparison</p>
           </div>
         )}
       </div>

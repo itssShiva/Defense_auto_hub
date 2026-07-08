@@ -9,8 +9,8 @@ import EditUsedCar from "./EditUsedCar.jsx";
 
 const NAV = [
     { id: "Dealer Profile", icon: "🏪", label: "Dealer Profile" },
-    { id: "Add Used Car", icon: "🚗", label: "Add Used Car" },
-    { id: "All Used Cars", icon: "📋", label: "All Used Cars" },
+    { id: "Add Used Car", icon: "🚗", label: "Add Used Vehicle" },
+    { id: "All Used Cars", icon: "📋", label: "All Used Vehicles" },
     { id: "Change Password", icon: "🔒", label: "Change Password" },
 ];
 

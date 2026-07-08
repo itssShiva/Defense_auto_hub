@@ -5,12 +5,13 @@ import {
   ArrowLeft, Fuel, Settings2, Gauge, Users, Zap, Box,
   BadgeIndianRupee, PhoneCall, Calendar, Star, CheckCircle
 } from 'lucide-react';
-import { getVariantById } from '../Api/cars.api';
+import { getVariantById, getVariantsByModel } from '../Api/cars.api';
 import GalleryCarousel from '../components/GalleryCarousel';
 import ImageViewer from '../components/ImageViewer';
 import LeadForm from '../components/LeadForm';
 import SpecificationTable from '../components/SpecificationTable';
 import PriceBreakup from '../components/PriceBreakup';
+import VariantCard from '../components/VariantCard';
 import { HeroSkeleton, TableSkeleton } from '../components/LoadingSkeleton';
 import EmptyState from '../components/EmptyState';
 import { formatCompactPrice, formatIndianPrice, calculateEMI } from '../utils/helpers';
@@ -20,6 +21,7 @@ const TABS = ['Overview', 'Specifications', 'Pricing', 'Gallery', 'Features'];
 const VariantDetailPage = () => {
   const { slug } = useParams();
   const [variant, setVariant] = useState(null);
+  const [otherVariants, setOtherVariants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Overview');
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -33,6 +35,15 @@ const VariantDetailPage = () => {
       if (res?.success && res.variant) {
         setVariant(res.variant);
         document.title = `${res.variant.variantName} — Defence Auto Hub`;
+
+        // Fetch other variants of the same model
+        const modelId = res.variant.modelId?._id || res.variant.modelId;
+        if (modelId) {
+          const varsRes = await getVariantsByModel(modelId);
+          if (varsRes?.success) {
+            setOtherVariants((varsRes.variants || []).filter(v => v._id !== res.variant._id));
+          }
+        }
       }
       setLoading(false);
     })();
@@ -286,6 +297,27 @@ const VariantDetailPage = () => {
                   <EmptyState title="No features listed" message="Feature list not available for this variant." />
                 )}
               </motion.div>
+            )}
+
+            {/* ── Explore More Variants ── */}
+            {otherVariants.length > 0 && (
+              <div className="mt-16 border-t border-[#708ca4]/20 pt-12 pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+                  <div>
+                    <h2 className="text-2xl font-extrabold text-[#19456d] mb-1">Explore More Variants</h2>
+                    <p className="text-sm text-[#708ca4]">Other variants for the {variant.brandName || variant.brandId?.brandName} {variant.modelName || variant.modelId?.modelName}</p>
+                  </div>
+                  <Link to={`/models/${variant.modelId?.slug || variant.modelId?._id || variant.modelId}`}
+                    className="text-sm font-bold text-[#b48001] hover:text-[#19456d] transition-colors shrink-0">
+                    View All {otherVariants.length} Variants →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {otherVariants.map((v) => (
+                    <VariantCard key={v._id} variant={v} />
+                  ))}
+                </div>
+              </div>
             )}
           </>
         )}

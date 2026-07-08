@@ -28,7 +28,7 @@ const BrandsPage = () => {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    document.title = 'All Car Brands — Defence Auto Hub';
+    document.title = 'All Vehicle Brands — Defence Auto Hub';
     (async () => {
       setLoading(true);
       const [br, mo] = await Promise.all([getAllBrands(), getAllModels()]);
@@ -126,7 +126,7 @@ const BrandsPage = () => {
             className="grid grid-cols-3 gap-4 mb-10">
             {[
               { label: 'Total Brands', value: brands.length, icon: Globe },
-              { label: 'Car Models', value: models.length, icon: Layers },
+              { label: 'Vehicle Models', value: models.length, icon: Layers },
               { label: 'Showing', value: filtered.length, icon: Grid3X3 },
             ].map(({ label, value, icon: Icon }) => (
               <motion.div key={label} variants={fadeUp}

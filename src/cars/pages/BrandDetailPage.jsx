@@ -130,7 +130,7 @@ const BrandDetailPage = () => {
                   <div className="flex items-center justify-center sm:justify-start gap-6">
                     <div className="text-center">
                       <p className="text-3xl font-extrabold text-[#b48001]">{cars.length}</p>
-                      <p className="text-white/55 text-xs font-medium mt-0.5">Cars Available</p>
+                      <p className="text-white/55 text-xs font-medium mt-0.5">Vehicles Available</p>
                     </div>
                   </div>
                 </>
@@ -145,7 +145,7 @@ const BrandDetailPage = () => {
         {/* Header Tab */}
         <div className="inline-flex bg-white rounded-2xl border border-[#708ca4]/15 shadow-sm p-1.5 mb-8 gap-1">
           <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-[#19456d] text-white shadow-md cursor-default">
-            <Car className="w-4 h-4" /> Cars
+            <Car className="w-4 h-4" /> Vehicles
             <span className="text-xs px-1.5 py-0.5 rounded-full bg-white/20">{cars.length}</span>
           </button>
         </div>
@@ -156,7 +156,7 @@ const BrandDetailPage = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#708ca4]" />
             <input type="text" value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder={`Search cars…`}
+              placeholder={`Search vehicles…`}
               className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[#708ca4]/25 bg-white text-[#19456d] font-medium text-sm focus:outline-none focus:ring-1 focus:ring-[#b48001]"
             />
           </div>

@@ -29,11 +29,11 @@ const SectionTitle = ({ icon, children }) => (
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const EditModels = ({ modelId, goBack }) => {
-    const { fetchAllModels, updateModel, loading } = useCars();
+    const { fetchAllModels, updateModel, fetchVehiclesByBrandId, vehicles, loading } = useCars();
 
     const [form, setForm] = useState({
         brandId: "",
-        brandName: "",
+        vehicleId: "",
         modelName: "",
         category: "",
         year: "",
@@ -75,9 +75,9 @@ const EditModels = ({ modelId, goBack }) => {
     });
 
     const [originalForm, setOriginalForm] = useState(null);
-    const [newImages, setNewImages] = useState([]);         // newly selected File objects
+    const [newImages, setNewImages] = useState([]);         
     const [newImagePreviews, setNewImagePreviews] = useState([]);
-    const [existingImages, setExistingImages] = useState([]); // already-saved image paths
+    const [existingImages, setExistingImages] = useState([]); 
     const [errors, setErrors] = useState({});
     const fileInputRef = useRef(null);
 
@@ -103,9 +103,12 @@ const EditModels = ({ modelId, goBack }) => {
             if (res?.success && res.models) {
                 const existingModel = res.models.find((m) => m._id === modelId);
                 if (existingModel) {
+                    const bId = existingModel.brandId?._id || existingModel.brandId || "";
+                    if (bId) await fetchVehiclesByBrandId(bId);
+
                     const initialValues = {
-                        brandId: existingModel.brandId?._id || existingModel.brandId || "",
-                        brandName: existingModel.brandId?.brandName || existingModel.brandName || "",
+                        brandId: bId,
+                        vehicleId: existingModel.vehicleId?._id || existingModel.vehicleId || "",
                         modelName: existingModel.modelName || "",
                         category: existingModel.category || "",
                         year: existingModel.year || "",
@@ -158,19 +161,15 @@ const EditModels = ({ modelId, goBack }) => {
         };
         
         loadModel();
-    }, [modelId, fetchAllModels, goBack]);
+    }, [modelId, fetchAllModels, fetchVehiclesByBrandId, goBack]);
 
-    /* ── Two-way binding ── */
-    const handleChange = (e) => {
+    /* ── Two-way binding & Cascade ── */
+    const handleChange = async (e) => {
         const { name, value } = e.target;
         
         if (name === "brandId") {
-            const selectedBrand = brands.find(b => b._id === value);
-            setForm((prev) => ({ 
-                ...prev, 
-                brandId: value,
-                brandName: selectedBrand ? selectedBrand.brandName : "" 
-            }));
+            setForm((prev) => ({ ...prev, brandId: value, vehicleId: "" }));
+            if (value) await fetchVehiclesByBrandId(value);
         } else {
             setForm((prev) => ({ ...prev, [name]: value }));
         }
@@ -204,10 +203,11 @@ const EditModels = ({ modelId, goBack }) => {
     const validate = () => {
         const errs = {};
         if (!form.brandId) errs.brandId = "Please select a brand.";
+        if (!form.vehicleId) errs.vehicleId = "Please select a vehicle.";
         
         const textFields = [
             "modelName", "category", "fuelType",
-            "transmissionType", "engine", "maxPower", "maxTorque",
+            "transmissionType", "engine", "maxPower",
             "mileage", "bootSpace", "bodyType",
         ];
         textFields.forEach((f) => {
@@ -230,8 +230,6 @@ const EditModels = ({ modelId, goBack }) => {
             errs.seatingCapacity = "Must be a number between 1 and 20.";
         }
 
-        // Note: Image is not required on edit, because they might keep the old one.
-
         return errs;
     };
 
@@ -248,31 +246,18 @@ const EditModels = ({ modelId, goBack }) => {
         }
 
         const formData = new FormData();
-        let hasChanges = false;
 
-        if (originalForm) {
-            Object.keys(form).forEach((key) => {
-                // Compare current form value against the original
-                if (String(form[key]) !== String(originalForm[key])) {
-                    formData.append(key, form[key]);
-                    hasChanges = true;
-                }
-            });
-        }
+        // Always send all form fields so the backend gets a complete update
+        Object.entries(form).forEach(([key, value]) => {
+            formData.append(key, value ?? "");
+        });
 
-        // Append new images if any
         if (newImages.length) {
             newImages.forEach(img => formData.append("carImages", img));
-            hasChanges = true;
         }
-        // Always send existing image paths so backend knows what to keep
-        formData.append("existingImages", JSON.stringify(existingImages));
 
-        if (!hasChanges) {
-            toast("No changes were made.", { icon: "ℹ️" });
-            if (goBack) goBack();
-            return;
-        }
+        // Always send existingImages so the backend knows which to keep
+        formData.append("existingImages", JSON.stringify(existingImages));
 
         const res = await updateModel(modelId, formData);
         if (res?.success) {
@@ -293,10 +278,10 @@ const EditModels = ({ modelId, goBack }) => {
                         >
                             ←
                         </button>
-                        <h2 className="text-2xl font-extrabold text-[#19456d]">Update Car Model</h2>
+                        <h2 className="text-2xl font-extrabold text-[#19456d]">Update Vehicle Model</h2>
                     </div>
                     <p className="text-[#708ca4] text-sm ml-10">
-                        Modify the details for this car model in the catalogue.
+                        Modify the details for this vehicle model in the catalogue.
                     </p>
                 </div>
             </div>
@@ -305,7 +290,7 @@ const EditModels = ({ modelId, goBack }) => {
                 {/* ═══ SECTION 1: Identity ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle icon="🚗">Car Identity</SectionTitle>
+                        <SectionTitle icon="🚗">Vehicle Identity (Cascade)</SectionTitle>
 
                         <Field label="Brand" required error={errors.brandId}>
                             <select id="model-field-brandId" name="brandId"
@@ -314,6 +299,18 @@ const EditModels = ({ modelId, goBack }) => {
                                 <option value="">Select a Brand</option>
                                 {brands.map(b => (
                                     <option key={b._id} value={b._id}>{b.brandName}</option>
+                                ))}
+                            </select>
+                        </Field>
+
+                        <Field label="Vehicle Entity" required error={errors.vehicleId}>
+                            <select id="model-field-vehicleId" name="vehicleId"
+                                value={form.vehicleId} onChange={handleChange}
+                                disabled={!form.brandId}
+                                className={inputCls(errors.vehicleId)}>
+                                <option value="">{form.brandId ? "Select a Vehicle" : "Select Brand First"}</option>
+                                {vehicles.map(v => (
+                                    <option key={v._id} value={v._id}>{v.vehicleName}</option>
                                 ))}
                             </select>
                         </Field>
@@ -345,13 +342,6 @@ const EditModels = ({ modelId, goBack }) => {
                                 placeholder={`e.g. ${new Date().getFullYear()}`}
                                 min="1980" max={new Date().getFullYear() + 2}
                                 className={inputCls(errors.year)} />
-                        </Field>
-
-                        <Field label="Price (₹)" required error={errors.price}>
-                            <input id="model-field-price" type="number" name="price"
-                                value={form.price} onChange={handleChange}
-                                placeholder="e.g. 850000" min="0"
-                                className={inputCls(errors.price)} />
                         </Field>
                     </div>
                 </div>
@@ -397,7 +387,7 @@ const EditModels = ({ modelId, goBack }) => {
                                 className={inputCls(errors.maxPower)} />
                         </Field>
 
-                        <Field label="Max Torque" required error={errors.maxTorque}>
+                        <Field label="Max Torque" error={errors.maxTorque}>
                             <input id="model-field-maxTorque" type="text" name="maxTorque"
                                 value={form.maxTorque} onChange={handleChange}
                                 placeholder="e.g. 113 Nm @ 4200 rpm"
@@ -508,7 +498,7 @@ const EditModels = ({ modelId, goBack }) => {
                         <Field label="Details" error={errors.details}>
                             <textarea id="model-field-details" name="details"
                                 value={form.details} onChange={handleChange}
-                                placeholder="Describe the car model, features, and any important notes…"
+                                placeholder="Describe the vehicle model, features, and any important notes…"
                                 rows={3}
                                 className={`${inputCls(errors.details)} resize-none`} />
                         </Field>
@@ -528,7 +518,7 @@ const EditModels = ({ modelId, goBack }) => {
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5 flex items-center gap-2">
                         <span className="text-lg">🖼️</span>
                         <div>
-                            <h3 className="text-base font-bold text-[#19456d]">Car Images (Optional to Update)</h3>
+                            <h3 className="text-base font-bold text-[#19456d]">Vehicle Images (Optional to Update)</h3>
                             <p className="text-xs text-[#708ca4]">Add new images or remove existing ones. First image is the main thumbnail.</p>
                         </div>
                     </div>
@@ -538,17 +528,20 @@ const EditModels = ({ modelId, goBack }) => {
                         <div className="mb-4">
                             <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">Current Images</p>
                             <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                {existingImages.map((src, idx) => (
-                                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
-                                        <img src={src} alt={`existing-${idx}`} className="w-full h-full object-cover" />
-                                        {idx === 0 && existingImages.length > 0 && (
-                                            <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
-                                        )}
-                                        <button type="button" onClick={() => removeExistingImage(idx)}
-                                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
-                                        >✕</button>
-                                    </div>
-                                ))}
+                                {existingImages.map((src, idx) => {
+                                    const imgSrc = src.startsWith("http") ? src : `${import.meta.env.VITE_BACKEND_URL}${src}`;
+                                    return (
+                                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
+                                            <img src={imgSrc} alt={`existing-${idx}`} className="w-full h-full object-cover" />
+                                            {idx === 0 && existingImages.length > 0 && (
+                                                <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
+                                            )}
+                                            <button type="button" onClick={() => removeExistingImage(idx)}
+                                                className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
+                                            >✕</button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -612,7 +605,7 @@ const EditModels = ({ modelId, goBack }) => {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
-                                Updating Model…
+                                Saving Changes…
                             </div>
                         ) : (
                             <span>💾 Save Changes</span>

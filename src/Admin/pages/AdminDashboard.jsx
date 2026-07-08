@@ -26,17 +26,17 @@ import EditBrand from "./EditBrand.jsx";
 const NAV = [
     { id: "All Users", icon: "👥", label: "All Users" },
     { id: "All Dealers", icon: "🏪", label: "All Dealers" },
-    { id: "All Cars", icon: "🚗", label: "All Cars" },
+    { id: "All Cars", icon: "🚗", label: "All Vehicles" },
     { id: "All Models", icon: "📋", label: "All Models" },
     { id: "All Variants", icon: "📑", label: "All Variants" },
     { id: "Add User", icon: "➕", label: "Add Account" },
-    { id: "Add Cars", icon: "🆕", label: "Add Car" },
+    { id: "Add Cars", icon: "🆕", label: "Add Vehicle" },
     { id: "Add Model", icon: "✨", label: "Add Model" },
     { id: "Add Variant", icon: "🔧", label: "Add Variant" },
     { id: "All Brands", icon: "🏷️", label: "All Brands" },
     { id: "Add Brand", icon: "➕", label: "Add Brand" },
-    { id: "Add Used Car", icon: "🚗", label: "Add Used Car" },
-    { id: "Used Car Approvals", icon: "✅", label: "Used Car Approvals" },
+    { id: "Add Used Car", icon: "🚗", label: "Add Used Vehicle" },
+    { id: "Used Car Approvals", icon: "✅", label: "Used Vehicle Approvals" },
     { id: "All Blogs", icon: "📰", label: "All Blogs" },
     { id: "Add Blog", icon: "📝", label: "Add Blog" },
     { id: "Settings", icon: "⚙️", label: "Settings" },
@@ -100,7 +100,7 @@ const AdminDashboard = () => {
     /* ── Header title ── */
     const pageTitle = () => {
         if (activePage === "Update User") return "Update Account";
-        if (activePage === "Edit Car") return "Edit Car";
+        if (activePage === "Edit Car") return "Edit Vehicle";
         if (activePage === "Edit Model") return "Edit Model";
         if (activePage === "Edit Variant") return "Edit Variant";
         if (activePage === "Edit Blog") return "Edit Blog Post";
@@ -123,7 +123,7 @@ const AdminDashboard = () => {
     return (
         <div className="flex h-screen bg-background font-sans">
             {/* 1. SIDEBAR */}
-            <aside className="w-64 bg-[#19456d] text-white hidden md:flex flex-col h-full">
+            <aside className="w-72 bg-[#19456d] text-white hidden md:flex flex-col h-full">
                 {/* Logo Section */}
                 <div className="p-5 shrink-0">
                     <h2 className="text-2xl font-bold tracking-wider text-[#b48001]">
@@ -138,12 +138,13 @@ const AdminDashboard = () => {
                             <button
                                 key={id}
                                 onClick={() => setActivePage(id)}
-                                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg transition duration-200 ${isNavActive(id)
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition duration-200 text-left ${isNavActive(id)
                                     ? "bg-[#b48001] text-white"
                                     : "text-gray-300 hover:bg-[#708ca4]/20 hover:text-white"
                                     }`}
                             >
-                                <span>{icon}</span> <span>{label}</span>
+                                <span className="shrink-0 text-base leading-none">{icon}</span>
+                                <span className="text-sm font-medium leading-tight whitespace-nowrap truncate">{label}</span>
                             </button>
                         ))}
                     </nav>

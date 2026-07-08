@@ -5,9 +5,9 @@ import { Fuel, Settings2, ChevronRight } from 'lucide-react';
 import { getImageUrl, formatCompactPrice, getRouteId, FALLBACK_IMAGE } from '../utils/helpers';
 
 const CarCard = ({ car, linkTo, layout = 'grid' }) => {
-  const imageSrc = getImageUrl(car.carImages?.[0]) || FALLBACK_IMAGE;
-  const name = car.Model || car.modelName || 'Car';
-  const price = car.CSDPrice || car.OnRoadPrice;
+  const imageSrc = getImageUrl(car.carImages?.[0] || car.vehicleImages?.[0] || car.variantImages?.[0]) || FALLBACK_IMAGE;
+  const name = car.Model || car.modelName || car.vehicleName || car.variantName || 'Vehicle';
+  const price = car.CSDPrice || car.OnRoadPrice || car.price || 0;
   const finalLink = linkTo || `/cars/${getRouteId(car)}`;
 
   if (layout === 'list') {

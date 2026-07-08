@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
 import { useBrand } from "../../brand/hooks/useBrand.js";
 import { toast } from "react-hot-toast";
+import CustomSelect from "../components/CustomSelect.jsx";
 
 /* ─── Initial form state ─────────────────────────────────────────── */
 const INITIAL = {
     brandId: "",
+    vehicleId: "",
     modelId: "",
     variantName: "",
     fuelType: "",
@@ -41,7 +43,7 @@ const INITIAL = {
     MonthlyEMI: "",
     // Additional
     Entitlement: "",
-    Remarks: "Please verify the details with car dealer before placing order on CSD AFD Portal.",
+    Remarks: "Please verify the details with vehicle dealer before placing order on CSD AFD Portal.",
     features: "",
     description: "",
 };
@@ -72,17 +74,14 @@ const SectionTitle = ({ icon, children }) => (
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const AddVariants = () => {
-    const { addVariant, fetchAllModels, loading } = useCars();
+    const { addVariant, fetchVehiclesByBrandId, fetchModelsByVehicleId, vehicles, models, loading } = useCars();
+    const { getAllBrands } = useBrand();
 
     const [form, setForm] = useState(INITIAL);
     const [variantImages, setVariantImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [errors, setErrors] = useState({});
-    const [models, setModels] = useState([]);
-    const [modelsLoading, setModelsLoading] = useState(true);
     const fileInputRef = useRef(null);
-
-    const { getAllBrands } = useBrand();
     const [brands, setBrands] = useState([]);
     
     useEffect(() => {
@@ -95,27 +94,16 @@ const AddVariants = () => {
         fetchBrands();
     }, [getAllBrands]);
 
-    /* ── Load car models for the dropdown ── */
-    useEffect(() => {
-        const load = async () => {
-            setModelsLoading(true);
-            const res = await fetchAllModels();
-            if (res?.success && res.models) {
-                setModels(res.models);
-            } else {
-                toast.error("Could not load car models. Please refresh and try again.");
-            }
-            setModelsLoading(false);
-        };
-        load();
-    }, [fetchAllModels]);
-
-    /* ── Two-way binding ── */
-    const handleChange = (e) => {
+    /* ── Two-way binding & Cascading Logic ── */
+    const handleChange = async (e) => {
         const { name, value } = e.target;
         
         if (name === "brandId") {
-            setForm((prev) => ({ ...prev, brandId: value, modelId: "" }));
+            setForm((prev) => ({ ...prev, brandId: value, vehicleId: "", modelId: "" }));
+            if (value) await fetchVehiclesByBrandId(value);
+        } else if (name === "vehicleId") {
+            setForm((prev) => ({ ...prev, vehicleId: value, modelId: "" }));
+            if (value) await fetchModelsByVehicleId(value);
         } else {
             setForm((prev) => ({ ...prev, [name]: value }));
         }
@@ -149,10 +137,10 @@ const AddVariants = () => {
         const errs = {};
 
         if (!form.brandId) errs.brandId = "Please select a brand.";
-        if (!form.modelId) errs.modelId = "Please select a car model.";
+        if (!form.vehicleId) errs.vehicleId = "Please select a vehicle.";
+        if (!form.modelId) errs.modelId = "Please select a model.";
         if (!form.variantName?.trim()) errs.variantName = "Variant name is required.";
 
-        // Overridden powertrain fields (required if user wants to differentiate from base model)
         if (!form.fuelType) errs.fuelType = "Fuel type is required.";
         if (!form.transmissionType) errs.transmissionType = "Transmission type is required.";
 
@@ -161,15 +149,12 @@ const AddVariants = () => {
             if (!form[f]?.trim()) errs[f] = "This field is required.";
         });
 
-        // Seating capacity
         const seatsNum = Number(form.seatingCapacity);
         if (!form.seatingCapacity) {
             errs.seatingCapacity = "Seating capacity is required.";
         } else if (isNaN(seatsNum) || seatsNum < 1 || seatsNum > 20) {
             errs.seatingCapacity = "Must be a number between 1 and 20.";
         }
-
-        if (!variantImages.length) errs.variantImages = "At least one image is required. (optional — defaults to parent model images)";
 
         return errs;
     };
@@ -216,11 +201,10 @@ const AddVariants = () => {
 
     return (
         <div className="max-w-4xl mx-auto">
-            {/* Header */}
             <div className="mb-8">
                 <h2 className="text-2xl font-extrabold text-[#19456d] mb-1">Add New Variant</h2>
                 <p className="text-[#708ca4] text-sm">
-                    Select a base car model and define variant-specific overrides such as pricing, trim, and specs.
+                    Select a base model and define variant-specific overrides such as pricing, trim, and specs.
                 </p>
             </div>
 
@@ -229,46 +213,57 @@ const AddVariants = () => {
                 {/* ═══ SECTION 1: Model Selection ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 gap-5">
-                        <SectionTitle icon="🚗">Base Car Model</SectionTitle>
+                        <SectionTitle icon="🚗">Base Vehicle Model (Cascade)</SectionTitle>
 
                         <Field label="Brand" required error={errors.brandId}>
-                            <select id="variant-field-brandId" name="brandId"
-                                value={form.brandId} onChange={handleChange}
-                                className={inputCls(errors.brandId)}>
-                                <option value="">Select a Brand</option>
-                                {brands.map(b => (
-                                    <option key={b._id} value={b._id}>{b.brandName}</option>
-                                ))}
-                            </select>
+                            <CustomSelect
+                                id="variant-field-brandId"
+                                name="brandId"
+                                value={form.brandId}
+                                onChange={handleChange}
+                                error={errors.brandId}
+                                placeholder="Select a Brand"
+                                options={brands.map(b => ({ value: b._id, label: b.brandName }))}
+                            />
+                        </Field>
+
+                        <Field label="Vehicle Entity" required error={errors.vehicleId}>
+                            <CustomSelect
+                                id="variant-field-vehicleId"
+                                name="vehicleId"
+                                value={form.vehicleId}
+                                onChange={handleChange}
+                                error={errors.vehicleId}
+                                disabled={!form.brandId}
+                                placeholder={form.brandId ? "Select a Vehicle" : "Select Brand First"}
+                                options={vehicles.map(v => ({ value: v._id, label: v.vehicleName }))}
+                            />
                         </Field>
 
                         <Field label="Parent Model" required error={errors.modelId}>
-                            <select id="variant-field-modelId" name="modelId"
-                                value={form.modelId} onChange={handleChange}
-                                className={inputCls(errors.modelId)}
-                                disabled={!form.brandId}>
-                                <option value="">Select a Car Model</option>
-                                {models
-                                    .filter(m => m.brandId?._id === form.brandId || m.brandId === form.brandId)
-                                    .map(m => (
-                                        <option key={m._id} value={m._id}>
-                                            {m.brandName} {m.modelName} ({m.year})
-                                        </option>
-                                    ))}
-                            </select>
+                            <CustomSelect
+                                id="variant-field-modelId"
+                                name="modelId"
+                                value={form.modelId}
+                                onChange={handleChange}
+                                error={errors.modelId}
+                                disabled={!form.vehicleId}
+                                placeholder={form.vehicleId ? "Select a Model" : "Select Vehicle First"}
+                                options={models.map(m => ({ value: m._id, label: `${m.modelName} (${m.year})` }))}
+                            />
                         </Field>
 
                         {/* Preview card for selected model */}
                         {selectedModel && (
                             <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-[#19456d]/20 shadow-sm">
                                 <img
-                                    src={selectedModel.carImage || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                                    src={selectedModel.carImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
                                     alt={selectedModel.modelName}
                                     className="w-20 h-14 rounded-lg object-cover border border-gray-200"
                                 />
                                 <div>
                                     <p className="text-sm font-extrabold text-[#19456d]">
-                                        {selectedModel.brandName} {selectedModel.modelName}
+                                        {selectedModel.brandId?.brandName || ""} {selectedModel.vehicleId?.vehicleName || ""} {selectedModel.modelName}
                                     </p>
                                     <div className="flex flex-wrap gap-1.5 mt-1">
                                         <span className="px-2 py-0.5 text-xs font-bold bg-[#19456d]/10 text-[#19456d] rounded-full">
@@ -278,7 +273,7 @@ const AddVariants = () => {
                                             {selectedModel.transmissionType}
                                         </span>
                                         <span className="px-2 py-0.5 text-xs font-bold bg-gray-100 text-gray-600 rounded-full">
-                                            {selectedModel.category}
+                                            {selectedModel.vehicleId?.category || "N/A"}
                                         </span>
                                         <span className="px-2 py-0.5 text-xs font-bold bg-gray-100 text-gray-600 rounded-full">
                                             {selectedModel.year}
@@ -308,25 +303,27 @@ const AddVariants = () => {
                         <SectionTitle icon="⚙️">Powertrain & Specs</SectionTitle>
 
                         <Field label="Fuel Type" required error={errors.fuelType}>
-                            <select id="variant-field-fuelType" name="fuelType"
-                                value={form.fuelType} onChange={handleChange}
-                                className={inputCls(errors.fuelType)}>
-                                <option value="">Select Fuel Type</option>
-                                {["Petrol", "Diesel", "Electric", "CNG", "Hybrid"].map((f) => (
-                                    <option key={f} value={f}>{f}</option>
-                                ))}
-                            </select>
+                            <CustomSelect
+                                id="variant-field-fuelType"
+                                name="fuelType"
+                                value={form.fuelType}
+                                onChange={handleChange}
+                                error={errors.fuelType}
+                                placeholder="Select Fuel Type"
+                                options={["Petrol", "Diesel", "Electric", "CNG", "Hybrid"].map(f => ({ value: f, label: f }))}
+                            />
                         </Field>
 
                         <Field label="Transmission Type" required error={errors.transmissionType}>
-                            <select id="variant-field-transmissionType" name="transmissionType"
-                                value={form.transmissionType} onChange={handleChange}
-                                className={inputCls(errors.transmissionType)}>
-                                <option value="">Select Transmission</option>
-                                {["Manual", "Automatic", "AMT", "CVT", "DCT"].map((t) => (
-                                    <option key={t} value={t}>{t}</option>
-                                ))}
-                            </select>
+                            <CustomSelect
+                                id="variant-field-transmissionType"
+                                name="transmissionType"
+                                value={form.transmissionType}
+                                onChange={handleChange}
+                                error={errors.transmissionType}
+                                placeholder="Select Transmission"
+                                options={["Manual", "Automatic", "AMT", "CVT", "DCT"].map(t => ({ value: t, label: t }))}
+                            />
                         </Field>
 
                         <Field label="Engine Displacement" required error={errors.engine}>
@@ -542,19 +539,10 @@ const AddVariants = () => {
 
                 {/* ═══ Action Buttons ═══ */}
                 <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
-                    <button
-                        type="button"
-                        onClick={handleReset}
-                        disabled={loading}
-                        className="px-6 py-3.5 rounded-xl font-bold border-2 border-[#708ca4]/40 text-[#708ca4] hover:border-[#19456d] hover:text-[#19456d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                    <button type="button" onClick={handleReset} disabled={loading} className="px-6 py-3.5 rounded-xl font-bold border-2 border-[#708ca4]/40 text-[#708ca4] hover:border-[#19456d] hover:text-[#19456d] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                         Reset Form
                     </button>
-                    <button
-                        type="submit"
-                        disabled={loading || modelsLoading}
-                        className="px-8 py-3.5 rounded-xl font-bold text-white bg-[#19456d] hover:bg-[#113150] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center min-w-[220px] disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
+                    <button type="submit" disabled={loading} className="px-8 py-3.5 rounded-xl font-bold text-white bg-[#19456d] hover:bg-[#113150] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center min-w-[220px] disabled:opacity-70 disabled:cursor-not-allowed">
                         {loading ? (
                             <div className="flex items-center gap-2">
                                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">

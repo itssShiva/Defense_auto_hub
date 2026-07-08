@@ -1,23 +1,43 @@
 import React, { useState, useRef, useEffect } from "react";
-import { addNewCar } from "../../cars/Api/cars.api";
+import { useCars } from "../../cars/hooks/useCars";
 import { getAllBrands, createBrand } from "../../brand/api/brand.api";
 import { toast } from "react-hot-toast";
+import CustomSelect from "../components/CustomSelect.jsx";
+
+const VEHICLE_TYPES = [
+    "Car", "Bike", "Scooter", "Truck",
+    "Commercial", "Pickup", "Van", "Electric"
+];
 
 /* ─── Initial form state ────────────────────────────────────────── */
 const INITIAL = {
     brandId: "",
     brandName: "",
+    vehicleName: "",
+    vehicleType: "",
+    category: "",
+    description: "",
+    // Powertrain
+    fuelType: "",
+    transmissionType: "",
+    engine: "",
+    maxPower: "",
+    maxTorque: "",
+    mileage: "",
+    // Dimensions
+    seatingCapacity: "",
+    bootSpace: "",
+    bodyType: "",
+    fuelTankCapacity: "",
+    groundClearance: "",
+    length: "",
+    width: "",
+    height: "",
+    wheelbase: "",
+    // CSD
     IndexNo: "",
-    Model: "",
-    FuelType: "",
-    TransmissionType: "",
-    BodyType: "",
     Entitlement: "",
-    SeatingCapacity: "",
-    engineDisplacement: "",
-    MaxPower: "",
-    CityMileage: "",
-    BootSpace: "",
+    // Normal Pricing
     CSDPrice: "",
     OnRoadPrice: "",
     ExShowroomPrice: "",
@@ -27,6 +47,7 @@ const INITIAL = {
     FastTagFee: "",
     HPEndorsementFee: "",
     HSRPSMartCardTemporaryFee: "",
+    // BH Pricing
     BHOnRoadPrice: "",
     ExShowroomPriceBH: "",
     BHRegistrationCost: "",
@@ -35,24 +56,29 @@ const INITIAL = {
     BHFastTagFee: "",
     BHHPEndorsementFee: "",
     BHHSRPSMartCardTemporaryFee: "",
+    // Other Pricing
     civilExShowroomPrice: "",
     MonthlyEMI: "",
+    Remarks: "Please verify the details with vehicle dealer before placing order on CSD AFD Portal.",
     details: "",
-    Remarks: "Please verify the details with car dealer before placing order on CSD AFD Portal.",
 };
 
 /* ─── Reusable field components ─────────────────────────────────── */
-const Field = ({ label, required, children }) => (
-    <div className="group">
-        <label className="block text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">
+const Field = ({ label, required, error, children }) => (
+    <div className="group flex flex-col gap-1.5">
+        <label className="text-xs font-bold text-[#708ca4] uppercase tracking-widest">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         {children}
+        {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
     </div>
 );
 
-const inputCls =
-    "w-full px-4 py-3 rounded-xl border border-[#708ca4]/40 focus:outline-none focus:border-[#19456d] focus:ring-1 focus:ring-[#19456d] transition-all bg-white text-[#19456d] font-medium";
+const inputCls = (err) =>
+    `w-full px-4 py-3 rounded-xl border transition-all bg-white text-[#19456d] font-medium focus:outline-none focus:ring-1 ${err
+        ? "border-red-400 focus:border-red-500 focus:ring-red-400"
+        : "border-[#708ca4]/40 focus:border-[#19456d] focus:ring-[#19456d]"
+    }`;
 
 const SectionTitle = ({ children }) => (
     <div className="col-span-full mb-1 border-b border-[#708ca4]/20 pb-2">
@@ -62,8 +88,9 @@ const SectionTitle = ({ children }) => (
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const AddCars = () => {
+    const { addVehicle } = useCars();
     const [form, setForm] = useState(INITIAL);
-    const [carImages, setCarImages] = useState([]);
+    const [vehicleImages, setVehicleImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [brands, setBrands] = useState([]);
     const [isOtherBrand, setIsOtherBrand] = useState(false);
@@ -90,7 +117,6 @@ const AddCars = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
-        // Clear field-level error on change
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
@@ -98,51 +124,39 @@ const AddCars = () => {
     const handleImageChange = (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
-        const oversized = files.filter(f => f.size > 5 * 1024 * 1024);
+        const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        const badType = files.filter(f => !ALLOWED.includes(f.type));
+        if (badType.length > 0) {
+            toast.error(`Unsupported image type: ${[...new Set(badType.map(f => f.name.split('.').pop().toUpperCase()))].join(', ')}. Only JPEG, PNG and WEBP are allowed.`);
+        }
+        const typeOk = files.filter(f => ALLOWED.includes(f.type));
+        const oversized = typeOk.filter(f => f.size > 5 * 1024 * 1024);
         if (oversized.length > 0) {
             toast.error(`${oversized.length} file(s) exceed 5 MB and were skipped.`);
         }
-        const valid = files.filter(f => f.size <= 5 * 1024 * 1024);
+        const valid = typeOk.filter(f => f.size <= 5 * 1024 * 1024);
         if (!valid.length) { e.target.value = ""; return; }
-        setCarImages(prev => [...prev, ...valid]);
+        setVehicleImages(prev => [...prev, ...valid]);
         setImagePreviews(prev => [...prev, ...valid.map(f => URL.createObjectURL(f))]);
-        if (errors.carImages) setErrors(prev => ({ ...prev, carImages: "" }));
+        if (errors.vehicleImages) setErrors(prev => ({ ...prev, vehicleImages: "" }));
         e.target.value = ""; // allow re-selecting same files
     };
 
     const removeImage = (idx) => {
-        setCarImages(prev => prev.filter((_, i) => i !== idx));
+        setVehicleImages(prev => prev.filter((_, i) => i !== idx));
         setImagePreviews(prev => prev.filter((_, i) => i !== idx));
     };
 
     /* ── Client-side validation ── */
     const validate = () => {
         const newErrors = {};
-        const requiredTextFields = [
-            "brandId", "brandName", "IndexNo", "Model", "FuelType", "TransmissionType", "BodyType",
-            "Entitlement", "engineDisplacement", "MaxPower", "CityMileage",
-            "BootSpace", "RegistraionFee", "details",
-        ];
-        const requiredNumberFields = [
-            "SeatingCapacity", "CSDPrice", "OnRoadPrice", "ExShowroomPrice",
-            "RTO", "Insurance", "FastTagFee", "HPEndorsementFee",
-            "HSRPSMartCardTemporaryFee", "BHOnRoadPrice", "ExShowroomPriceBH",
-            "BHRegistrationCost", "BHInsurance", "BHRegistrationFee",
-            "BHFastTagFee", "BHHPEndorsementFee", "BHHSRPSMartCardTemporaryFee",
-            "civilExShowroomPrice", "MonthlyEMI",
-        ];
+        const requiredTextFields = ["brandId", "vehicleName", "vehicleType", "category"];
 
         requiredTextFields.forEach((f) => {
             if (!form[f]?.trim()) newErrors[f] = "This field is required.";
         });
-        requiredNumberFields.forEach((f) => {
-            if (form[f] === "" || isNaN(Number(form[f])))
-                newErrors[f] = "Enter a valid number.";
-        });
-        if (!carImages.length) newErrors.carImages = "At least one car image is required.";
-        if (carImages.length > 10) newErrors.carImages = "Maximum 10 images allowed.";
-        if (form.details?.trim().length > 0 && form.details.trim().length < 10)
-            newErrors.details = "Details must be at least 10 characters.";
+        if (!vehicleImages.length) newErrors.vehicleImages = "At least one vehicle image is required.";
+        if (vehicleImages.length > 10) newErrors.vehicleImages = "Maximum 10 images allowed.";
 
         return newErrors;
     };
@@ -154,66 +168,59 @@ const AddCars = () => {
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             toast.error("Please fix the highlighted errors before submitting.");
-            // Scroll to first error
             const firstErrorKey = Object.keys(validationErrors)[0];
             document.getElementById(`field-${firstErrorKey}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
 
         setLoading(true);
-        const toastId = toast.loading("Adding car to database…");
 
         try {
             // Handle creating new brand if 'Others' is selected
             if (isOtherBrand) {
                 if (!customBrandName.trim()) {
-                    toast.error("Please enter the custom brand name.", { id: toastId });
+                    toast.error("Please enter the custom brand name.");
                     setLoading(false);
                     return;
                 }
                 const brandFormData = new FormData();
                 brandFormData.append("brandName", customBrandName.trim());
                 brandFormData.append("brandCountry", "Unknown"); // Default for now
-                
+
                 const brandRes = await createBrand(brandFormData);
                 if (brandRes?.success) {
                     form.brandId = brandRes.brand._id;
                     form.brandName = brandRes.brand.brandName;
-                    
+
                     // Add to brands list locally so we have it
                     setBrands(prev => [...prev, brandRes.brand]);
                 } else {
-                    toast.error(brandRes?.message || "Failed to create custom brand.", { id: toastId });
+                    toast.error(brandRes?.message || "Failed to create custom brand.");
                     setLoading(false);
                     return;
                 }
             }
 
             const formData = new FormData();
-            // Append all text/number fields
             Object.entries(form).forEach(([key, value]) => {
                 formData.append(key, value);
             });
-            // Append all images
-            carImages.forEach(img => formData.append("carImages", img));
+            vehicleImages.forEach(img => formData.append("vehicleImages", img));
 
-            const response = await addNewCar(formData);
+            const response = await addVehicle(formData);
 
             if (response?.success) {
-                toast.success(`Car "${form.Model}" added successfully!`, { id: toastId });
                 // Reset form
                 setForm(INITIAL);
-                setCarImages([]);
+                setVehicleImages([]);
                 setImagePreviews([]);
                 setErrors({});
                 setIsOtherBrand(false);
                 setCustomBrandName("");
                 if (fileInputRef.current) fileInputRef.current.value = "";
-            } else {
-                toast.error(response?.message || "Failed to add car. Please try again.", { id: toastId });
             }
         } catch (err) {
-            toast.error("Something went wrong. Please try again.", { id: toastId });
+            toast.error("Something went wrong. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -222,22 +229,21 @@ const AddCars = () => {
     /* ── Reset form ── */
     const handleReset = () => {
         setForm(INITIAL);
-        setCarImages([]);
+        setVehicleImages([]);
         setImagePreviews([]);
         setErrors({});
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const errCls = (field) =>
-        errors[field] ? "border-red-400 focus:border-red-500 focus:ring-red-400" : "";
+    const errCls = (field) => ""; // Deprecated, kept for no breaking
 
     return (
         <div className="max-w-5xl mx-auto">
             {/* Header */}
             <div className="mb-8">
-                <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">Add New Car</h2>
+                <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">Add New Vehicle</h2>
                 <p className="text-[#708ca4]">
-                    Fill in all the details below to add a new car to the CSD catalogue.
+                    Fill in the core identity details to add a new vehicle to the catalogue.
                 </p>
             </div>
 
@@ -246,173 +252,192 @@ const AddCars = () => {
                 {/* ═══ SECTION 1: Car Identity ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle>Car Identity</SectionTitle>
+                        <SectionTitle>Vehicle Identity</SectionTitle>
 
                         {/* Brand */}
-                        <Field label="Brand" required>
-                            <select id="field-brandId" name="brandId"
-                                value={isOtherBrand ? "others" : form.brandId} 
+                        <Field label="Brand" required error={errors.brandId}>
+                            <CustomSelect
+                                id="field-brandId"
+                                name="brandId"
+                                value={form.brandId}
                                 onChange={(e) => {
+                                    handleChange(e);
                                     if (e.target.value === "others") {
                                         setIsOtherBrand(true);
-                                        setForm(prev => ({ ...prev, brandId: "", brandName: "" }));
                                     } else {
                                         setIsOtherBrand(false);
                                         const selectedBrand = brands.find(b => b._id === e.target.value);
-                                        setForm(prev => ({ 
-                                            ...prev, 
-                                            brandId: e.target.value,
-                                            brandName: selectedBrand ? selectedBrand.brandName : ""
-                                        }));
+                                        if (selectedBrand) setForm(p => ({ ...p, brandName: selectedBrand.brandName }));
                                     }
-                                    if (errors.brandId) setErrors(prev => ({ ...prev, brandId: "" }));
                                 }}
-                                className={`${inputCls} ${errCls("brandId")}`}>
-                                <option value="">Select Brand</option>
-                                {brands.map((b) => (
-                                    <option key={b._id} value={b._id}>{b.brandName}</option>
-                                ))}
-                                <option value="others">Others (Add New)</option>
-                            </select>
-                            {errors.brandId && !isOtherBrand && <p className="mt-1 text-xs text-red-500">{errors.brandId}</p>}
-                            
+                                error={errors.brandId}
+                                placeholder="Select a Brand"
+                                options={[
+                                    ...brands.map(b => ({ value: b._id, label: b.brandName })),
+                                    { value: "others", label: "Others" }
+                                ]}
+                            />
+
                             {isOtherBrand && (
                                 <div className="mt-3">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Enter new brand name" 
+                                    <input
+                                        type="text"
+                                        placeholder="Enter new brand name"
                                         value={customBrandName}
                                         onChange={(e) => setCustomBrandName(e.target.value)}
-                                        className={`${inputCls} ${!customBrandName.trim() ? "border-red-400 focus:border-red-500 focus:ring-red-400" : ""}`}
+                                        className={inputCls(!customBrandName.trim())}
                                     />
-                                    {!customBrandName.trim() && <p className="mt-1 text-xs text-red-500">Brand name is required.</p>}
+                                    {!customBrandName.trim() && <p className="mt-1 text-xs text-red-500 font-medium">Brand name is required.</p>}
                                 </div>
                             )}
                         </Field>
 
-                        {/* Index No */}
-                        <Field label="Index No" required>
-                            <input id="field-IndexNo" type="text" name="IndexNo"
-                                value={form.IndexNo} onChange={handleChange}
-                                placeholder="e.g. CAR-001"
-                                className={`${inputCls} ${errCls("IndexNo")}`} />
-                            {errors.IndexNo && <p className="mt-1 text-xs text-red-500">{errors.IndexNo}</p>}
+                        {/* Vehicle Name */}
+                        <Field label="Vehicle Name" required error={errors.vehicleName}>
+                            <input id="field-vehicleName" type="text" name="vehicleName"
+                                value={form.vehicleName} onChange={handleChange}
+                                placeholder="e.g. Fortuner, Splendor"
+                                className={inputCls(errors.vehicleName)} />
                         </Field>
 
-                        {/* Model */}
-                        <Field label="Car Model" required>
-                            <input id="field-Model" type="text" name="Model"
-                                value={form.Model} onChange={handleChange}
-                                placeholder="e.g. Maruti Swift ZXI"
-                                className={`${inputCls} ${errCls("Model")}`} />
-                            {errors.Model && <p className="mt-1 text-xs text-red-500">{errors.Model}</p>}
+                        {/* Vehicle Type */}
+                        <Field label="Vehicle Type" required error={errors.vehicleType}>
+                            <CustomSelect
+                                id="field-vehicleType"
+                                name="vehicleType"
+                                value={form.vehicleType}
+                                onChange={handleChange}
+                                error={errors.vehicleType}
+                                placeholder="Select Vehicle Type"
+                                options={VEHICLE_TYPES.map(t => ({ value: t, label: t }))}
+                            />
                         </Field>
 
-                        {/* Fuel Type */}
-                        <Field label="Fuel Type" required>
-                            <select id="field-FuelType" name="FuelType"
-                                value={form.FuelType} onChange={handleChange}
-                                className={`${inputCls} ${errCls("FuelType")}`}>
-                                <option value="">Select Fuel Type</option>
-                                {["Petrol", "Diesel", "Electric", "CNG", "Hybrid"].map((f) => (
-                                    <option key={f} value={f}>{f}</option>
-                                ))}
-                            </select>
-                            {errors.FuelType && <p className="mt-1 text-xs text-red-500">{errors.FuelType}</p>}
+                        {/* Category */}
+                        <Field label="Category" required error={errors.category}>
+                            <input id="field-category" type="text" name="category"
+                                value={form.category} onChange={handleChange}
+                                placeholder="e.g. SUV, Sedan, Cruiser"
+                                className={inputCls(errors.category)} />
                         </Field>
 
-                        {/* Transmission */}
-                        <Field label="Transmission Type" required>
-                            <select id="field-TransmissionType" name="TransmissionType"
-                                value={form.TransmissionType} onChange={handleChange}
-                                className={`${inputCls} ${errCls("TransmissionType")}`}>
-                                <option value="">Select Transmission</option>
-                                {["Manual", "Automatic", "AMT", "CVT", "DCT"].map((t) => (
-                                    <option key={t} value={t}>{t}</option>
-                                ))}
-                            </select>
-                            {errors.TransmissionType && <p className="mt-1 text-xs text-red-500">{errors.TransmissionType}</p>}
-                        </Field>
-
-                        {/* Body Type */}
-                        <Field label="Body Type" required>
-                            <input id="field-BodyType" type="text" name="BodyType"
-                                value={form.BodyType} onChange={handleChange}
-                                placeholder="e.g. Hatchback, SUV, Sedan"
-                                className={`${inputCls} ${errCls("BodyType")}`} />
-                            {errors.BodyType && <p className="mt-1 text-xs text-red-500">{errors.BodyType}</p>}
+                        {/* Description */}
+                        <Field label="Description">
+                            <textarea id="field-description" name="description"
+                                value={form.description} onChange={handleChange}
+                                rows="3" placeholder="Enter vehicle description..."
+                                className={inputCls()}></textarea>
                         </Field>
 
                         {/* Entitlement */}
-                        <Field label="Entitlement" required>
+                        <Field label="Entitlement Category">
                             <input id="field-Entitlement" type="text" name="Entitlement"
                                 value={form.Entitlement} onChange={handleChange}
-                                placeholder="e.g. Cat I, Cat II"
-                                className={`${inputCls} ${errCls("Entitlement")}`} />
-                            {errors.Entitlement && <p className="mt-1 text-xs text-red-500">{errors.Entitlement}</p>}
+                                className={inputCls()} />
                         </Field>
                     </div>
                 </div>
 
-                {/* ═══ SECTION 2: Specs ═══ */}
+                {/* ═══ SECTION 2: Powertrain ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle>Technical Specifications</SectionTitle>
+                        <SectionTitle>Powertrain</SectionTitle>
 
-                        <Field label="Seating Capacity" required>
-                            <input id="field-SeatingCapacity" type="number" name="SeatingCapacity"
-                                value={form.SeatingCapacity} onChange={handleChange}
-                                placeholder="e.g. 5" min="1"
-                                className={`${inputCls} ${errCls("SeatingCapacity")}`} />
-                            {errors.SeatingCapacity && <p className="mt-1 text-xs text-red-500">{errors.SeatingCapacity}</p>}
+                        <Field label="Fuel Type">
+                            <CustomSelect
+                                id="field-fuelType"
+                                name="fuelType"
+                                value={form.fuelType}
+                                onChange={handleChange}
+                                placeholder="Select Fuel Type"
+                                options={[
+                                    { value: "Petrol", label: "Petrol" },
+                                    { value: "Diesel", label: "Diesel" },
+                                    { value: "Electric", label: "Electric" },
+                                    { value: "CNG", label: "CNG" },
+                                    { value: "Hybrid", label: "Hybrid" },
+                                    { value: "Mild Hybrid", label: "Mild Hybrid" },
+                                    { value: "Strong Hybrid", label: "Strong Hybrid" },
+                                ]}
+                            />
                         </Field>
 
-                        <Field label="Engine Displacement" required>
-                            <input id="field-engineDisplacement" type="text" name="engineDisplacement"
-                                value={form.engineDisplacement} onChange={handleChange}
-                                placeholder="e.g. 1197 cc"
-                                className={`${inputCls} ${errCls("engineDisplacement")}`} />
-                            {errors.engineDisplacement && <p className="mt-1 text-xs text-red-500">{errors.engineDisplacement}</p>}
+                        <Field label="Transmission Type">
+                            <CustomSelect
+                                id="field-transmissionType"
+                                name="transmissionType"
+                                value={form.transmissionType}
+                                onChange={handleChange}
+                                placeholder="Select Transmission"
+                                options={[
+                                    { value: "Manual", label: "Manual" },
+                                    { value: "Automatic", label: "Automatic" },
+                                    { value: "AMT", label: "AMT" },
+                                    { value: "CVT", label: "CVT" },
+                                    { value: "DCT", label: "DCT" },
+                                    { value: "iMT", label: "iMT" },
+                                ]}
+                            />
                         </Field>
 
-                        <Field label="Max Power" required>
-                            <input id="field-MaxPower" type="text" name="MaxPower"
-                                value={form.MaxPower} onChange={handleChange}
-                                placeholder="e.g. 89 bhp @ 6000 rpm"
-                                className={`${inputCls} ${errCls("MaxPower")}`} />
-                            {errors.MaxPower && <p className="mt-1 text-xs text-red-500">{errors.MaxPower}</p>}
-                        </Field>
-
-                        <Field label="City Mileage" required>
-                            <input id="field-CityMileage" type="text" name="CityMileage"
-                                value={form.CityMileage} onChange={handleChange}
-                                placeholder="e.g. 22.38 km/l"
-                                className={`${inputCls} ${errCls("CityMileage")}`} />
-                            {errors.CityMileage && <p className="mt-1 text-xs text-red-500">{errors.CityMileage}</p>}
-                        </Field>
-
-                        <Field label="Boot Space" required>
-                            <input id="field-BootSpace" type="text" name="BootSpace"
-                                value={form.BootSpace} onChange={handleChange}
-                                placeholder="e.g. 268 L"
-                                className={`${inputCls} ${errCls("BootSpace")}`} />
-                            {errors.BootSpace && <p className="mt-1 text-xs text-red-500">{errors.BootSpace}</p>}
-                        </Field>
-
-                        <Field label="Monthly EMI (₹)" required>
-                            <input id="field-MonthlyEMI" type="number" name="MonthlyEMI"
-                                value={form.MonthlyEMI} onChange={handleChange}
-                                placeholder="e.g. 8500" min="0"
-                                className={`${inputCls} ${errCls("MonthlyEMI")}`} />
-                            {errors.MonthlyEMI && <p className="mt-1 text-xs text-red-500">{errors.MonthlyEMI}</p>}
-                        </Field>
+                        {[
+                            { name: "engine", label: "Engine Displacement", placeholder: "e.g. 1498 cc" },
+                            { name: "maxPower", label: "Max Power", placeholder: "e.g. 120 bhp @ 6600 rpm" },
+                            { name: "maxTorque", label: "Max Torque", placeholder: "e.g. 143 Nm @ 4200 rpm" },
+                            { name: "mileage", label: "Mileage", placeholder: "e.g. 22.4 km/l" },
+                        ].map(({ name, label, placeholder }) => (
+                            <Field key={name} label={label}>
+                                <input id={`field-${name}`} type="text" name={name}
+                                    value={form[name]} onChange={handleChange}
+                                    placeholder={placeholder}
+                                    className={inputCls()} />
+                            </Field>
+                        ))}
                     </div>
                 </div>
 
-                {/* ═══ SECTION 3: Normal Pricing ═══ */}
+                {/* ═══ SECTION 3: Dimensions & Capacity ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle>Normal (Non-BH) Pricing (₹)</SectionTitle>
+                        <SectionTitle>Dimensions &amp; Capacity</SectionTitle>
+
+                        <Field label="Body Type">
+                            <input id="field-bodyType" type="text" name="bodyType"
+                                value={form.bodyType} onChange={handleChange}
+                                placeholder="e.g. SUV, Sedan, Hatchback"
+                                className={inputCls()} />
+                        </Field>
+
+                        <Field label="Seating Capacity">
+                            <input id="field-seatingCapacity" type="number" name="seatingCapacity"
+                                value={form.seatingCapacity} onChange={handleChange}
+                                placeholder="e.g. 5" min="1" max="20"
+                                className={inputCls()} />
+                        </Field>
+
+                        {[
+                            { name: "bootSpace", label: "Boot Space", placeholder: "e.g. 328 L" },
+                            { name: "fuelTankCapacity", label: "Fuel Tank Capacity", placeholder: "e.g. 50 L" },
+                            { name: "groundClearance", label: "Ground Clearance", placeholder: "e.g. 190 mm" },
+                            { name: "length", label: "Length", placeholder: "e.g. 4270 mm" },
+                            { name: "width", label: "Width", placeholder: "e.g. 1760 mm" },
+                            { name: "height", label: "Height", placeholder: "e.g. 1635 mm" },
+                            { name: "wheelbase", label: "Wheelbase", placeholder: "e.g. 2570 mm" },
+                        ].map(({ name, label, placeholder }) => (
+                            <Field key={name} label={label}>
+                                <input id={`field-${name}`} type="text" name={name}
+                                    value={form[name]} onChange={handleChange}
+                                    placeholder={placeholder}
+                                    className={inputCls()} />
+                            </Field>
+                        ))}
+                    </div>
+                </div>
+
+                {/* ═══ SECTION 4: Normal Pricing ═══ */}
+                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <SectionTitle>Normal (Non-BH) Pricing</SectionTitle>
 
                         {[
                             { name: "CSDPrice", label: "CSD Price" },
@@ -423,36 +448,34 @@ const AddCars = () => {
                             { name: "FastTagFee", label: "FASTag Fee" },
                             { name: "HPEndorsementFee", label: "HP Endorsement Fee" },
                             { name: "HSRPSMartCardTemporaryFee", label: "HSRP / Smart Card / Temp Fee" },
+                            { name: "civilExShowroomPrice", label: "Civil Ex-Showroom Price" },
+                            { name: "MonthlyEMI", label: "Monthly EMI" },
                         ].map(({ name, label }) => (
-                            <Field key={name} label={label} required>
+                            <Field key={name} label={`${label} (₹)`} error={errors[name]}>
                                 <input id={`field-${name}`} type="number" name={name}
                                     value={form[name]} onChange={handleChange}
                                     placeholder="₹ 0" min="0"
-                                    className={`${inputCls} ${errCls(name)}`} />
-                                {errors[name] && <p className="mt-1 text-xs text-red-500">{errors[name]}</p>}
+                                    className={inputCls(errors[name])} />
                             </Field>
                         ))}
 
-                        {/* Registration Fee — String in schema */}
-                        <Field label="Registration Fee" required>
+                        <Field label="Registration Fee" error={errors.RegistraionFee}>
                             <input id="field-RegistraionFee" type="text" name="RegistraionFee"
                                 value={form.RegistraionFee} onChange={handleChange}
                                 placeholder="e.g. Inclusive / 5500"
-                                className={`${inputCls} ${errCls("RegistraionFee")}`} />
-                            {errors.RegistraionFee && <p className="mt-1 text-xs text-red-500">{errors.RegistraionFee}</p>}
+                                className={inputCls(errors.RegistraionFee)} />
                         </Field>
                     </div>
                 </div>
 
-                {/* ═══ SECTION 4: BH Pricing ═══ */}
+                {/* ═══ SECTION: BH Series Pricing ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle>BH Series Pricing (₹)</SectionTitle>
+                        <SectionTitle>BH Series Pricing</SectionTitle>
 
                         {[
                             { name: "BHOnRoadPrice", label: "BH On Road Price" },
                             { name: "ExShowroomPriceBH", label: "BH Ex-Showroom Price" },
-                            { name: "civilExShowroomPrice", label: "Civil Ex-Showroom Price" },
                             { name: "BHRegistrationCost", label: "BH Registration Cost" },
                             { name: "BHInsurance", label: "BH Insurance" },
                             { name: "BHRegistrationFee", label: "BH Registration Fee" },
@@ -460,44 +483,44 @@ const AddCars = () => {
                             { name: "BHHPEndorsementFee", label: "BH HP Endorsement Fee" },
                             { name: "BHHSRPSMartCardTemporaryFee", label: "BH HSRP / Smart Card / Temp Fee" },
                         ].map(({ name, label }) => (
-                            <Field key={name} label={label} required>
+                            <Field key={name} label={`${label} (₹)`} error={errors[name]}>
                                 <input id={`field-${name}`} type="number" name={name}
                                     value={form[name]} onChange={handleChange}
                                     placeholder="₹ 0" min="0"
-                                    className={`${inputCls} ${errCls(name)}`} />
-                                {errors[name] && <p className="mt-1 text-xs text-red-500">{errors[name]}</p>}
+                                    className={inputCls(errors[name])} />
                             </Field>
                         ))}
                     </div>
                 </div>
 
-                {/* ═══ SECTION 5: Description & Remarks ═══ */}
-                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm space-y-5">
-                    <div className="border-b border-[#708ca4]/20 pb-2">
-                        <h3 className="text-base font-bold text-[#19456d]">Description & Remarks</h3>
+                {/* ═══ SECTION: Additional Details ═══ */}
+                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
+                    <div className="grid grid-cols-1 gap-5">
+                        <SectionTitle>Additional Pricing Details</SectionTitle>
+
+                        <Field label="Details" error={errors.details}>
+                            <textarea id="field-details" name="details"
+                                value={form.details} onChange={handleChange}
+                                placeholder="Describe any pricing notes…"
+                                rows={3}
+                                className={`${inputCls(errors.details)} resize-none`} />
+                        </Field>
+
+                        <Field label="Remarks" error={errors.Remarks}>
+                            <textarea id="field-Remarks" name="Remarks"
+                                value={form.Remarks} onChange={handleChange}
+                                placeholder="Disclaimer / additional remarks…"
+                                rows={2}
+                                className={`${inputCls(errors.Remarks)} resize-none`} />
+                        </Field>
                     </div>
-
-                    <Field label="Car Details" required>
-                        <textarea id="field-details" name="details" rows={4}
-                            value={form.details} onChange={handleChange}
-                            placeholder="Describe the car variant, features, and any important notes (min 10 characters)…"
-                            className={`${inputCls} resize-none ${errCls("details")}`} />
-                        {errors.details && <p className="mt-1 text-xs text-red-500">{errors.details}</p>}
-                    </Field>
-
-                    <Field label="Remarks">
-                        <textarea id="field-Remarks" name="Remarks" rows={2}
-                            value={form.Remarks} onChange={handleChange}
-                            placeholder="Disclaimer / additional remarks…"
-                            className={`${inputCls} resize-none`} />
-                    </Field>
                 </div>
 
-                {/* ═══ SECTION 6: Car Images ═══ */}
+                {/* ═══ SECTION 3: Car Images ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5">
-                        <h3 className="text-base font-bold text-[#19456d]">Car Images</h3>
-                        <p className="text-xs text-[#708ca4] mt-1">Upload up to 10 images. First image will be used as the main thumbnail.(Only JPEG, JPG, PNG, and WEBP are allowed.)</p>
+                        <h3 className="text-base font-bold text-[#19456d]">Vehicle Images</h3>
+                        <p className="text-xs text-[#708ca4] mt-1">Upload up to 10 images. First image will be used as the main thumbnail.</p>
                     </div>
 
                     {/* Image Previews Grid */}
@@ -521,7 +544,7 @@ const AddCars = () => {
 
                     <div className="space-y-2">
                         <input
-                            id="field-carImages"
+                            id="field-vehicleImages"
                             type="file"
                             accept="image/*"
                             multiple
@@ -531,14 +554,14 @@ const AddCars = () => {
                                 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
                                 file:text-sm file:font-bold file:bg-[#19456d]/10 file:text-[#19456d]
                                 hover:file:bg-[#19456d]/20 cursor-pointer focus:outline-none focus:ring-1
-                                ${errors.carImages ? "border-red-400 focus:border-red-500 focus:ring-red-400" : "border-[#708ca4]/40 focus:border-[#19456d] focus:ring-[#19456d]"}`}
+                                ${errors.vehicleImages ? "border-red-400 focus:border-red-500 focus:ring-red-400" : "border-[#708ca4]/40 focus:border-[#19456d] focus:ring-[#19456d]"}`}
                         />
-                        {errors.carImages && <p className="text-xs text-red-500">{errors.carImages}</p>}
+                        {errors.vehicleImages && <p className="text-xs text-red-500">{errors.vehicleImages}</p>}
                         <p className="text-xs text-[#708ca4]">
                             Accepted formats: JPG, PNG, WEBP · Max 5 MB per image · Up to 10 images
                         </p>
-                        {carImages.length > 0 && (
-                            <p className="text-xs font-semibold text-[#19456d]">✅ {carImages.length} image(s) selected</p>
+                        {vehicleImages.length > 0 && (
+                            <p className="text-xs font-semibold text-[#19456d]">✅ {vehicleImages.length} image(s) selected</p>
                         )}
                     </div>
                 </div>
@@ -564,10 +587,10 @@ const AddCars = () => {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
-                                Uploading Car…
+                                Saving...
                             </div>
                         ) : (
-                            <span>🚗 Add Car to Catalogue</span>
+                            <span>🚗 Add Vehicle Entity</span>
                         )}
                     </button>
                 </div>

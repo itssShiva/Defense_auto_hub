@@ -30,7 +30,7 @@ const UsedCarApproval = () => {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-[#19456d]">Pending Used Cars ({pendingCars.length})</h2>
+                <h2 className="text-xl font-bold text-[#19456d]">Pending Used Vehicles ({pendingCars.length})</h2>
                 <button
                     onClick={() => fetchAllUsedCars()}
                     disabled={loading}
@@ -48,7 +48,7 @@ const UsedCarApproval = () => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                     <span className="text-4xl block mb-4">🎉</span>
                     <h3 className="text-lg font-bold text-gray-800 mb-1">All Caught Up!</h3>
-                    <p className="text-gray-500">There are no pending used cars waiting for approval.</p>
+                    <p className="text-gray-500">There are no pending used vehicles waiting for approval.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

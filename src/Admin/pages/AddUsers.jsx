@@ -45,8 +45,14 @@ const AddUsers = () => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!ALLOWED.includes(file.type)) {
+            toast.error(`Unsupported file type: .${file.name.split('.').pop().toUpperCase()}. Only JPEG, PNG and WEBP are allowed.`);
+            e.target.value = "";
+            return;
+        }
         if (file.size > 2 * 1024 * 1024) {
-            toast.error("Image must be less than 2 MB.");
+            toast.error("Profile image must be less than 2 MB.");
             e.target.value = "";
             return;
         }

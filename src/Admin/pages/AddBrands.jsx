@@ -36,12 +36,17 @@ const AddBrands = () => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image must be smaller than 5 MB");
+        const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!ALLOWED.includes(file.type)) {
+            toast.error(`Unsupported file type: .${file.name.split('.').pop().toUpperCase()}. Only JPEG, PNG and WEBP are allowed.`);
+            e.target.value = "";
             return;
         }
-
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image must be smaller than 5 MB");
+            e.target.value = "";
+            return;
+        }
         setLogoFile(file);
         setLogoPreview(URL.createObjectURL(file));
         if (errors.logo) setErrors((prev) => ({ ...prev, logo: "" }));
@@ -112,7 +117,7 @@ const AddBrands = () => {
             </div>
 
             <form onSubmit={handleSubmit} noValidate className="space-y-6 bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
-                
+
                 <Field label="Brand Name" required>
                     <input
                         type="text"
@@ -139,7 +144,7 @@ const AddBrands = () => {
 
                 <div className="mb-5">
                     <h3 className="block text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">Brand Logo</h3>
-                    
+
                     {logoPreview && (
                         <div className="relative w-32 h-32 mb-4 group rounded-xl overflow-hidden border border-[#708ca4]/30 bg-white">
                             <img src={logoPreview} alt="preview" className="w-full h-full object-contain p-2" />

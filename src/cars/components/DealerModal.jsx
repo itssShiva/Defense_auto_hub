@@ -33,7 +33,7 @@ const DealerModal = ({ isOpen, onClose, dealer }) => {
           {/* Body */}
           <div className="p-6 space-y-5">
             {!dealer ? (
-              <p className="text-center text-[#708ca4] py-4">Dealer details are not available for this car.</p>
+              <p className="text-center text-[#708ca4] py-4">Dealer details are not available for this vehicle.</p>
             ) : (
               <>
                 <div className="flex items-start gap-4 p-4 bg-[#fafbf8] border border-[#708ca4]/15 rounded-xl">

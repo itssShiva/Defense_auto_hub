@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Grid3X3, List, SlidersHorizontal, X } from 'lucide-react';
-import { getAllCars } from '../Api/cars.api';
+import { getAllVehicles } from '../Api/cars.api';
 import { getAllDealers } from '../../auth/Api/auth.api';
 import CarCard from '../components/CarCard';
 import { CarCardSkeleton } from '../components/LoadingSkeleton';
@@ -24,21 +24,20 @@ const AllCarsPage = () => {
   // Filters State
   const [filters, setFilters] = useState({
     brand: 'All',
-    fuel: 'All',
-    transmission: 'All',
-    bodyType: 'All',
+    vehicleType: 'All',
+    category: 'All',
     state: 'All',
     city: 'All',
     priceSort: 'none'
   });
 
   useEffect(() => {
-    document.title = 'All Cars — Defence Auto Hub';
+    document.title = 'All Vehicles — Defence Auto Hub';
     (async () => {
       setLoading(true);
-      const [carsRes, dealersRes] = await Promise.all([getAllCars(), getAllDealers()]);
-      if (carsRes?.success) {
-        setCars(carsRes.cars || []);
+      const [vehiclesRes, dealersRes] = await Promise.all([getAllVehicles(), getAllDealers()]);
+      if (vehiclesRes?.success) {
+        setCars(vehiclesRes.vehicles || []);
       }
       if (dealersRes?.success) {
         setDealers(dealersRes.dealers || []);
@@ -48,10 +47,9 @@ const AllCarsPage = () => {
   }, []);
 
   // Derived filter options
-  const brands = useMemo(() => ['All', ...new Set(cars.map(c => c.brand?.brandName || c.brandName).filter(Boolean))], [cars]);
-  const fuels = useMemo(() => ['All', ...new Set(cars.map(c => c.FuelType).filter(Boolean))], [cars]);
-  const transmissions = useMemo(() => ['All', ...new Set(cars.map(c => c.TransmissionType).filter(Boolean))], [cars]);
-  const bodyTypes = useMemo(() => ['All', ...new Set(cars.map(c => c.BodyType).filter(Boolean))], [cars]);
+  const brands = useMemo(() => ['All', ...new Set(cars.map(c => c.brandId?.brandName || c.brandName).filter(Boolean))], [cars]);
+  const vehicleTypes = useMemo(() => ['All', ...new Set(cars.map(c => c.vehicleType).filter(Boolean))], [cars]);
+  const categories = useMemo(() => ['All', ...new Set(cars.map(c => c.category).filter(Boolean))], [cars]);
 
   // Derived location options from dealers
   const states = useMemo(() => {
@@ -70,19 +68,18 @@ const AllCarsPage = () => {
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(c =>
-        (c.Model || '').toLowerCase().includes(q) ||
-        (c.brand?.brandName || c.brandName || '').toLowerCase().includes(q) ||
+        (c.vehicleName || c.modelName || c.Model || '').toLowerCase().includes(q) ||
+        (c.brandId?.brandName || c.brandName || '').toLowerCase().includes(q) ||
         (c.IndexNo || '').toLowerCase().includes(q)
       );
     }
 
     // Exact Match Filters
     if (filters.brand !== 'All') {
-      list = list.filter(c => (c.brand?.brandName || c.brandName) === filters.brand);
+      list = list.filter(c => (c.brandId?.brandName || c.brandName) === filters.brand);
     }
-    if (filters.fuel !== 'All') list = list.filter(c => c.FuelType === filters.fuel);
-    if (filters.transmission !== 'All') list = list.filter(c => c.TransmissionType === filters.transmission);
-    if (filters.bodyType !== 'All') list = list.filter(c => c.BodyType === filters.bodyType);
+    if (filters.vehicleType !== 'All') list = list.filter(c => c.vehicleType === filters.vehicleType);
+    if (filters.category !== 'All') list = list.filter(c => c.category === filters.category);
 
     // Location (Dealer Mapping) Filter
     if (filters.state !== 'All' || filters.city !== 'All') {
@@ -114,16 +111,15 @@ const AllCarsPage = () => {
   const pagedCars = processedCars.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const clearFilters = () => {
-    setFilters({ brand: 'All', fuel: 'All', transmission: 'All', bodyType: 'All', state: 'All', city: 'All', priceSort: 'none' });
+    setFilters({ brand: 'All', vehicleType: 'All', category: 'All', state: 'All', city: 'All', priceSort: 'none' });
     setSearch('');
     setPage(1);
   };
 
   const activeFiltersCount = [
     filters.brand !== 'All',
-    filters.fuel !== 'All',
-    filters.transmission !== 'All',
-    filters.bodyType !== 'All',
+    filters.vehicleType !== 'All',
+    filters.category !== 'All',
     filters.state !== 'All',
     filters.city !== 'All',
     filters.priceSort !== 'none',
@@ -140,7 +136,7 @@ const AllCarsPage = () => {
           </motion.p>
           <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-extrabold text-white mb-3">
-            Find Your <span className="text-[#b48001]">Dream Car</span>
+            Find Your <span className="text-[#b48001]">Dream Vehicle</span>
           </motion.h1>
           <p className="text-[#708ca4] text-base mb-8">
             {loading ? 'Loading vehicles...' : `Browse ${cars.length} premium vehicles from top brands`}
@@ -189,39 +185,27 @@ const AllCarsPage = () => {
                   </select>
                 </div>
 
-                {/* Fuel Filter */}
+                {/* Vehicle Type Filter */}
                 <div>
-                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">Fuel Type</label>
+                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">Vehicle Type</label>
                   <select
-                    value={filters.fuel}
-                    onChange={(e) => { setFilters(p => ({ ...p, fuel: e.target.value })); setPage(1); }}
+                    value={filters.vehicleType}
+                    onChange={(e) => { setFilters(p => ({ ...p, vehicleType: e.target.value })); setPage(1); }}
                     className="w-full p-3 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white"
                   >
-                    {fuels.map(f => <option key={f} value={f}>{f}</option>)}
+                    {vehicleTypes.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
 
-                {/* Transmission Filter */}
+                {/* Category Filter */}
                 <div>
-                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">Transmission</label>
+                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">Category</label>
                   <select
-                    value={filters.transmission}
-                    onChange={(e) => { setFilters(p => ({ ...p, transmission: e.target.value })); setPage(1); }}
+                    value={filters.category}
+                    onChange={(e) => { setFilters(p => ({ ...p, category: e.target.value })); setPage(1); }}
                     className="w-full p-3 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white"
                   >
-                    {transmissions.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-
-                {/* Body Type Filter */}
-                <div>
-                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">Body Type</label>
-                  <select
-                    value={filters.bodyType}
-                    onChange={(e) => { setFilters(p => ({ ...p, bodyType: e.target.value })); setPage(1); }}
-                    className="w-full p-3 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white"
-                  >
-                    {bodyTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
 
@@ -303,7 +287,7 @@ const AllCarsPage = () => {
               </div>
             ) : pagedCars.length === 0 ? (
               <EmptyState
-                title="No cars match your criteria"
+                title="No vehicles match your criteria"
                 message="Try adjusting your filters to find what you're looking for."
                 action={{ label: 'Clear Filters', onClick: clearFilters }}
               />

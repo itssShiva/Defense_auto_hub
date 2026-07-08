@@ -29,15 +29,13 @@ const SectionTitle = ({ icon, children }) => (
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const EditVariants = ({ variantId, handleBack }) => {
-    const { updateVariant, fetchVariantById, fetchAllModels, loading } = useCars();
+    const { updateVariant, fetchVariantById, fetchVehiclesByBrandId, fetchModelsByVehicleId, vehicles, models, loading } = useCars();
 
     const [form, setForm] = useState(null);
     const [newImages, setNewImages] = useState([]);
     const [newImagePreviews, setNewImagePreviews] = useState([]);
     const [existingImages, setExistingImages] = useState([]);
     const [errors, setErrors] = useState({});
-    const [models, setModels] = useState([]);
-    const [modelsLoading, setModelsLoading] = useState(true);
     const [pageLoading, setPageLoading] = useState(true);
     const fileInputRef = useRef(null);
 
@@ -58,20 +56,22 @@ const EditVariants = ({ variantId, handleBack }) => {
     useEffect(() => {
         const load = async () => {
             setPageLoading(true);
-            setModelsLoading(true);
-            
-            const modelsRes = await fetchAllModels();
-            if (modelsRes?.success && modelsRes.models) {
-                setModels(modelsRes.models);
-            }
 
             if (variantId) {
                 const variantRes = await fetchVariantById(variantId);
                 if (variantRes?.success && variantRes.variant) {
                     const v = variantRes.variant;
+                    const bId = v.brandId?._id || v.brandId || "";
+                    const vId = v.vehicleId?._id || v.vehicleId || "";
+                    const mId = v.modelId?._id || v.modelId || "";
+
+                    if (bId) await fetchVehiclesByBrandId(bId);
+                    if (vId) await fetchModelsByVehicleId(vId);
+
                     setForm({
-                        brandId: v.brandId?._id || v.brandId || "",
-                        modelId: v.modelId?._id || v.modelId || "",
+                        brandId: bId,
+                        vehicleId: vId,
+                        modelId: mId,
                         variantName: v.variantName || "",
                         fuelType: v.fuelType || "",
                         transmissionType: v.transmissionType || "",
@@ -106,7 +106,7 @@ const EditVariants = ({ variantId, handleBack }) => {
                         MonthlyEMI: v.MonthlyEMI || "",
                         // Additional
                         Entitlement: v.Entitlement || "",
-                        Remarks: v.Remarks || "Please verify the details with car dealer before placing order on CSD AFD Portal.",
+                        Remarks: v.Remarks || "Please verify the details with vehicle dealer before placing order on CSD AFD Portal.",
                         features: v.features || "",
                         description: v.description || "",
                     });
@@ -118,18 +118,21 @@ const EditVariants = ({ variantId, handleBack }) => {
                     handleBack();
                 }
             }
-            setModelsLoading(false);
             setPageLoading(false);
         };
         load();
-    }, [variantId, fetchAllModels, fetchVariantById, handleBack]);
+    }, [variantId, fetchVariantById, fetchVehiclesByBrandId, fetchModelsByVehicleId, handleBack]);
 
-    /* ── Two-way binding ── */
-    const handleChange = (e) => {
+    /* ── Two-way binding & Cascade ── */
+    const handleChange = async (e) => {
         const { name, value } = e.target;
         
         if (name === "brandId") {
-            setForm((prev) => ({ ...prev, brandId: value, modelId: "" }));
+            setForm((prev) => ({ ...prev, brandId: value, vehicleId: "", modelId: "" }));
+            if (value) await fetchVehiclesByBrandId(value);
+        } else if (name === "vehicleId") {
+            setForm((prev) => ({ ...prev, vehicleId: value, modelId: "" }));
+            if (value) await fetchModelsByVehicleId(value);
         } else {
             setForm((prev) => ({ ...prev, [name]: value }));
         }
@@ -166,7 +169,8 @@ const EditVariants = ({ variantId, handleBack }) => {
         const errs = {};
 
         if (!form.brandId) errs.brandId = "Please select a brand.";
-        if (!form.modelId) errs.modelId = "Please select a car model.";
+        if (!form.vehicleId) errs.vehicleId = "Please select a vehicle.";
+        if (!form.modelId) errs.modelId = "Please select a vehicle model.";
         if (!form.variantName?.trim()) errs.variantName = "Variant name is required.";
 
         if (!form.fuelType) errs.fuelType = "Fuel type is required.";
@@ -201,6 +205,7 @@ const EditVariants = ({ variantId, handleBack }) => {
         }
 
         const formData = new FormData();
+        // Always send all form fields so the backend receives a complete update
         Object.entries(form).forEach(([key, value]) => {
             if (value !== null && value !== undefined) {
                 formData.append(key, value);
@@ -209,6 +214,7 @@ const EditVariants = ({ variantId, handleBack }) => {
         if (newImages.length) {
             newImages.forEach(img => formData.append("variantImages", img));
         }
+        // Always send existingImages so backend knows which to keep
         formData.append("existingImages", JSON.stringify(existingImages));
 
         const res = await updateVariant(variantId, formData);
@@ -250,7 +256,7 @@ const EditVariants = ({ variantId, handleBack }) => {
                 {/* ═══ SECTION 1: Model Selection ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 gap-5">
-                        <SectionTitle icon="🚗">Base Car Model</SectionTitle>
+                        <SectionTitle icon="🚗">Base Vehicle Model</SectionTitle>
 
                         <Field label="Brand" required error={errors.brandId}>
                             <select id="variant-field-brandId" name="brandId"
@@ -263,19 +269,29 @@ const EditVariants = ({ variantId, handleBack }) => {
                             </select>
                         </Field>
 
+                        <Field label="Vehicle Entity" required error={errors.vehicleId}>
+                            <select id="variant-field-vehicleId" name="vehicleId"
+                                value={form.vehicleId} onChange={handleChange}
+                                disabled={!form.brandId}
+                                className={inputCls(errors.vehicleId)}>
+                                <option value="">{form.brandId ? "Select a Vehicle" : "Select Brand First"}</option>
+                                {vehicles.map(v => (
+                                    <option key={v._id} value={v._id}>{v.vehicleName}</option>
+                                ))}
+                            </select>
+                        </Field>
+
                         <Field label="Parent Model" required error={errors.modelId}>
                             <select id="variant-field-modelId" name="modelId"
                                 value={form.modelId} onChange={handleChange}
                                 className={inputCls(errors.modelId)}
-                                disabled={!form.brandId}>
-                                <option value="">Select a Car Model</option>
-                                {models
-                                    .filter(m => m.brandId?._id === form.brandId || m.brandId === form.brandId)
-                                    .map(m => (
-                                        <option key={m._id} value={m._id}>
-                                            {m.brandName} {m.modelName} ({m.year})
-                                        </option>
-                                    ))}
+                                disabled={!form.vehicleId}>
+                                <option value="">{form.vehicleId ? "Select a Model" : "Select Vehicle First"}</option>
+                                {models.map(m => (
+                                    <option key={m._id} value={m._id}>
+                                        {m.modelName} ({m.year})
+                                    </option>
+                                ))}
                             </select>
                         </Field>
 
@@ -283,13 +299,13 @@ const EditVariants = ({ variantId, handleBack }) => {
                         {selectedModel && (
                             <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-[#19456d]/20 shadow-sm">
                                 <img
-                                    src={selectedModel.carImage || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                                    src={selectedModel.carImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
                                     alt={selectedModel.modelName}
                                     className="w-20 h-14 rounded-lg object-cover border border-gray-200"
                                 />
                                 <div>
                                     <p className="text-sm font-extrabold text-[#19456d]">
-                                        {selectedModel.brandName} {selectedModel.modelName}
+                                        {selectedModel.brandId?.brandName || ""} {selectedModel.vehicleId?.vehicleName || ""} {selectedModel.modelName}
                                     </p>
                                     <div className="flex flex-wrap gap-1.5 mt-1">
                                         <span className="px-2 py-0.5 text-xs font-bold bg-[#19456d]/10 text-[#19456d] rounded-full">
@@ -522,17 +538,20 @@ const EditVariants = ({ variantId, handleBack }) => {
                         <div className="mb-4">
                             <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">Current Images</p>
                             <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                {existingImages.map((src, idx) => (
-                                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
-                                        <img src={src} alt={`existing-${idx}`} className="w-full h-full object-cover" />
-                                        {idx === 0 && (
-                                            <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
-                                        )}
-                                        <button type="button" onClick={() => removeExistingImage(idx)}
-                                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
-                                        >✕</button>
-                                    </div>
-                                ))}
+                                {existingImages.map((src, idx) => {
+                                    const imgSrc = src.startsWith("http") ? src : `${import.meta.env.VITE_BACKEND_URL}${src}`;
+                                    return (
+                                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
+                                            <img src={imgSrc} alt={`existing-${idx}`} className="w-full h-full object-cover" />
+                                            {idx === 0 && (
+                                                <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
+                                            )}
+                                            <button type="button" onClick={() => removeExistingImage(idx)}
+                                                className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
+                                            >✕</button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -587,7 +606,7 @@ const EditVariants = ({ variantId, handleBack }) => {
                     </button>
                     <button
                         type="submit"
-                        disabled={loading || modelsLoading}
+                        disabled={loading}
                         className="px-8 py-3.5 rounded-xl font-bold text-white bg-[#19456d] hover:bg-[#113150] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center min-w-[220px] disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         {loading ? (
@@ -599,7 +618,7 @@ const EditVariants = ({ variantId, handleBack }) => {
                                 Updating Variant…
                             </div>
                         ) : (
-                            <span>✨ Update Variant</span>
+                            <span>💾 Save Changes</span>
                         )}
                     </button>
                 </div>

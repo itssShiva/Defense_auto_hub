@@ -1,7 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useCars } from "../../cars/hooks/useCars.jsx";
+import { useCars } from "../../cars/hooks/useCars";
 import { getAllBrands, createBrand } from "../../brand/api/brand.api";
 import { toast } from "react-hot-toast";
+
+const VEHICLE_TYPES = [
+    "Car", "Bike", "Scooter", "Truck",
+    "Commercial", "Pickup", "Van", "Electric"
+];
 
 /* ─── Reusable field components ─────────────────────────────────── */
 const Field = ({ label, required, children }) => (
@@ -24,10 +29,11 @@ const SectionTitle = ({ children }) => (
 
 /* ═══════════════════════════════════════════════════════════════════ */
 const EditNewCar = ({ carId, goBack }) => {
-    const { car, fetchCarById, updateCar, loading } = useCars();
+    // carId here means vehicleId
+    const { fetchVehicleById, updateVehicle, loading } = useCars();
 
     const fileInputRef = useRef(null);
-    const [form, setForm] = useState(null);           // null until loaded
+    const [form, setForm] = useState(null);
     const [newImages, setNewImages] = useState([]);
     const [newImagePreviews, setNewImagePreviews] = useState([]);
     const [existingImages, setExistingImages] = useState([]);
@@ -41,9 +47,7 @@ const EditNewCar = ({ carId, goBack }) => {
         const fetchBrands = async () => {
             try {
                 const res = await getAllBrands();
-                if (res?.success) {
-                    setBrands(res.brands || []);
-                }
+                if (res?.success) setBrands(res.brands || []);
             } catch (err) {
                 console.error("Failed to fetch brands", err);
             }
@@ -51,60 +55,34 @@ const EditNewCar = ({ carId, goBack }) => {
         fetchBrands();
     }, []);
 
-    /* ── Load existing car on mount ── */
+    /* ── Load existing vehicle on mount ── */
     useEffect(() => {
         const load = async () => {
             setInitialLoading(true);
-            const res = await fetchCarById(carId);
-            if (res?.success && res.car) {
-                const c = res.car;
+            const res = await fetchVehicleById(carId);
+            if (res?.success && res.vehicle) {
+                const v = res.vehicle;
                 setForm({
-                    brandId: c.brandId || "",
-                    brandName: c.brandName || "",
-                    IndexNo: c.IndexNo || "",
-                    Model: c.Model || "",
-                    FuelType: c.FuelType || "",
-                    TransmissionType: c.TransmissionType || "",
-                    BodyType: c.BodyType || "",
-                    Entitlement: c.Entitlement || "",
-                    SeatingCapacity: c.SeatingCapacity ?? "",
-                    engineDisplacement: c.engineDisplacement || "",
-                    MaxPower: c.MaxPower || "",
-                    CityMileage: c.CityMileage || "",
-                    BootSpace: c.BootSpace || "",
-                    CSDPrice: c.CSDPrice ?? "",
-                    OnRoadPrice: c.OnRoadPrice ?? "",
-                    ExShowroomPrice: c.ExShowroomPrice ?? "",
-                    RTO: c.RTO ?? "",
-                    Insurance: c.Insurance ?? "",
-                    RegistraionFee: c.RegistraionFee || "",
-                    FastTagFee: c.FastTagFee ?? "",
-                    HPEndorsementFee: c.HPEndorsementFee ?? "",
-                    HSRPSMartCardTemporaryFee: c.HSRPSMartCardTemporaryFee ?? "",
-                    BHOnRoadPrice: c.BHOnRoadPrice ?? "",
-                    ExShowroomPriceBH: c.ExShowroomPriceBH ?? "",
-                    BHRegistrationCost: c.BHRegistrationCost ?? "",
-                    BHInsurance: c.BHInsurance ?? "",
-                    BHRegistrationFee: c.BHRegistrationFee ?? "",
-                    BHFastTagFee: c.BHFastTagFee ?? "",
-                    BHHPEndorsementFee: c.BHHPEndorsementFee ?? "",
-                    BHHSRPSMartCardTemporaryFee: c.BHHSRPSMartCardTemporaryFee ?? "",
-                    civilExShowroomPrice: c.civilExShowroomPrice ?? "",
-                    MonthlyEMI: c.MonthlyEMI ?? "",
-                    details: c.details || "",
-                    Remarks: c.Remarks || "Please verify the details with car dealer before placing order on CSD AFD Portal.",
+                    brandId: v.brandId?._id || v.brandId || "",
+                    brandName: v.brandId?.brandName || "",
+                    vehicleName: v.vehicleName || "",
+                    vehicleType: v.vehicleType || "",
+                    category: v.category || "",
+                    IndexNo: v.IndexNo || "",
+                    Entitlement: v.Entitlement || "",
+                    description: v.description || "",
                 });
-                if (c.carImages?.length) {
-                    setExistingImages(c.carImages);
+                if (v.vehicleImages?.length) {
+                    setExistingImages(v.vehicleImages);
                 }
             } else {
-                toast.error("Failed to load car details.");
+                toast.error("Failed to load vehicle details.");
                 goBack();
             }
             setInitialLoading(false);
         };
         load();
-    }, [carId]);
+    }, [carId, fetchVehicleById, goBack]);
 
     /* ── Two-way binding ── */
     const handleChange = (e) => {
@@ -137,32 +115,18 @@ const EditNewCar = ({ carId, goBack }) => {
         setExistingImages(prev => prev.filter((_, i) => i !== idx));
     };
 
-    /* ── Client-side validation (only validates filled fields) ── */
+    /* ── Client-side validation ── */
     const validate = () => {
         const newErrors = {};
-        const requiredTextFields = [
-            "brandId", "brandName", "IndexNo", "Model", "FuelType", "TransmissionType", "BodyType",
-            "Entitlement", "engineDisplacement", "MaxPower", "CityMileage",
-            "BootSpace", "RegistraionFee", "details",
-        ];
-        const requiredNumberFields = [
-            "SeatingCapacity", "CSDPrice", "OnRoadPrice", "ExShowroomPrice",
-            "RTO", "Insurance", "FastTagFee", "HPEndorsementFee",
-            "HSRPSMartCardTemporaryFee", "BHOnRoadPrice", "ExShowroomPriceBH",
-            "BHRegistrationCost", "BHInsurance", "BHRegistrationFee",
-            "BHFastTagFee", "BHHPEndorsementFee", "BHHSRPSMartCardTemporaryFee",
-            "civilExShowroomPrice", "MonthlyEMI",
-        ];
+        const requiredTextFields = ["brandId", "vehicleName", "vehicleType", "category"];
 
         requiredTextFields.forEach((f) => {
             if (!form[f]?.trim()) newErrors[f] = "This field is required.";
         });
-        requiredNumberFields.forEach((f) => {
-            if (form[f] === "" || isNaN(Number(form[f])))
-                newErrors[f] = "Enter a valid number.";
-        });
-        if (form.details?.trim().length > 0 && form.details.trim().length < 10)
-            newErrors.details = "Details must be at least 10 characters.";
+        
+        if (existingImages.length === 0 && newImages.length === 0) {
+            newErrors.carImages = "At least one image is required.";
+        }
 
         return newErrors;
     };
@@ -205,16 +169,16 @@ const EditNewCar = ({ carId, goBack }) => {
                 formData.append(key, value);
             });
 
-            newImages.forEach(img => formData.append("carImages", img));
+            newImages.forEach(img => formData.append("vehicleImages", img));
             formData.append("existingImages", JSON.stringify(existingImages));
 
-            const res = await updateCar(carId, formData);
+            const res = await updateVehicle(carId, formData);
             if (res?.success) {
                 goBack();
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to update car. Please try again.");
+            toast.error("Failed to update vehicle. Please try again.");
         }
     };
 
@@ -226,7 +190,7 @@ const EditNewCar = ({ carId, goBack }) => {
         return (
             <div className="max-w-5xl mx-auto flex flex-col items-center justify-center py-32">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#19456d] mb-4"></div>
-                <p className="text-[#708ca4] font-medium">Loading car details…</p>
+                <p className="text-[#708ca4] font-medium">Loading vehicle details…</p>
             </div>
         );
     }
@@ -240,14 +204,14 @@ const EditNewCar = ({ carId, goBack }) => {
                 <button
                     onClick={goBack}
                     className="p-2 rounded-xl border border-[#708ca4]/30 hover:border-[#19456d] text-[#708ca4] hover:text-[#19456d] transition-all"
-                    title="Back to All Cars"
+                    title="Back to All Vehicles"
                 >
                     ← Back
                 </button>
                 <div>
-                    <h2 className="text-2xl font-extrabold text-[#19456d] mb-1">Edit Car</h2>
+                    <h2 className="text-2xl font-extrabold text-[#19456d] mb-1">Edit Vehicle</h2>
                     <p className="text-[#708ca4] text-sm">
-                        Updating: <span className="font-semibold text-[#b48001]">{form.Model}</span>
+                        Updating: <span className="font-semibold text-[#b48001]">{form.vehicleName}</span>
                     </p>
                 </div>
             </div>
@@ -257,7 +221,7 @@ const EditNewCar = ({ carId, goBack }) => {
                 {/* ═══ SECTION 1: Car Identity ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle>Car Identity</SectionTitle>
+                        <SectionTitle>Vehicle Identity</SectionTitle>
 
                         {/* Brand */}
                         <Field label="Brand" required>
@@ -301,209 +265,74 @@ const EditNewCar = ({ carId, goBack }) => {
                             )}
                         </Field>
 
-                        {/* Index No */}
-                        <Field label="Index No" required>
-                            <input id="edit-field-IndexNo" type="text" name="IndexNo"
-                                value={form.IndexNo} onChange={handleChange}
-                                placeholder="e.g. CAR-001"
-                                className={`${inputCls} ${errCls("IndexNo")}`} />
-                            {errors.IndexNo && <p className="mt-1 text-xs text-red-500">{errors.IndexNo}</p>}
+                        {/* Vehicle Name */}
+                        <Field label="Vehicle Name" required>
+                            <input id="edit-field-vehicleName" type="text" name="vehicleName"
+                                value={form.vehicleName} onChange={handleChange}
+                                placeholder="e.g. Fortuner"
+                                className={`${inputCls} ${errCls("vehicleName")}`} />
+                            {errors.vehicleName && <p className="mt-1 text-xs text-red-500">{errors.vehicleName}</p>}
                         </Field>
 
-                        <Field label="Car Model" required>
-                            <input id="edit-field-Model" type="text" name="Model"
-                                value={form.Model} onChange={handleChange}
-                                placeholder="e.g. Maruti Swift ZXI"
-                                className={`${inputCls} ${errCls("Model")}`} />
-                            {errors.Model && <p className="mt-1 text-xs text-red-500">{errors.Model}</p>}
-                        </Field>
-
-                        <Field label="Fuel Type" required>
-                            <select id="edit-field-FuelType" name="FuelType"
-                                value={form.FuelType} onChange={handleChange}
-                                className={`${inputCls} ${errCls("FuelType")}`}>
-                                <option value="">Select Fuel Type</option>
-                                {["Petrol", "Diesel", "Electric", "CNG", "Hybrid"].map((f) => (
-                                    <option key={f} value={f}>{f}</option>
-                                ))}
-                            </select>
-                            {errors.FuelType && <p className="mt-1 text-xs text-red-500">{errors.FuelType}</p>}
-                        </Field>
-
-                        <Field label="Transmission Type" required>
-                            <select id="edit-field-TransmissionType" name="TransmissionType"
-                                value={form.TransmissionType} onChange={handleChange}
-                                className={`${inputCls} ${errCls("TransmissionType")}`}>
-                                <option value="">Select Transmission</option>
-                                {["Manual", "Automatic", "AMT", "CVT", "DCT"].map((t) => (
+                        {/* Vehicle Type */}
+                        <Field label="Vehicle Type" required>
+                            <select id="edit-field-vehicleType" name="vehicleType"
+                                value={form.vehicleType} onChange={handleChange}
+                                className={`${inputCls} ${errCls("vehicleType")}`}>
+                                <option value="">Select Type</option>
+                                {VEHICLE_TYPES.map((t) => (
                                     <option key={t} value={t}>{t}</option>
                                 ))}
                             </select>
-                            {errors.TransmissionType && <p className="mt-1 text-xs text-red-500">{errors.TransmissionType}</p>}
+                            {errors.vehicleType && <p className="mt-1 text-xs text-red-500">{errors.vehicleType}</p>}
                         </Field>
 
-                        <Field label="Body Type" required>
-                            <input id="edit-field-BodyType" type="text" name="BodyType"
-                                value={form.BodyType} onChange={handleChange}
+                        {/* Category */}
+                        <Field label="Category" required>
+                            <input id="edit-field-category" type="text" name="category"
+                                value={form.category} onChange={handleChange}
                                 placeholder="e.g. Hatchback, SUV, Sedan"
-                                className={`${inputCls} ${errCls("BodyType")}`} />
-                            {errors.BodyType && <p className="mt-1 text-xs text-red-500">{errors.BodyType}</p>}
+                                className={`${inputCls} ${errCls("category")}`} />
+                            {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category}</p>}
                         </Field>
 
-                        <Field label="Entitlement" required>
+                        {/* Index No */}
+                        <Field label="Index No">
+                            <input id="edit-field-IndexNo" type="text" name="IndexNo"
+                                value={form.IndexNo} onChange={handleChange}
+                                placeholder="e.g. CAR-001"
+                                className={inputCls} />
+                        </Field>
+
+                        <Field label="Entitlement">
                             <input id="edit-field-Entitlement" type="text" name="Entitlement"
                                 value={form.Entitlement} onChange={handleChange}
                                 placeholder="e.g. Cat I, Cat II"
-                                className={`${inputCls} ${errCls("Entitlement")}`} />
-                            {errors.Entitlement && <p className="mt-1 text-xs text-red-500">{errors.Entitlement}</p>}
+                                className={inputCls} />
                         </Field>
                     </div>
                 </div>
 
-                {/* ═══ SECTION 2: Specs ═══ */}
-                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle>Technical Specifications</SectionTitle>
-
-                        <Field label="Seating Capacity" required>
-                            <input id="edit-field-SeatingCapacity" type="number" name="SeatingCapacity"
-                                value={form.SeatingCapacity} onChange={handleChange}
-                                placeholder="e.g. 5" min="1"
-                                className={`${inputCls} ${errCls("SeatingCapacity")}`} />
-                            {errors.SeatingCapacity && <p className="mt-1 text-xs text-red-500">{errors.SeatingCapacity}</p>}
-                        </Field>
-
-                        <Field label="Engine Displacement" required>
-                            <input id="edit-field-engineDisplacement" type="text" name="engineDisplacement"
-                                value={form.engineDisplacement} onChange={handleChange}
-                                placeholder="e.g. 1197 cc"
-                                className={`${inputCls} ${errCls("engineDisplacement")}`} />
-                            {errors.engineDisplacement && <p className="mt-1 text-xs text-red-500">{errors.engineDisplacement}</p>}
-                        </Field>
-
-                        <Field label="Max Power" required>
-                            <input id="edit-field-MaxPower" type="text" name="MaxPower"
-                                value={form.MaxPower} onChange={handleChange}
-                                placeholder="e.g. 89 bhp @ 6000 rpm"
-                                className={`${inputCls} ${errCls("MaxPower")}`} />
-                            {errors.MaxPower && <p className="mt-1 text-xs text-red-500">{errors.MaxPower}</p>}
-                        </Field>
-
-                        <Field label="City Mileage" required>
-                            <input id="edit-field-CityMileage" type="text" name="CityMileage"
-                                value={form.CityMileage} onChange={handleChange}
-                                placeholder="e.g. 22.38 km/l"
-                                className={`${inputCls} ${errCls("CityMileage")}`} />
-                            {errors.CityMileage && <p className="mt-1 text-xs text-red-500">{errors.CityMileage}</p>}
-                        </Field>
-
-                        <Field label="Boot Space" required>
-                            <input id="edit-field-BootSpace" type="text" name="BootSpace"
-                                value={form.BootSpace} onChange={handleChange}
-                                placeholder="e.g. 268 L"
-                                className={`${inputCls} ${errCls("BootSpace")}`} />
-                            {errors.BootSpace && <p className="mt-1 text-xs text-red-500">{errors.BootSpace}</p>}
-                        </Field>
-
-                        <Field label="Monthly EMI (₹)" required>
-                            <input id="edit-field-MonthlyEMI" type="number" name="MonthlyEMI"
-                                value={form.MonthlyEMI} onChange={handleChange}
-                                placeholder="e.g. 8500" min="0"
-                                className={`${inputCls} ${errCls("MonthlyEMI")}`} />
-                            {errors.MonthlyEMI && <p className="mt-1 text-xs text-red-500">{errors.MonthlyEMI}</p>}
-                        </Field>
-                    </div>
-                </div>
-
-                {/* ═══ SECTION 3: Normal Pricing ═══ */}
-                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle>Normal (Non-BH) Pricing (₹)</SectionTitle>
-
-                        {[
-                            { name: "CSDPrice", label: "CSD Price" },
-                            { name: "OnRoadPrice", label: "On Road Price" },
-                            { name: "ExShowroomPrice", label: "Ex-Showroom Price" },
-                            { name: "RTO", label: "RTO" },
-                            { name: "Insurance", label: "Insurance" },
-                            { name: "FastTagFee", label: "FASTag Fee" },
-                            { name: "HPEndorsementFee", label: "HP Endorsement Fee" },
-                            { name: "HSRPSMartCardTemporaryFee", label: "HSRP / Smart Card / Temp Fee" },
-                        ].map(({ name, label }) => (
-                            <Field key={name} label={label} required>
-                                <input id={`edit-field-${name}`} type="number" name={name}
-                                    value={form[name]} onChange={handleChange}
-                                    placeholder="₹ 0" min="0"
-                                    className={`${inputCls} ${errCls(name)}`} />
-                                {errors[name] && <p className="mt-1 text-xs text-red-500">{errors[name]}</p>}
-                            </Field>
-                        ))}
-
-                        <Field label="Registration Fee" required>
-                            <input id="edit-field-RegistraionFee" type="text" name="RegistraionFee"
-                                value={form.RegistraionFee} onChange={handleChange}
-                                placeholder="e.g. Inclusive / 5500"
-                                className={`${inputCls} ${errCls("RegistraionFee")}`} />
-                            {errors.RegistraionFee && <p className="mt-1 text-xs text-red-500">{errors.RegistraionFee}</p>}
-                        </Field>
-                    </div>
-                </div>
-
-                {/* ═══ SECTION 4: BH Pricing ═══ */}
-                <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle>BH Series Pricing (₹)</SectionTitle>
-
-                        {[
-                            { name: "BHOnRoadPrice", label: "BH On Road Price" },
-                            { name: "ExShowroomPriceBH", label: "BH Ex-Showroom Price" },
-                            { name: "civilExShowroomPrice", label: "Civil Ex-Showroom Price" },
-                            { name: "BHRegistrationCost", label: "BH Registration Cost" },
-                            { name: "BHInsurance", label: "BH Insurance" },
-                            { name: "BHRegistrationFee", label: "BH Registration Fee" },
-                            { name: "BHFastTagFee", label: "BH FASTag Fee" },
-                            { name: "BHHPEndorsementFee", label: "BH HP Endorsement Fee" },
-                            { name: "BHHSRPSMartCardTemporaryFee", label: "BH HSRP / Smart Card / Temp Fee" },
-                        ].map(({ name, label }) => (
-                            <Field key={name} label={label} required>
-                                <input id={`edit-field-${name}`} type="number" name={name}
-                                    value={form[name]} onChange={handleChange}
-                                    placeholder="₹ 0" min="0"
-                                    className={`${inputCls} ${errCls(name)}`} />
-                                {errors[name] && <p className="mt-1 text-xs text-red-500">{errors[name]}</p>}
-                            </Field>
-                        ))}
-                    </div>
-                </div>
-
-                {/* ═══ SECTION 5: Description & Remarks ═══ */}
+                {/* ═══ SECTION 2: Description ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm space-y-5">
                     <div className="border-b border-[#708ca4]/20 pb-2">
-                        <h3 className="text-base font-bold text-[#19456d]">Description & Remarks</h3>
+                        <h3 className="text-base font-bold text-[#19456d]">Description</h3>
                     </div>
 
-                    <Field label="Car Details" required>
-                        <textarea id="edit-field-details" name="details" rows={4}
-                            value={form.details} onChange={handleChange}
-                            placeholder="Describe the car variant, features, and any important notes…"
-                            className={`${inputCls} resize-none ${errCls("details")}`} />
-                        {errors.details && <p className="mt-1 text-xs text-red-500">{errors.details}</p>}
-                    </Field>
-
-                    <Field label="Remarks">
-                        <textarea id="edit-field-Remarks" name="Remarks" rows={2}
-                            value={form.Remarks} onChange={handleChange}
-                            placeholder="Disclaimer / additional remarks…"
+                    <Field label="Vehicle Description">
+                        <textarea id="edit-field-description" name="description" rows={4}
+                            value={form.description} onChange={handleChange}
+                            placeholder="Describe the vehicle..."
                             className={`${inputCls} resize-none`} />
                     </Field>
                 </div>
 
-                {/* ═══ SECTION 6: Car Images ═══ */}
+                {/* ═══ SECTION 3: Car Images ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="border-b border-[#708ca4]/20 pb-2 mb-5 flex items-center gap-2">
                         <span className="text-lg">🖼️</span>
                         <div>
-                            <h3 className="text-base font-bold text-[#19456d]">Car Images (Optional to Update)</h3>
+                            <h3 className="text-base font-bold text-[#19456d]">Vehicle Images (Optional to Update)</h3>
                             <p className="text-xs text-[#708ca4]">Upload multiple images. The first image will be used as the primary thumbnail.</p>
                         </div>
                     </div>
@@ -513,17 +342,20 @@ const EditNewCar = ({ carId, goBack }) => {
                         <div className="mb-4">
                             <p className="text-xs font-bold text-[#708ca4] uppercase tracking-widest mb-2">Current Images</p>
                             <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                {existingImages.map((src, idx) => (
-                                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
-                                        <img src={src} alt={`existing-${idx}`} className="w-full h-full object-cover" />
-                                        {idx === 0 && (
-                                            <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
-                                        )}
-                                        <button type="button" onClick={() => removeExistingImage(idx)}
-                                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
-                                        >✕</button>
-                                    </div>
-                                ))}
+                                {existingImages.map((src, idx) => {
+                                    const imgSrc = src.startsWith("http") ? src : `${import.meta.env.VITE_BACKEND_URL}${src}`;
+                                    return (
+                                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-[#708ca4]/30 aspect-square bg-white">
+                                            <img src={imgSrc} alt={`existing-${idx}`} className="w-full h-full object-cover" />
+                                            {idx === 0 && (
+                                                <span className="absolute top-1 left-1 bg-[#19456d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">MAIN</span>
+                                            )}
+                                            <button type="button" onClick={() => removeExistingImage(idx)}
+                                                className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hidden group-hover:flex items-center justify-center shadow"
+                                            >✕</button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -563,6 +395,7 @@ const EditNewCar = ({ carId, goBack }) => {
                         <p className="text-xs text-[#708ca4]">
                             Accepted formats: JPG, PNG, WEBP · Max size: 5 MB per image · Leave empty to keep current images
                         </p>
+                        {errors.carImages && <p className="text-xs text-red-500">{errors.carImages}</p>}
                     </div>
                 </div>
 

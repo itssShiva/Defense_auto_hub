@@ -26,7 +26,7 @@ const UsedCarsPage = () => {
   const [selectedDealer, setSelectedDealer] = useState(null);
 
   useEffect(() => {
-    document.title = 'Used Cars — Defence Auto Hub';
+    document.title = 'Used Vehicles — Defence Auto Hub';
     (async () => {
       setLoading(true);
       const res = await getAllUsedCars();
@@ -89,7 +89,7 @@ const UsedCarsPage = () => {
   const UsedCarCard = ({ car, list }) => {
     const img = getImageUrl(car.carImages?.[0]) || FALLBACK_IMAGE;
     const price = car.price || car.askingPrice || car.CSDPrice;
-    const name = car.modelName || car.Model || 'Used Car';
+    const name = car.modelName || car.Model || 'Used Vehicle';
 
     if (list) {
       return (
@@ -182,10 +182,10 @@ const UsedCarsPage = () => {
           </motion.p>
           <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-extrabold text-white mb-3">
-            Used <span className="text-[#b48001]">Cars</span>
+            Used <span className="text-[#b48001]">Vehicles</span>
           </motion.h1>
           <p className="text-[#708ca4] text-base mb-8">
-            {loading ? '…' : `${cars.length} verified used cars available`}
+            {loading ? '…' : `${cars.length} verified used vehicles available`}
           </p>
           {/* Search */}
           <div className="max-w-xl mx-auto relative">
@@ -266,7 +266,7 @@ const UsedCarsPage = () => {
             {Array.from({ length: 8 }).map((_, i) => <CarCardSkeleton key={i} />)}
           </div>
         ) : paged.length === 0 ? (
-          <EmptyState title="No used cars found" message="Try adjusting your filters." action={{ label: 'Clear Filters', onClick: clearFilters }} />
+          <EmptyState title="No used vehicles found" message="Try adjusting your filters." action={{ label: 'Clear Filters', onClick: clearFilters }} />
         ) : viewMode === 'grid' ? (
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">

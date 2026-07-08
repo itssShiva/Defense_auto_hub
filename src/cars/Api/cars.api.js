@@ -1,208 +1,221 @@
-import axios from "axios";
+﻿import axios from "axios";
 
+/* ── Base axios instances ───────────────────────────────────── */
 const carsApi = axios.create({
     baseURL: `${import.meta.env.VITE_BACKEND_URL}/api/v1/car`,
-    withCredentials: true  // needed for auth cookie to be sent
+    withCredentials: true,
 });
 
-/* ================= ADD NEW CAR ================= */
-export const addNewCar = async (formData) => {
+const vehicleApi = axios.create({
+    baseURL: `${import.meta.env.VITE_BACKEND_URL}/api/v1/vehicle`,
+    withCredentials: true,
+});
+
+/* ══════════════════════════════════════════════════════════════
+   NEW VEHICLE MANAGEMENT API (Brand → Vehicle → Model → Variant)
+══════════════════════════════════════════════════════════════ */
+
+/* ── Vehicle CRUD ─────────────────────────────────────────── */
+export const addVehicle = async (formData) => {
     try {
-        const res = await carsApi.post("/add/newcar", formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const res = await vehicleApi.post("/add", formData, { headers: { "Content-Type": "multipart/form-data" } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
-/* ================= GET ALL CARS ================= */
-export const getAllCars = async () => {
+export const getAllVehicles = async (params = {}) => {
     try {
-        const res = await carsApi.get("/all");
+        const res = await vehicleApi.get("/all", { params });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
-/* ================= GET CAR BY ID ================= */
-export const getCarById = async (id) => {
+export const getVehiclesByBrand = async (brandId) => {
     try {
-        const res = await carsApi.get(`/${id}`);
+        const res = await vehicleApi.get("/all", { params: { brandId } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
-/* ================= DELETE CAR ================= */
-export const deleteCar = async (id) => {
+export const getVehicleById = async (id) => {
     try {
-        const res = await carsApi.delete(`/${id}`);
+        const res = await vehicleApi.get(`/vehicle/${id}`);
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
-
-
-
-/* ================= Update CAR Details ================= */
-export const updateCar = async (id, formData) => {
+export const updateVehicle = async (id, formData) => {
     try {
-        const res = await carsApi.put(`/${id}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const res = await vehicleApi.put(`/vehicle/${id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
+export const deleteVehicle = async (id) => {
+    try {
+        const res = await vehicleApi.delete(`/vehicle/${id}`);
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
-/* ================= ADD NEW CAR MODEL ================= */
+/* ── Vehicle Model CRUD ───────────────────────────────────── */
 export const addNewModel = async (formData) => {
     try {
-        const res = await carsApi.post("/add/newmodel", formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const res = await vehicleApi.post("/model/add", formData, { headers: { "Content-Type": "multipart/form-data" } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
-/* ================= MODEL API ================= */
-export const getAllModels = async () => {
+export const getAllModels = async (params = {}) => {
     try {
-        const res = await carsApi.get("/model/all");
+        const res = await vehicleApi.get("/model/all", { params });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
+export const getModelsByVehicle = async (vehicleId) => {
+    try {
+        const res = await vehicleApi.get("/model/all", { params: { vehicleId } });
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
+export const getModelById = async (id) => {
+    try {
+        const res = await vehicleApi.get(`/model/${id}`);
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
 export const updateModel = async (id, formData) => {
     try {
-        const res = await carsApi.put(`/model/${id}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const res = await vehicleApi.put(`/model/${id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
 export const deleteModel = async (id) => {
     try {
-        const res = await carsApi.delete(`/model/${id}`);
+        const res = await vehicleApi.delete(`/model/${id}`);
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
-
+/* ── Variant CRUD ─────────────────────────────────────────── */
 export const addVariant = async (formData) => {
     try {
-        const res = await carsApi.post("/add/variant", formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const res = await vehicleApi.post("/variant/add", formData, { headers: { "Content-Type": "multipart/form-data" } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
-export const updateVariant = async (id, formData) => {
+export const getAllVariants = async (params = {}) => {
     try {
-        const res = await carsApi.put(`/update/variant/${id}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const res = await vehicleApi.get("/variant/all", { params });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
-export const deleteVariant = async (id) => {
+export const getVariantsByModel = async (modelId) => {
     try {
-        const res = await carsApi.delete(`/delete/variant/${id}`);
+        const res = await vehicleApi.get("/variant/all", { params: { modelId } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
-
-export const getAllVariants = async () => {
-    try {
-        const res = await carsApi.get("/variant/all");
-        return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
 export const getVariantById = async (id) => {
     try {
-        const res = await carsApi.get(`/variant/${id}`);
+        const res = await vehicleApi.get(`/variant/${id}`);
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
+export const updateVariant = async (id, formData) => {
+    try {
+        const res = await vehicleApi.put(`/variant/${id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
+export const deleteVariant = async (id) => {
+    try {
+        const res = await vehicleApi.delete(`/variant/${id}`);
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
+/* ── Used Car CRUD ────────────────────────────────────────── */
 export const addUsedCar = async (formData) => {
     try {
-        const res = await carsApi.post("/add/usedcar", formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const res = await vehicleApi.post("/usedcar/add", formData, { headers: { "Content-Type": "multipart/form-data" } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
 export const updateUsedCar = async (id, formData) => {
     try {
-        const res = await carsApi.put(`/update/usedcar/${id}`, formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
+        const res = await vehicleApi.put(`/usedcar/${id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
 export const deleteUsedCar = async (id) => {
     try {
-        const res = await carsApi.delete(`/delete/usedcar/${id}`);
+        const res = await vehicleApi.delete(`/usedcar/${id}`);
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
 export const getAllUsedCars = async () => {
     try {
-        const res = await carsApi.get("/usedcar/all");
+        const res = await vehicleApi.get("/usedcar/all");
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
 export const approveUsedCar = async (id) => {
     try {
-        const res = await carsApi.put(`/approve/usedcar/${id}`);
+        const res = await vehicleApi.put(`/usedcar/approve/${id}`);
         return res.data;
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-}
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
 
-export default carsApi;
+/* ══════════════════════════════════════════════════════════════
+   LEGACY CAR API  (kept for public-facing pages that still use /api/v1/car)
+══════════════════════════════════════════════════════════════ */
+export const addNewCar = async (formData) => {
+    try {
+        const res = await carsApi.post("/add/newcar", formData, { headers: { "Content-Type": "multipart/form-data" } });
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
+export const getAllCars = async () => {
+    try {
+        const res = await carsApi.get("/all");
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
+export const getCarById = async (id) => {
+    try {
+        const res = await carsApi.get(`/${id}`);
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
+export const deleteCar = async (id) => {
+    try {
+        const res = await carsApi.delete(`/${id}`);
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
+export const updateCar = async (id, formData) => {
+    try {
+        const res = await carsApi.put(`/${id}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
+export default vehicleApi;

@@ -21,8 +21,8 @@ const AllUsedCars = ({ onEdit }) => {
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
             <div className="mb-8">
-                <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">My Used Cars</h2>
-                <p className="text-[#708ca4]">Manage your uploaded used car listings.</p>
+                <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">My Used Vehicles</h2>
+                <p className="text-[#708ca4]">Manage your uploaded used vehicle listings.</p>
             </div>
 
             {loading && usedCars.length === 0 ? (
@@ -32,8 +32,8 @@ const AllUsedCars = ({ onEdit }) => {
             ) : myUsedCars.length === 0 ? (
                 <div className="text-center py-16 bg-[#fafbf8] rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <span className="text-5xl block mb-4">🚗</span>
-                    <h3 className="text-xl font-bold text-[#19456d] mb-2">No Used Cars Found</h3>
-                    <p className="text-[#708ca4]">You haven't uploaded any used cars yet.</p>
+                    <h3 className="text-xl font-bold text-[#19456d] mb-2">No Used Vehicles Found</h3>
+                    <p className="text-[#708ca4]">You haven't uploaded any used vehicles yet.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -85,7 +85,7 @@ const AllUsedCars = ({ onEdit }) => {
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
                     <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="px-6 py-4 border-b flex justify-between items-center bg-[#fafbf8]">
-                            <h3 className="text-xl font-bold text-[#19456d]">Used Car Details</h3>
+                            <h3 className="text-xl font-bold text-[#19456d]">Used Vehicle Details</h3>
                             <button onClick={() => setViewCar(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-500 font-bold">✕</button>
                         </div>
                         
@@ -104,7 +104,7 @@ const AllUsedCars = ({ onEdit }) => {
                                         <div className="grid grid-cols-4 gap-2">
                                             {viewCar.carImages.slice(1).map((img, i) => (
                                                 <div key={i} className="aspect-square rounded-lg overflow-hidden border border-gray-200">
-                                                    <img src={img} alt={`car-${i+1}`} className="w-full h-full object-cover" />
+                                                    <img src={img} alt={`vehicle-${i+1}`} className="w-full h-full object-cover" />
                                                 </div>
                                             ))}
                                         </div>

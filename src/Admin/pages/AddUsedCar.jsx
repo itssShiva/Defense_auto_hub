@@ -126,7 +126,7 @@ const AddUsedCar = () => {
         const km = Number(form.kmTravelled);
         if (!isNaN(km) && km < 0) newErrors.kmTravelled = "KM driven cannot be negative.";
 
-        if (!carImages.length) newErrors.carImages = "At least one car image is required.";
+        if (!carImages.length) newErrors.carImages = "At least one vehicle image is required.";
         if (carImages.length > 10) newErrors.carImages = "Maximum 10 images allowed.";
         return newErrors;
     };
@@ -149,7 +149,7 @@ const AddUsedCar = () => {
 
         const res = await addUsedCar(formData);
         if (res?.success) {
-            toast.success("Used car added successfully!");
+            toast.success("Used vehicle added successfully!");
             setForm(INITIAL);
             setCarImages([]);
             setImagePreviews([]);
@@ -173,7 +173,7 @@ const AddUsedCar = () => {
         <div className="max-w-5xl mx-auto">
             {/* Header */}
             <div className="mb-8">
-                <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">Add Used Car Listing</h2>
+                <h2 className="text-2xl font-extrabold text-[#19456d] mb-2">Add Used Vehicle Listing</h2>
                 <p className="text-[#708ca4]">
                     Fill in the details below to list a pre-owned vehicle on the platform.
                 </p>
@@ -184,7 +184,7 @@ const AddUsedCar = () => {
                 {/* ═══ SECTION 1: Car Identity ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <SectionTitle icon="🚗">Car Identity</SectionTitle>
+                        <SectionTitle icon="🚗">Vehicle Identity</SectionTitle>
 
                         <Field label="Brand Name" required error={errors.brandName}>
                             <input id="field-brandName" type="text" name="brandName"
@@ -371,7 +371,7 @@ const AddUsedCar = () => {
 
                 {/* ═══ SECTION 5: Car Images ═══ */}
                 <div className="bg-[#fafbf8] p-6 sm:p-8 rounded-2xl border border-[#708ca4]/20 shadow-sm">
-                    <SectionTitle icon="🖼️">Car Images</SectionTitle>
+                    <SectionTitle icon="🖼️">Vehicle Images</SectionTitle>
 
                     {imagePreviews.length > 0 && (
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
@@ -436,7 +436,7 @@ const AddUsedCar = () => {
                                 Submitting Listing…
                             </div>
                         ) : (
-                            <span>🚗 Submit Used Car Listing</span>
+                            <span>🚗 Submit Used Vehicle Listing</span>
                         )}
                     </button>
                 </div>

@@ -61,12 +61,17 @@ const EditBrand = ({ brandId, goBack }) => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image must be smaller than 5 MB");
+        const ALLOWED = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!ALLOWED.includes(file.type)) {
+            toast.error(`Unsupported file type: .${file.name.split('.').pop().toUpperCase()}. Only JPEG, PNG and WEBP are allowed.`);
+            e.target.value = "";
             return;
         }
-
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image must be smaller than 5 MB");
+            e.target.value = "";
+            return;
+        }
         setLogoFile(file);
         setLogoPreview(URL.createObjectURL(file));
         if (errors.logo) setErrors((prev) => ({ ...prev, logo: "" }));

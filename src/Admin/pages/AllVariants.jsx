@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
 
-/* ─── Currency formatter ───────────────────────────────────────── */
+/* ── Image URL helper ── */
+const imgUrl = (src) =>
+    src ? (src.startsWith("http") ? src : `${import.meta.env.VITE_BACKEND_URL}${src}`) : "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png";
+
+/* ── Currency formatter ───────────────────────────────────────── */
 const fmt = (n) =>
     n !== undefined && n !== null && n !== ""
         ? `₹${Number(n).toLocaleString("en-IN")}`
@@ -28,12 +32,12 @@ const VariantModal = ({ variant, onClose }) => {
                 {/* Header */}
                 <div className="bg-linear-to-r from-[#19456d] to-[#2a6094] px-6 py-5 flex items-center gap-4 shrink-0">
                     <img
-                        src={variant.variantImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                        src={imgUrl(variant.variantImages?.[0])}
                         alt={variant.variantName}
                         className="w-20 h-14 rounded-xl object-cover border-2 border-white/30 shadow bg-white/10"
                     />
                     <div className="flex-1 min-w-0">
-                        <h3 className="text-xl font-extrabold text-white truncate">{variant.brandName} {variant.modelName} - {variant.variantName}</h3>
+                        <h3 className="text-xl font-extrabold text-white truncate">{variant.brandId?.brandName || variant.brandName} {variant.modelId?.modelName || variant.modelName} - {variant.variantName}</h3>
                         <div className="flex flex-wrap gap-2 mt-1.5">
                             <span className="px-2.5 py-0.5 bg-[#b48001] text-white text-xs font-bold rounded-full">{variant.fuelType}</span>
                             <span className="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">{variant.transmissionType}</span>
@@ -52,9 +56,9 @@ const VariantModal = ({ variant, onClose }) => {
                         <p className="text-xs font-bold text-[#b48001] uppercase tracking-widest mb-2 border-b pb-1">Basic Details</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                             <DetailRow label="Variant Name" value={variant.variantName} />
-                            <DetailRow label="Brand Name" value={variant.brandName} />
-                            <DetailRow label="Model Name" value={variant.modelName} />
-                            <DetailRow label="Category" value={variant.category} />
+                            <DetailRow label="Brand Name" value={variant.brandId?.brandName || variant.brandName} />
+                            <DetailRow label="Model Name" value={variant.modelId?.modelName || variant.modelName} />
+                            <DetailRow label="Category" value={variant.vehicleId?.category || variant.category} />
                             <DetailRow label="Fuel Type" value={variant.fuelType} />
                             <DetailRow label="Transmission" value={variant.transmissionType} />
                             <DetailRow label="Engine" value={variant.engine} />
@@ -138,8 +142,8 @@ const AllVariants = ({ handleEditVariantClick }) => {
     const filteredVariants = variants.filter(
         (v) =>
             v.variantName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            v.modelName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            v.brandName?.toLowerCase().includes(searchQuery.toLowerCase())
+            (v.modelId?.modelName || v.modelName)?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (v.brandId?.brandName || v.brandName)?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -148,7 +152,7 @@ const AllVariants = ({ handleEditVariantClick }) => {
             <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#fafbf8]">
                 <div>
                     <h2 className="text-xl font-extrabold text-[#19456d]">All Variants</h2>
-                    <p className="text-sm text-gray-500 mt-1">Manage and organize all car variants</p>
+                    <p className="text-sm text-gray-500 mt-1">Manage and organize all vehicle variants</p>
                 </div>
                 <div className="relative w-full sm:w-64 shrink-0">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
@@ -196,7 +200,7 @@ const AllVariants = ({ handleEditVariantClick }) => {
                                     <td className="px-6 py-4">
                                         <div className="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group-hover:shadow transition-all">
                                             <img
-                                                src={variant.variantImages?.[0] || "https://www.seat.com.mt/content/dam/public/seat-website/carworlds/compare/default-image/ghost.png"}
+                                                src={imgUrl(variant.variantImages?.[0])}
                                                 alt={variant.variantName}
                                                 className="w-full h-full object-cover"
                                                 loading="lazy"
@@ -205,7 +209,7 @@ const AllVariants = ({ handleEditVariantClick }) => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <p className="font-bold text-[#19456d]">{variant.variantName}</p>
-                                        <p className="text-xs text-gray-500 mt-0.5">{variant.brandName} • {variant.modelName}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{variant.brandId?.brandName || variant.brandName} • {variant.modelId?.modelName || variant.modelName}</p>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-wrap gap-1.5 max-w-[200px]">

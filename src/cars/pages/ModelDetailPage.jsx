@@ -97,7 +97,7 @@ const ModelDetailPage = () => {
         <div className="max-w-7xl mx-auto">
           <Link to="/cars"
             className="inline-flex items-center gap-2 text-[#708ca4] hover:text-[#19456d] text-sm font-semibold transition-colors">
-            <ArrowLeft className="w-4 h-4" /> All Cars
+            <ArrowLeft className="w-4 h-4" /> All Vehicles
           </Link>
         </div>
       </div>

@@ -63,23 +63,23 @@ const HeroSection = () => {
                         </motion.div>
 
                         <motion.h1 variants={fadeUp} className="text-5xl lg:text-7xl font-extrabold text-[#19456d] leading-[1.15]">
-                            Find Your <span className="text-transparent bg-clip-text bg-linear-to-r from-[#b48001] to-[#19456d]">Perfect Car</span> With Confidence
+                            Find Your <span className="text-transparent bg-clip-text bg-linear-to-r from-[#b48001] to-[#19456d]">Perfect Vehicle</span> With Confidence
                         </motion.h1>
 
                         <motion.p variants={fadeUp} className="text-xl text-[#19456d]/80 leading-relaxed max-w-xl">
-                            Explore New Cars, Used Cars, Loans, Insurance, and exclusive CSD Prices from our network of Trusted Dealers.
+                            Explore New Vehicles, Used Vehicles, Loans, Insurance, and exclusive CSD Prices from our network of Trusted Dealers.
                         </motion.p>
 
                         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-5 pt-4">
-                            <button className="group relative overflow-hidden px-8 py-4 rounded-full font-bold text-[#fafbf8] bg-[#b48001] shadow-[0_0_20px_rgba(180,128,1,0.3)] hover:shadow-[0_0_30px_rgba(180,128,1,0.5)] transition-all duration-300 transform hover:-translate-y-1">
+                            <Link to={'/cars'} className="group relative overflow-hidden px-8 py-4 rounded-full font-bold text-[#fafbf8] bg-[#b48001] shadow-[0_0_20px_rgba(180,128,1,0.3)] hover:shadow-[0_0_30px_rgba(180,128,1,0.5)] transition-all duration-300 transform hover:-translate-y-1">
                                 <span className="absolute inset-0 w-full h-full bg-linear-to-r from-[#b48001] to-[#19456d] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                                 <span className="relative flex items-center justify-center gap-2">
-                                    Explore Cars <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    Explore Vehicles <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </span>
-                            </button>
-                            <button className="group relative px-8 py-4 rounded-full font-bold text-[#19456d] border-2 border-[#19456d]/20 hover:border-[#b48001] hover:text-[#b48001] transition-all duration-300 backdrop-blur-sm bg-white/10">
-                                Compare Cars
-                            </button>
+                            </Link>
+                            <Link to={'/compare'} className="group relative px-8 py-4 rounded-full font-bold text-[#19456d] border-2 border-[#19456d]/20 hover:border-[#b48001] hover:text-[#b48001] transition-all duration-300 backdrop-blur-sm bg-white/10">
+                                Compare Vehicles
+                            </Link>
                         </motion.div>
                     </motion.div>
 
@@ -96,7 +96,7 @@ const HeroSection = () => {
                         >
                             <img
                                 src="https://images.unsplash.com/photo-1592853625597-7d17be820d0c?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8c3BvcnRzY2FyfGVufDB8fDB8fHww"
-                                alt="Luxury Sports Car"
+                                alt="Luxury Sports Vehicle"
                                 className="w-full h-72 md:h-96 object-cover drop-shadow-2xl rounded-[2.5rem]"
                             />
                         </motion.div>
@@ -110,7 +110,7 @@ const HeroSection = () => {
                                 <div className="w-12 h-12 rounded-full bg-[#b48001]/20 flex items-center justify-center"><Car className="text-[#b48001] w-6 h-6" /></div>
                                 <div>
                                     <p className="text-2xl font-black text-[#19456d]">1000+</p>
-                                    <p className="text-xs font-bold text-[#19456d]/70 uppercase tracking-widest">Cars Listed</p>
+                                    <p className="text-xs font-bold text-[#19456d]/70 uppercase tracking-widest">Vehicles Listed</p>
                                 </div>
                             </div>
                         </motion.div>
@@ -131,13 +131,13 @@ const HeroSection = () => {
 
                 </div>
             </div>
-        </section>
+        </section >
     );
 };
 
 const SmartSearch = () => {
     const [activeTab, setActiveTab] = useState('CSD Pricing');
-    const tabs = ['CSD Pricing', 'New Cars', 'Used Cars'];
+    const tabs = ['CSD Pricing', 'New Vehicles', 'Used Vehicles'];
 
     return (
         <section className="relative z-20 -mt-16 max-w-5xl mx-auto px-4">
@@ -181,9 +181,9 @@ const SmartSearch = () => {
 
 const FeaturedCategories = () => {
     const categories = [
-        { name: 'New Cars', icon: Car },
-        { name: 'Used Cars', icon: Settings },
-        { name: 'Car Loan', icon: Banknote },
+        { name: 'New Vehicles', icon: Car },
+        { name: 'Used Vehicles', icon: Settings },
+        { name: 'Vehicle Loan', icon: Banknote },
         { name: 'Insurance', icon: Shield },
         { name: 'CSD Price', icon: BadgeIndianRupee },
         { name: 'Dealers', icon: Building2 },
@@ -270,7 +270,7 @@ const FeaturedCars = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-end mb-12">
                     <div>
-                        <h2 className="text-4xl font-extrabold text-[#19456d] mb-4">Featured Cars</h2>
+                        <h2 className="text-4xl font-extrabold text-[#19456d] mb-4">Featured Vehicles</h2>
                         <p className="text-[#19456d]/70 font-medium">Discover our handpicked selection of premium vehicles.</p>
                     </div>
                     <button className="hidden md:flex font-bold text-[#b48001] items-center gap-2 hover:gap-3 transition-all">
@@ -329,10 +329,10 @@ const CompareCarsBanner = () => {
 
                     <div className="flex-1 relative z-10">
                         <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">
-                            Compare Multiple Cars Side by Side
+                            Compare Multiple Vehicles Side by Side
                         </h2>
                         <p className="text-white/70 text-lg mb-8 max-w-md">
-                            Make the right decision. Compare features, specs, and prices of your favorite cars instantly.
+                            Make the right decision. Compare features, specs, and prices of your favorite vehicles instantly.
                         </p>
                         <button className="bg-[#b48001] text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-[#b48001] transition-colors flex items-center gap-2">
                             Start Comparing <ArrowRight className="w-5 h-5" />
@@ -341,7 +341,7 @@ const CompareCarsBanner = () => {
 
                     <div className="flex-1 relative z-10 w-full flex justify-center">
                         <div className="relative w-full max-w-sm h-64">
-                            {/* Abstract visualization of 2 cars comparing */}
+                            {/* Abstract visualization of 2 vehicles comparing */}
                             <motion.div animate={{ x: [0, 10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="absolute left-0 top-10 w-48 h-32 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-4 shadow-xl z-20">
                                 <div className="w-full h-1/2 bg-white/20 rounded-lg mb-2"></div>
                                 <div className="w-2/3 h-4 bg-white/20 rounded"></div>
@@ -366,19 +366,19 @@ const CSDPricingHighlight = () => {
                     initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}
                     className="relative rounded-[2.5rem] overflow-hidden bg-linear-to-br from-[#52602d] to-[#52602d] p-10 md:p-16 text-center border-4 border-[#fafbf8]"
                 >
-                    <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+                    <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
                     <BadgeIndianRupee className="w-16 h-16 mx-auto text-[#b48001] mb-6" />
                     <h2 className="text-4xl md:text-5xl font-extrabold text-[#fafbf8] mb-6">Exclusive CSD Pricing</h2>
                     <p className="text-lg text-[#fafbf8]/80 max-w-2xl mx-auto mb-10 leading-relaxed">
                         Special discounted pricing exclusively for our Defence Personnel. Experience massive savings and a hassle-free buying process designed for heroes.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="bg-[#fafbf8] text-[#52602d] px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg">
+                        <Link to="/cars" className="bg-[#fafbf8] text-[#52602d] px-8 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg">
                             Explore CSD Prices
-                        </button>
-                        <button className="bg-transparent border-2 border-[#b48001] text-[#b48001] px-8 py-4 rounded-full font-bold hover:bg-[#b48001] hover:text-white transition-all">
-                            Savings Calculator
-                        </button>
+                        </Link>
+                        <Link to="/loan/emi-calculator" className="bg-transparent border-2 border-[#b48001] text-[#b48001] px-8 py-4 rounded-full font-bold hover:bg-[#b48001] hover:text-white transition-all cursor-pointer">
+                            EMI Calculator
+                        </Link>
                     </div>
                 </motion.div>
             </div>
@@ -391,7 +391,7 @@ const LoanEMISection = () => {
         <section className="py-24 bg-[#fafbf8]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-16">
-                    <h2 className="text-4xl font-extrabold text-[#19456d] mb-4">Finance Your Dream Car</h2>
+                    <h2 className="text-4xl font-extrabold text-[#19456d] mb-4">Finance Your Dream Vehicle</h2>
                     <p className="text-[#19456d]/70 font-medium text-lg">Instant approvals, lowest interest rates, and flexible EMI options.</p>
                 </div>
 
@@ -432,7 +432,7 @@ const InsuranceSection = () => {
                             <ShieldCheck className="w-8 h-8 text-[#b48001]" />
                         </div>
                         <h2 className="text-4xl md:text-5xl font-extrabold text-[#19456d] leading-tight">
-                            Comprehensive Car Insurance
+                            Comprehensive Vehicle Insurance
                         </h2>
                         <p className="text-lg text-[#19456d]/70">
                             Protect your prized possession with our range of insurance plans tailored to your needs. Compare top providers and get instant policies.
@@ -489,7 +489,7 @@ const WhyChooseUs = () => {
                         <motion.div key={idx} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={idx} className="bg-white/60 backdrop-blur-sm border border-[#708ca4]/30 p-8 rounded-3xl hover:bg-white hover:shadow-xl transition-all group">
                             <feat.icon className="w-10 h-10 text-[#b48001] mb-6 group-hover:scale-110 transition-transform" />
                             <h3 className="text-xl font-bold text-[#19456d] mb-3">{feat.title}</h3>
-                            <p className="text-[#19456d]/70">Experience seamless car buying with our premium features tailored for a superior experience.</p>
+                            <p className="text-[#19456d]/70">Experience seamless vehicle buying with our premium features tailored for a superior experience.</p>
                         </motion.div>
                     ))}
                 </div>
@@ -502,7 +502,7 @@ const LatestBlogs = () => {
     const blogs = [
         { title: 'Best SUVs in India for 2026', category: 'Buying Guide', img: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=600&q=80' },
         { title: 'EV Buying Guide: Things to Know', category: 'Electric', img: 'https://stimg.cardekho.com/images/carexteriorimages/630x420/Tata/Nexon-EV/11024/1755845297648/front-left-side-47.jpg' },
-        { title: 'Maximizing Your Car Insurance', category: 'Insurance', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXNQP1wOuBXM45idhIM3-rUxnmtPJQSL_Z4S0RjCUwrnVyOHwUeMNTZmDC&s=10' },
+        { title: 'Maximizing Your Vehicle Insurance', category: 'Insurance', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXNQP1wOuBXM45idhIM3-rUxnmtPJQSL_Z4S0RjCUwrnVyOHwUeMNTZmDC&s=10' },
     ];
 
     return (
@@ -548,7 +548,7 @@ const CustomerTestimonials = () => {
                                 <div className="flex gap-1 text-[#b48001] mb-6 mt-6">
                                     {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-current" />)}
                                 </div>
-                                <p className="text-[#19456d]/80 italic mb-6">"The experience was seamless. Comparing cars, checking CSD pricing, and finalizing the loan all happened in one place. Highly recommended!"</p>
+                                <p className="text-[#19456d]/80 italic mb-6">"The experience was seamless. Comparing vehicles, checking CSD pricing, and finalizing the loan all happened in one place. Highly recommended!"</p>
                                 <div>
                                     <h4 className="font-bold text-[#19456d]">Major Raj Aryan</h4>
                                     <p className="text-sm text-[#b48001]">New Delhi</p>
@@ -565,7 +565,7 @@ const CustomerTestimonials = () => {
 const StatisticsCounters = () => {
     // We'll use simple hardcoded numbers that we can animate via Framer if desired, or just static styled for now.
     const stats = [
-        { num: '1000+', label: 'Cars Listed' },
+        { num: '1000+', label: 'Vehicles Listed' },
         { num: '500+', label: 'Trusted Dealers' },
         { num: '15k+', label: 'Happy Customers' },
         { num: '50+', label: 'Auto Brands' },
@@ -589,7 +589,7 @@ const StatisticsCounters = () => {
 
 const FAQPreview = () => {
     const faqs = [
-        "How to compare cars?",
+        "How to compare vehicles?",
         "How to apply for a loan?",
         "How does CSD pricing work?",
         "Can I book a test drive online?"
@@ -620,11 +620,11 @@ const CallToAction = () => {
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1500&q=80')] opacity-10 bg-cover bg-center mix-blend-overlay" />
             <div className="absolute inset-0 bg-linear-to-t from-[#19456d] to-transparent" />
             <div className="max-w-4xl mx-auto px-4 relative z-10 text-center">
-                <h2 className="text-5xl md:text-6xl font-black text-white mb-8">Ready to Find Your Dream Car?</h2>
+                <h2 className="text-5xl md:text-6xl font-black text-white mb-8">Ready to Find Your Dream Vehicle?</h2>
                 <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                    <button className="bg-[#b48001] text-white px-10 py-5 rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_30px_rgba(180,128,1,0.4)]">
-                        Explore Cars Now
-                    </button>
+                    <Link to={'/cars'} className="bg-[#b48001] text-white px-10 py-5 rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_30px_rgba(180,128,1,0.4)]">
+                        Explore Vehicles Now
+                    </Link>
                     <button className="bg-white/10 backdrop-blur-md border-2 border-white text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white hover:text-[#19456d] transition-colors">
                         Contact Dealer
                     </button>
@@ -640,7 +640,7 @@ const NewsletterSection = () => {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <Mail className="w-12 h-12 text-[#b48001] mx-auto mb-6" />
                 <h2 className="text-3xl font-extrabold text-[#19456d] mb-4">Stay Updated</h2>
-                <p className="text-[#19456d]/70 mb-10 max-w-xl mx-auto">Subscribe to our newsletter for the latest car launches, exclusive offers, and automotive tips.</p>
+                <p className="text-[#19456d]/70 mb-10 max-w-xl mx-auto">Subscribe to our newsletter for the latest vehicle launches, exclusive offers, and automotive tips.</p>
                 <div className="flex flex-col sm:flex-row max-w-lg mx-auto gap-2 p-2 bg-[#fafbf8] rounded-full border border-[#708ca4]/50 focus-within:ring-2 focus-within:ring-[#b48001] transition-all">
                     <input type="email" placeholder="Enter your email address" className="flex-1 bg-transparent px-6 py-3 text-[#19456d] font-medium focus:outline-none placeholder:text-[#19456d]/40" />
                     <button className="bg-[#19456d] text-[#fafbf8] px-8 py-3 rounded-full font-bold hover:bg-[#b48001] transition-colors">

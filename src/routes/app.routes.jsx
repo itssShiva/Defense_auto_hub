@@ -12,6 +12,10 @@ import DealerRoute from "../ProtectiveRoutes/dealerRoutes.jsx";
 import GuestRoute from "../ProtectiveRoutes/guestRoutes.jsx";
 import Blogs from "../Pages/Blogs.jsx";
 import BlogDetails from "../Pages/BlogDetails.jsx";
+import CarLoanHome from "../Loans/LoanHome.jsx";
+import EligibilityDocuments from "../Loans/Eligibilitydocuments.jsx";
+import EmiCalculator from "../Loans/EmiCalculator.jsx";
+import LoanEnquiryForm from "../Loans/EnquiryForm.jsx";
 
 /* ── Lazy-loaded public car platform pages ── */
 const AllCarsPage = lazy(() => import("../cars/pages/AllCarsPage.jsx"));
@@ -60,7 +64,7 @@ const router = createBrowserRouter([
       /* ── Blog routes (existing) ── */
       { path: "/blogs", element: <Blogs /> },
       { path: "/blogs/:id", element: <BlogDetails /> },
-      { path: "/CSD/Dealers", element: <FindDealers /> },
+      { path: "find-dealers", element: <FindDealers /> },
 
       /* ── Car Platform routes ── */
       { path: "/cars", element: <Lazy element={<AllCarsPage />} /> },
@@ -73,6 +77,10 @@ const router = createBrowserRouter([
       { path: "/search", element: <Lazy element={<SearchPage />} /> },
       { path: "/used-cars", element: <Lazy element={<UsedCarsPage />} /> },
       { path: "/used-cars/:slug", element: <Lazy element={<UsedCarDetailPage />} /> },
+      { path: "/loans", element: <Lazy element={<CarLoanHome />} /> },
+      { path: "/loan/eligibility-documents", element: <Lazy element={<EligibilityDocuments />} /> },
+      { path: "/loan/emi-calculator", element: <Lazy element={<EmiCalculator />} /> },
+      { path: "/loan/enquiry-form", element: <Lazy element={<LoanEnquiryForm />} /> }
     ],
   },
 ]);
