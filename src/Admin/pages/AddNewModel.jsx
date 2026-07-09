@@ -180,13 +180,21 @@ const AddNewModel = () => {
         Object.entries(form).forEach(([key, value]) => formData.append(key, value));
         carImages.forEach(img => formData.append("carImages", img));
 
-        const res = await addModel(formData);
-        if (res?.success) {
-            setForm(INITIAL);
-            setCarImages([]);
-            setImagePreviews([]);
-            setErrors({});
-            if (fileInputRef.current) fileInputRef.current.value = "";
+        const toastId = toast.loading("Adding model...");
+        try {
+            const res = await addModel(formData);
+            if (res?.success) {
+                toast.success("Model added successfully!", { id: toastId });
+                setForm(INITIAL);
+                setCarImages([]);
+                setImagePreviews([]);
+                setErrors({});
+                if (fileInputRef.current) fileInputRef.current.value = "";
+            } else {
+                toast.error(res?.message || "Failed to add model.", { id: toastId });
+            }
+        } catch (err) {
+            toast.error("Something went wrong. Please try again.", { id: toastId });
         }
     };
 

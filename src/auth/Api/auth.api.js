@@ -36,7 +36,7 @@ export const loginUser = async ({ email, password }) => {
         return response.data
     } catch (error) {
         console.log(error.message)
-        return error.message
+        return { success: false, message: error.response?.data?.message || error.message }
     }
 }
 
@@ -46,7 +46,7 @@ export const loginDealer = async ({ email, password }) => {
         return response.data
     } catch (error) {
         console.log(error.message)
-        return error.message
+        return { success: false, message: error.response?.data?.message || error.message }
     }
 }
 

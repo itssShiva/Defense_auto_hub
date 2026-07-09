@@ -147,14 +147,21 @@ const AddUsedCar = () => {
         Object.entries(form).forEach(([key, val]) => formData.append(key, val));
         carImages.forEach(img => formData.append("carImages", img));
 
-        const res = await addUsedCar(formData);
-        if (res?.success) {
-            toast.success("Used vehicle added successfully!");
-            setForm(INITIAL);
-            setCarImages([]);
-            setImagePreviews([]);
-            setErrors({});
-            if (fileInputRef.current) fileInputRef.current.value = "";
+        const toastId = toast.loading("Adding used vehicle...");
+        try {
+            const res = await addUsedCar(formData);
+            if (res?.success) {
+                toast.success("Used vehicle added successfully!", { id: toastId });
+                setForm(INITIAL);
+                setCarImages([]);
+                setImagePreviews([]);
+                setErrors({});
+                if (fileInputRef.current) fileInputRef.current.value = "";
+            } else {
+                toast.error(res?.message || "Failed to add used vehicle.", { id: toastId });
+            }
+        } catch (err) {
+            toast.error("Something went wrong. Please try again.", { id: toastId });
         }
     };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { toast } from 'react-hot-toast';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -27,11 +28,17 @@ const Login = () => {
                 : await loginExistingUser(payload);
 
             if (response?.success) {
-
-                setError(response?.message || 'Login failed. Please try again.');
+                toast.success(response?.message || 'Login successful!');
+                navigate(role === 'dealer' ? '/dealer-dashboard' : '/admin-dashboard');
+            } else {
+                const errMsg = response?.message || 'Login failed. Please try again.';
+                setError(errMsg);
+                toast.error(errMsg);
             }
         } catch (err) {
-            setError('Something went wrong. Please try again.');
+            const errMsg = err?.response?.data?.message || err.message || 'Something went wrong. Please try again.';
+            setError(errMsg);
+            toast.error(errMsg);
         } finally {
             setLoading(false);
         }

@@ -205,8 +205,6 @@ const AddCars = () => {
             Object.entries(form).forEach(([key, value]) => {
                 formData.append(key, value);
             });
-            vehicleImages.forEach(img => formData.append("vehicleImages", img));
-
             const response = await addVehicle(formData);
 
             if (response?.success) {

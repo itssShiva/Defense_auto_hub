@@ -83,7 +83,7 @@ const AddVariants = () => {
     const [errors, setErrors] = useState({});
     const fileInputRef = useRef(null);
     const [brands, setBrands] = useState([]);
-    
+
     useEffect(() => {
         const fetchBrands = async () => {
             const res = await getAllBrands();
@@ -97,7 +97,7 @@ const AddVariants = () => {
     /* ── Two-way binding & Cascading Logic ── */
     const handleChange = async (e) => {
         const { name, value } = e.target;
-        
+
         if (name === "brandId") {
             setForm((prev) => ({ ...prev, brandId: value, vehicleId: "", modelId: "" }));
             if (value) await fetchVehiclesByBrandId(value);
@@ -107,7 +107,7 @@ const AddVariants = () => {
         } else {
             setForm((prev) => ({ ...prev, [name]: value }));
         }
-        
+
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
@@ -177,13 +177,21 @@ const AddVariants = () => {
         });
         variantImages.forEach(img => formData.append("variantImages", img));
 
-        const res = await addVariant(formData);
-        if (res?.success) {
-            setForm(INITIAL);
-            setVariantImages([]);
-            setImagePreviews([]);
-            setErrors({});
-            if (fileInputRef.current) fileInputRef.current.value = "";
+        const toastId = toast.loading("Adding variant...");
+        try {
+            const res = await addVariant(formData);
+            if (res?.success) {
+                toast.success("Variant added successfully!", { id: toastId });
+                setForm(INITIAL);
+                setVariantImages([]);
+                setImagePreviews([]);
+                setErrors({});
+                if (fileInputRef.current) fileInputRef.current.value = "";
+            } else {
+                toast.error(res?.message || "Failed to add variant.", { id: toastId });
+            }
+        } catch (err) {
+            toast.error("Something went wrong. Please try again.", { id: toastId });
         }
     };
 

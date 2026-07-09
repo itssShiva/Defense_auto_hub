@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Grid3X3, List, SlidersHorizontal, X } from 'lucide-react';
+import { Search, Grid3X3, List, SlidersHorizontal, MapPin, Phone, Building2 } from 'lucide-react';
 import { getAllVehicles } from '../Api/cars.api';
 import { getAllDealers } from '../../auth/Api/auth.api';
 import CarCard from '../components/CarCard';
@@ -81,18 +81,7 @@ const AllCarsPage = () => {
     if (filters.vehicleType !== 'All') list = list.filter(c => c.vehicleType === filters.vehicleType);
     if (filters.category !== 'All') list = list.filter(c => c.category === filters.category);
 
-    // Location (Dealer Mapping) Filter
-    if (filters.state !== 'All' || filters.city !== 'All') {
-      const validDealers = dealers.filter(d => {
-        const matchState = filters.state === 'All' || d.state === filters.state;
-        const matchCity = filters.city === 'All' || d.city === filters.city;
-        return matchState && matchCity;
-      });
-      const validBrandIds = new Set(
-        validDealers.flatMap(d => d.brandsHandled?.map(b => typeof b === 'object' ? b._id : b) || [])
-      );
-      list = list.filter(c => validBrandIds.has(c.brandId));
-    }
+    // Note: State/City filters are applied to the Dealers section, not car cards.
 
     // Sorting
     if (filters.priceSort === 'low-high') {
@@ -105,6 +94,16 @@ const AllCarsPage = () => {
 
     return list;
   }, [cars, search, filters]);
+
+  // Filtered dealers based on state/city selection
+  const filteredDealers = useMemo(() => {
+    if (filters.state === 'All' && filters.city === 'All') return [];
+    return dealers.filter(d => {
+      const matchState = filters.state === 'All' || d.state === filters.state;
+      const matchCity = filters.city === 'All' || d.city === filters.city;
+      return matchState && matchCity;
+    });
+  }, [dealers, filters.state, filters.city]);
 
   // Pagination
   const totalPages = Math.ceil(processedCars.length / PER_PAGE);
@@ -307,6 +306,67 @@ const AllCarsPage = () => {
             )}
 
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+
+            {/* Dealers Section — shown when state/city filter is active */}
+            {filteredDealers.length > 0 && (
+              <div className="mt-12 border-t border-[#708ca4]/20 pt-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <Building2 className="w-6 h-6 text-[#b48001]" />
+                  <div>
+                    <h2 className="text-xl font-extrabold text-[#19456d]">Dealers in {filters.city !== 'All' ? filters.city : filters.state}</h2>
+                    <p className="text-xs text-[#708ca4]">{filteredDealers.length} dealer{filteredDealers.length !== 1 ? 's' : ''} found</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredDealers.map(dealer => (
+                    <div key={dealer._id}
+                      className="bg-white rounded-2xl border border-[#708ca4]/15 p-5 shadow-sm hover:shadow-md hover:border-[#b48001]/30 transition-all"
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        {dealer.logo ? (
+                          <img src={dealer.logo?.startsWith('http') ? dealer.logo : `${import.meta.env.VITE_BACKEND_URL}${dealer.logo}`}
+                            alt={dealer.dealerName} className="w-12 h-12 rounded-xl object-contain border border-[#708ca4]/15 bg-[#fafbf8] p-1" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl bg-[#19456d]/10 flex items-center justify-center shrink-0">
+                            <Building2 className="w-6 h-6 text-[#19456d]" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-extrabold text-[#19456d] leading-tight text-sm truncate">{dealer.dealerName || dealer.name}</h3>
+                          <p className="text-[10px] text-[#b48001] font-bold uppercase tracking-wider mt-0.5">{dealer.dealerType || 'Dealer'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5 text-xs text-[#708ca4]">
+                        {(dealer.city || dealer.state) && (
+                          <p className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#b48001] shrink-0" />
+                            {[dealer.city, dealer.state].filter(Boolean).join(', ')}
+                          </p>
+                        )}
+                        {dealer.phone && (
+                          <p className="flex items-center gap-1.5">
+                            <Phone className="w-3.5 h-3.5 text-[#b48001] shrink-0" />
+                            {dealer.phone}
+                          </p>
+                        )}
+                      </div>
+                      {dealer.brandsHandled?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-3">
+                          {dealer.brandsHandled.slice(0, 4).map((b, i) => (
+                            <span key={i} className="px-2 py-0.5 bg-[#19456d]/8 text-[#19456d] text-[10px] font-bold rounded-full">
+                              {typeof b === 'object' ? b.brandName : b}
+                            </span>
+                          ))}
+                          {dealer.brandsHandled.length > 4 && (
+                            <span className="px-2 py-0.5 bg-[#708ca4]/10 text-[#708ca4] text-[10px] font-bold rounded-full">+{dealer.brandsHandled.length - 4}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
