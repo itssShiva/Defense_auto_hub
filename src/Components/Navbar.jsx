@@ -88,15 +88,15 @@ const Navbar = () => {
             {navLinks.map((link) => (
               link.isDropdown ? (
                 <div key={link.name} className="relative group">
-                  <button className="flex items-center gap-1 relative text-sm font-bold overflow-hidden px-1 py-2 text-[#19456d] hover:text-[#b48001] transition-colors focus:outline-none">
+                  <button className="flex items-center gap-1 relative text-base font-bold overflow-hidden px-1 py-2 text-[#19456d] hover:text-[#b48001] transition-colors focus:outline-none">
                     {link.name}
                     <ChevronDown className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300" />
                   </button>
                   {/* Dropdown Menu */}
-                  <div className="absolute left-0 top-full mt-0 w-48 bg-white border border-[#708ca4]/15 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-left -translate-y-2 group-hover:translate-y-0 flex flex-col p-2 overflow-hidden z-50">
+                  <div className="absolute left-0 top-full mt-0 w-56 bg-white border border-[#708ca4]/15 rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-left -translate-y-2 group-hover:translate-y-0 flex flex-col p-2 overflow-hidden z-50">
                     {link.items.map(subItem => (
                       <Link key={subItem.name} to={subItem.path}
-                        className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/5' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#fafbf8]'
+                        className={`px-4 py-3 rounded-xl text-base font-bold transition-all ${isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/5' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#fafbf8]'
                           }`}>
                         {subItem.name}
                       </Link>
@@ -107,7 +107,7 @@ const Navbar = () => {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`relative group text-sm font-bold overflow-hidden px-1 py-2 transition-colors ${isActive(link.path) ? 'text-[#b48001]' : 'text-[#19456d] hover:text-[#b48001]'
+                  className={`relative group text-base font-bold overflow-hidden px-1 py-2 transition-colors ${isActive(link.path) ? 'text-[#b48001]' : 'text-[#19456d] hover:text-[#b48001]'
                     }`}
                 >
                   <span className="relative z-10">{link.name}</span>
@@ -128,14 +128,14 @@ const Navbar = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search vehicles…"
-                className="pl-9 pr-4 py-2 rounded-xl border border-[#708ca4]/25 bg-white text-[#19456d] text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#b48001] w-40 focus:w-52 transition-all duration-300"
+                className="pl-9 pr-4 py-2 rounded-xl border border-[#708ca4]/25 bg-white text-[#19456d] text-base font-medium focus:outline-none focus:ring-1 focus:ring-[#b48001] w-48 focus:w-60 transition-all duration-300"
               />
             </form>
 
             {!user ? (
               <>
                 <Link to="/login"
-                  className="px-5 py-2 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all duration-300 text-sm">
+                  className="px-5 py-2 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all duration-300 text-base">
                   Login
                 </Link>
 
@@ -143,11 +143,11 @@ const Navbar = () => {
             ) : (
               <>
                 <Link to={getDashboardPath()}
-                  className="px-5 py-2 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all duration-300 text-sm">
+                  className="px-5 py-2 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all duration-300 text-base">
                   Dashboard
                 </Link>
                 <button onClick={handleLogout}
-                  className="px-5 py-2 rounded-full font-bold text-white bg-red-600 hover:bg-red-700 transition-all duration-300 shadow-md text-sm">
+                  className="px-5 py-2 rounded-full font-bold text-white bg-red-600 hover:bg-red-700 transition-all duration-300 shadow-md text-base">
                   Logout
                 </button>
               </>
@@ -178,16 +178,16 @@ const Navbar = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#708ca4]" />
             <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search vehicles, brands, models…"
-              className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#708ca4]/20 bg-white text-[#19456d] text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#b48001]" />
+              className="w-full pl-11 pr-4 py-3 rounded-xl border border-[#708ca4]/20 bg-white text-[#19456d] text-base font-medium focus:outline-none focus:ring-1 focus:ring-[#b48001]" />
           </form>
 
           {navLinks.map((link) => (
             link.isDropdown ? (
               <div key={link.name} className="space-y-1 mb-2">
-                <div className="px-4 py-2 text-[10px] font-bold text-[#708ca4] uppercase tracking-widest">{link.name}</div>
+                <div className="px-4 py-2 text-xs font-bold text-[#708ca4] uppercase tracking-widest">{link.name}</div>
                 {link.items.map(subItem => (
                   <Link key={subItem.name} to={subItem.path} onClick={() => setIsOpen(false)}
-                    className={`block pl-6 pr-4 py-3 text-sm font-bold rounded-xl transition-all ${isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
+                    className={`block pl-6 pr-4 py-3 text-base font-bold rounded-xl transition-all ${isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
                       }`}>
                     {subItem.name}
                   </Link>
@@ -195,7 +195,7 @@ const Navbar = () => {
               </div>
             ) : (
               <Link key={link.name} to={link.path} onClick={() => setIsOpen(false)}
-                className={`block px-4 py-3 text-sm font-bold rounded-xl transition-all ${isActive(link.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
+                className={`block px-4 py-3 text-base font-bold rounded-xl transition-all ${isActive(link.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
                   }`}>
                 {link.name}
               </Link>
@@ -205,14 +205,14 @@ const Navbar = () => {
           <div className="pt-3 flex flex-col gap-3 px-1">
             {!user ? (
               <>
-                <Link to="/login" onClick={() => setIsOpen(false)} className="w-full text-center py-3 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all">Login</Link>
+                <Link to="/login" onClick={() => setIsOpen(false)} className="w-full text-center py-3 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all text-base">Login</Link>
 
 
               </>
             ) : (
               <>
-                <Link to={getDashboardPath()} onClick={() => setIsOpen(false)} className="w-full text-center py-3 rounded-full font-bold text-[#19456d] bg-[#708ca4]/15 hover:bg-[#708ca4]/25 transition-all">Dashboard</Link>
-                <button onClick={handleLogout} className="w-full py-3 rounded-full font-bold text-white bg-red-600 hover:bg-red-700 transition-all shadow-md">Logout</button>
+                <Link to={getDashboardPath()} onClick={() => setIsOpen(false)} className="w-full text-center py-3 rounded-full font-bold text-[#19456d] bg-[#708ca4]/15 hover:bg-[#708ca4]/25 transition-all text-base">Dashboard</Link>
+                <button onClick={handleLogout} className="w-full py-3 rounded-full font-bold text-white bg-red-600 hover:bg-red-700 transition-all shadow-md text-base">Logout</button>
               </>
             )}
           </div>

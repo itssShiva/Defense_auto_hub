@@ -106,7 +106,7 @@ function Hero({ onApply, onCalculate }) {
             {/* Decorative blobs */}
             <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-[#b48001]/30 blur-3xl" />
             <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-[#b48001]/15 blur-3xl" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-white/[0.02] blur-3xl pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-white/2 blur-3xl pointer-events-none" />
 
             <div className="relative max-w-7xl mx-auto px-6 lg:px-10 pt-16 pb-0 lg:pt-24 grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center">
                 {/* Left: Text */}

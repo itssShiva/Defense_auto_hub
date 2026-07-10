@@ -6,11 +6,13 @@ import ChangePassword from "./ChangePassword.jsx";
 import AddUsedCar from "./AddUsedCar.jsx";
 import AllUsedCars from "./AllUsedCars.jsx";
 import EditUsedCar from "./EditUsedCar.jsx";
+import LeadManage from "./LeadManage.jsx";
 
 const NAV = [
     { id: "Dealer Profile", icon: "🏪", label: "Dealer Profile" },
     { id: "Add Used Car", icon: "🚗", label: "Add Used Vehicle" },
     { id: "All Used Cars", icon: "📋", label: "All Used Vehicles" },
+    { id: "Manage Leads", icon: "👥", label: "Manage Leads" },
     { id: "Change Password", icon: "🔒", label: "Change Password" },
 ];
 
@@ -112,6 +114,10 @@ const DealerDashboard = () => {
                                 }} 
                             />
                         </div>
+                    )}
+
+                    {activePage === "Manage Leads" && (
+                        <LeadManage />
                     )}
 
                     {activePage === "Change Password" && (

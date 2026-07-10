@@ -151,8 +151,8 @@ const BrandsPage = () => {
                 key={l}
                 onClick={() => setFilter(l, setActiveLetter)}
                 className={`w-9 h-9 rounded-lg text-sm font-bold transition-all ${activeLetter === l
-                    ? 'bg-[#b48001] text-white shadow-md'
-                    : 'bg-white border border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001] hover:text-[#b48001]'
+                  ? 'bg-[#b48001] text-white shadow-md'
+                  : 'bg-white border border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001] hover:text-[#b48001]'
                   } ${l === 'All' ? 'px-4 w-auto' : ''}`}
               >
                 {l}

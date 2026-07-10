@@ -11,7 +11,7 @@ import { getImageUrl, truncateText, getReadingTime, FALLBACK_IMAGE } from '../ca
 const PER_PAGE = 9;
 
 const BlogCard = ({ blog, featured }) => {
-  const img = getImageUrl(blog.image || blog.thumbnail) || FALLBACK_IMAGE;
+  const img = getImageUrl(blog.blogImages?.[0] || blog.image || blog.thumbnail) || FALLBACK_IMAGE;
   const date = blog.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   const readTime = getReadingTime(blog.content || blog.body || '');
 
@@ -22,7 +22,7 @@ const BlogCard = ({ blog, featured }) => {
         <div className="relative h-72 md:h-96 overflow-hidden">
           <img src={img} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             onError={(e) => { e.target.src = FALLBACK_IMAGE; }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-8">
             {blog.category && (
               <span className="inline-block px-3 py-1 bg-[#b48001] text-white text-xs font-bold rounded-full mb-3 uppercase tracking-widest">
@@ -115,7 +115,7 @@ const Blogs = () => {
   return (
     <div className="min-h-screen bg-[#fafbf8]">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
+      <div className="bg-linear-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#b48001] text-xs font-bold uppercase tracking-[4px] mb-3">
             Defence Auto Hub
@@ -140,9 +140,8 @@ const Blogs = () => {
           <div className="flex gap-2 mb-8 overflow-x-auto pb-1">
             {categories.map((cat) => (
               <button key={cat} onClick={() => { setActiveCategory(cat); setPage(1); }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-all flex-shrink-0 ${
-                  activeCategory === cat ? 'bg-[#b48001] text-white shadow-md' : 'bg-white border border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
-                }`}>
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap transition-all shrink-0 ${activeCategory === cat ? 'bg-[#b48001] text-white shadow-md' : 'bg-white border border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
+                  }`}>
                 <Tag className="w-3.5 h-3.5" />{cat}
               </button>
             ))}

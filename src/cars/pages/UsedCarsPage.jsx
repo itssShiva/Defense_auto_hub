@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Search, Grid3X3, List, Fuel, Settings2, Calendar, MapPin,
-  CheckCircle, ChevronRight, SlidersHorizontal, X, IndianRupee
+  CheckCircle, ChevronRight, SlidersHorizontal, X, IndianRupee, MessageCircle
 } from 'lucide-react';
 import { getAllUsedCars } from '../Api/cars.api';
 import EmptyState from '../components/EmptyState';
@@ -11,6 +11,7 @@ import Pagination from '../components/Pagination';
 import { CarCardSkeleton } from '../components/LoadingSkeleton';
 import { getImageUrl, formatCompactPrice, FALLBACK_IMAGE } from '../utils/helpers';
 import DealerModal from '../components/DealerModal';
+import ContactDealerModal from '../components/ContactDealerModal';
 
 const PER_PAGE = 12;
 
@@ -24,6 +25,8 @@ const UsedCarsPage = () => {
   const [page, setPage] = useState(1);
   const [dealerModalOpen, setDealerModalOpen] = useState(false);
   const [selectedDealer, setSelectedDealer] = useState(null);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [contactCar, setContactCar] = useState(null);
 
   useEffect(() => {
     document.title = 'Used Vehicles — Defence Auto Hub';
@@ -124,8 +127,11 @@ const UsedCarsPage = () => {
               <Link to={`/used-cars/${car._id}`} className="px-4 py-2 bg-white border-2 border-[#19456d] text-[#19456d] font-bold text-xs rounded-xl hover:bg-[#19456d] hover:text-white transition-colors">
                 View Details
               </Link>
-              <button onClick={(e) => { e.preventDefault(); setSelectedDealer(car.postedBy); setDealerModalOpen(true); }} className="px-4 py-2 bg-[#b48001] text-white font-bold text-xs rounded-xl hover:bg-[#19456d] transition-colors">
+              <button onClick={(e) => { e.preventDefault(); setSelectedDealer(car.postedBy); setDealerModalOpen(true); }} className="px-4 py-2 bg-white border border-[#708ca4]/30 text-[#19456d] font-bold text-xs rounded-xl hover:bg-[#19456d] hover:text-white transition-colors">
                 View Dealer
+              </button>
+              <button onClick={(e) => { e.preventDefault(); setContactCar(car); setContactModalOpen(true); }} className="px-4 py-2 bg-[#b48001] text-white font-bold text-xs rounded-xl hover:bg-[#19456d] transition-colors flex items-center gap-1">
+                <MessageCircle className="w-3.5 h-3.5" /> Contact
               </button>
             </div>
           </div>
@@ -158,12 +164,15 @@ const UsedCarsPage = () => {
           {(car.kmDriven || car.kmTravelled) && <p className="text-xs text-[#708ca4]">{(car.kmDriven || car.kmTravelled)?.toLocaleString('en-IN')} km</p>}
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-2 mt-4">
+          <div className="grid grid-cols-3 gap-2 mt-4">
             <Link to={`/used-cars/${car._id}`} className="flex items-center justify-center py-2.5 bg-white border-2 border-[#19456d] text-[#19456d] font-bold text-xs rounded-xl hover:bg-[#19456d] hover:text-white transition-colors">
               View Details
             </Link>
-            <button onClick={(e) => { e.preventDefault(); setSelectedDealer(car.postedBy); setDealerModalOpen(true); }} className="flex items-center justify-center py-2.5 bg-[#b48001] text-white font-bold text-xs rounded-xl hover:bg-[#19456d] transition-colors">
+            <button onClick={(e) => { e.preventDefault(); setSelectedDealer(car.postedBy); setDealerModalOpen(true); }} className="flex items-center justify-center py-2.5 bg-white border border-[#708ca4]/30 text-[#19456d] font-bold text-xs rounded-xl hover:bg-[#19456d] hover:text-white transition-colors">
               View Dealer
+            </button>
+            <button onClick={(e) => { e.preventDefault(); setContactCar(car); setContactModalOpen(true); }} className="flex items-center justify-center gap-1 py-2.5 bg-[#b48001] text-white font-bold text-xs rounded-xl hover:bg-[#19456d] transition-colors">
+              <MessageCircle className="w-3.5 h-3.5" /> Contact
             </button>
           </div>
         </div>
@@ -174,6 +183,13 @@ const UsedCarsPage = () => {
   return (
     <div className="min-h-screen bg-[#fafbf8]">
       <DealerModal isOpen={dealerModalOpen} onClose={() => { setDealerModalOpen(false); setSelectedDealer(null); }} dealer={selectedDealer} />
+      <ContactDealerModal
+        isOpen={contactModalOpen}
+        onClose={() => { setContactModalOpen(false); setContactCar(null); }}
+        carName={contactCar ? `${contactCar.brandName || ''} ${contactCar.modelName || contactCar.Model || ''}`.trim() : ''}
+        carId={contactCar?._id}
+        dealer={contactCar?.postedBy}
+      />
       {/* Hero */}
       <div className="bg-linear-to-br from-[#19456d] to-[#1a3a5c] pt-20 pb-16 px-4">
         <div className="max-w-7xl mx-auto text-center">

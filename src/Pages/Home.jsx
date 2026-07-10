@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Autoplay, Pagination, Navigation } from 'swiper/modules';
 import { Link } from 'react-router-dom';
+import { useBlog } from '../blogs/hooks/useBlog';
 import {
     Search, Shield, Car, Banknote, BadgeIndianRupee, Building2, ChevronRight,
     Heart, ArrowRight, ShieldCheck, ThumbsUp, Users, PenTool, CheckCircle, Plus, Minus, Mail, MapPin, Settings, Star, TrendingUp, Calendar, Zap
@@ -499,34 +500,40 @@ const WhyChooseUs = () => {
 };
 
 const LatestBlogs = () => {
-    const blogs = [
-        { title: 'Best SUVs in India for 2026', category: 'Buying Guide', img: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=600&q=80' },
-        { title: 'EV Buying Guide: Things to Know', category: 'Electric', img: 'https://stimg.cardekho.com/images/carexteriorimages/630x420/Tata/Nexon-EV/11024/1755845297648/front-left-side-47.jpg' },
-        { title: 'Maximizing Your Vehicle Insurance', category: 'Insurance', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXNQP1wOuBXM45idhIM3-rUxnmtPJQSL_Z4S0RjCUwrnVyOHwUeMNTZmDC&s=10' },
-    ];
+    const { blogs, fetchAllBlogs } = useBlog();
+
+    useEffect(() => {
+        fetchAllBlogs();
+    }, [fetchAllBlogs]);
+
+    const latestBlogs = blogs?.slice(0, 3) || [];
 
     return (
         <section className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-end mb-12">
                     <h2 className="text-4xl font-extrabold text-[#19456d]">Latest Articles</h2>
-                    <button className="text-[#b48001] font-bold hidden md:block hover:underline">View All Blogs</button>
+                    <Link to="/blogs" className="text-[#b48001] font-bold hidden md:block hover:underline">View All Blogs</Link>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {blogs.map((blog, idx) => (
-                        <div key={idx} className="group cursor-pointer bg-white rounded-3xl border border-[#708ca4]/30 p-5 hover:shadow-xl transition-shadow">
-                            <div className="relative h-64 rounded-2xl overflow-hidden mb-6">
-                                <img src={blog.img} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold text-[#b48001] uppercase tracking-wider">
-                                    {blog.category}
+                {latestBlogs.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {latestBlogs.map((blog, idx) => (
+                            <Link to={`/blogs/${blog._id}`} key={idx} className="group cursor-pointer bg-white rounded-3xl border border-[#708ca4]/30 p-5 hover:shadow-xl transition-shadow block">
+                                <div className="relative h-64 rounded-2xl overflow-hidden mb-6">
+                                    <img src={`${import.meta.env.VITE_BACKEND_URL}${blog.blogImages?.[0]}`} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold text-[#b48001] uppercase tracking-wider">
+                                        {blog.category}
+                                    </div>
                                 </div>
-                            </div>
-                            <h3 className="text-2xl font-bold text-[#19456d] mb-3 group-hover:text-[#b48001] transition-colors">{blog.title}</h3>
-                            <p className="text-[#19456d]/70 mb-4 line-clamp-2">Stay updated with the latest trends, guides, and tips from our automotive experts.</p>
-                            <span className="text-[#b48001] font-bold flex items-center gap-2 group-hover:gap-3 transition-all">Read Article <ArrowRight className="w-4 h-4" /></span>
-                        </div>
-                    ))}
-                </div>
+                                <h3 className="text-2xl font-bold text-[#19456d] mb-3 group-hover:text-[#b48001] transition-colors">{blog.title}</h3>
+                                <p className="text-[#19456d]/70 mb-4 line-clamp-2">{blog.shortDescription || "Stay updated with the latest trends, guides, and tips from our automotive experts."}</p>
+                                <span className="text-[#b48001] font-bold flex items-center gap-2 group-hover:gap-3 transition-all">Read Article <ArrowRight className="w-4 h-4" /></span>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-[#19456d]/70">No articles available at the moment.</p>
+                )}
             </div>
         </section>
     );

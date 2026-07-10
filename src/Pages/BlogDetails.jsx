@@ -5,13 +5,13 @@ import { ArrowLeft, Clock, Tag, Share2, Link2, BookOpen, ChevronRight } from 'lu
 
 const Facebook = ({ className }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const Twitter = ({ className }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 import { getOneBlog, getAllBlogs } from '../blogs/api/blog.api';
@@ -56,7 +56,7 @@ const BlogDetails = () => {
     if (type === 'tw') window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(blog?.title || '')}`, '_blank');
   };
 
-  const img = getImageUrl(blog?.image || blog?.thumbnail) || FALLBACK_IMAGE;
+  const img = getImageUrl(blog?.blogImages?.[0] || blog?.image || blog?.thumbnail) || FALLBACK_IMAGE;
   const date = blog?.createdAt ? new Date(blog.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
   const readTime = getReadingTime(blog?.content || blog?.body || '');
 
@@ -72,7 +72,7 @@ const BlogDetails = () => {
     <div className="min-h-screen bg-[#fafbf8]">
       {/* Reading progress */}
       <motion.div style={{ scaleX, transformOrigin: '0%' }}
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#b48001] to-[#19456d] z-50" />
+        className="fixed top-0 left-0 right-0 h-1 bg-linear-to-r from-[#b48001] to-[#19456d] z-50" />
 
       {/* Back nav */}
       <div className="bg-white border-b border-[#708ca4]/10 px-4 py-3 sticky top-0 z-40">
@@ -154,7 +154,7 @@ const BlogDetails = () => {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                   {related.map((b) => {
-                    const rImg = getImageUrl(b.image || b.thumbnail) || FALLBACK_IMAGE;
+                    const rImg = getImageUrl(b.blogImages?.[0] || b.image || b.thumbnail) || FALLBACK_IMAGE;
                     return (
                       <motion.div key={b._id} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
                         <Link to={`/blogs/${b._id}`}

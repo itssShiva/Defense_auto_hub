@@ -3,13 +3,14 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Fuel, Settings2, Calendar, MapPin, CheckCircle,
-  Building2, Phone, Mail, User, IndianRupee
+  Building2, Phone, Mail, User, IndianRupee, MessageCircle
 } from 'lucide-react';
 import { getAllUsedCars } from '../Api/cars.api';
 import GalleryCarousel from '../components/GalleryCarousel';
 import ImageViewer from '../components/ImageViewer';
 import EmptyState from '../components/EmptyState';
 import DealerModal from '../components/DealerModal';
+import ContactDealerModal from '../components/ContactDealerModal';
 import { HeroSkeleton } from '../components/LoadingSkeleton';
 import { formatCompactPrice, formatIndianPrice, calculateEMI } from '../utils/helpers';
 import SpecificationTable from '../components/SpecificationTable';
@@ -24,6 +25,9 @@ const UsedCarDetailPage = () => {
 
   // Dealer Modal
   const [dealerModalOpen, setDealerModalOpen] = useState(false);
+
+  // Contact Dealer Modal
+  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -69,6 +73,13 @@ const UsedCarDetailPage = () => {
   return (
     <div className="min-h-screen bg-[#fafbf8]">
       <DealerModal isOpen={dealerModalOpen} onClose={() => setDealerModalOpen(false)} dealer={car?.postedBy} />
+      <ContactDealerModal
+        isOpen={contactModalOpen}
+        onClose={() => setContactModalOpen(false)}
+        carName={car ? `${car.brandName || ''} ${car.modelName || car.Model || ''}`.trim() : ''}
+        carId={car?._id}
+        dealer={car?.postedBy}
+      />
 
       {/* Back */}
       <div className="bg-white border-b border-[#708ca4]/10 px-4 py-3">
@@ -140,10 +151,14 @@ const UsedCarDetailPage = () => {
               )}
 
               {/* CTA Buttons */}
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setDealerModalOpen(true)}
+                  className="flex items-center justify-center gap-2 py-4 px-4 bg-white border-2 border-[#19456d] text-[#19456d] font-bold rounded-xl hover:bg-[#19456d] hover:text-white transition-colors text-sm">
+                  <Building2 className="w-5 h-5" /> View Dealer
+                </button>
+                <button onClick={() => setContactModalOpen(true)}
                   className="flex items-center justify-center gap-2 py-4 px-4 bg-[#b48001] text-white font-bold rounded-xl hover:bg-[#19456d] transition-colors text-sm shadow-md">
-                  <Building2 className="w-5 h-5" /> View Dealer Details
+                  <MessageCircle className="w-5 h-5" /> Contact Dealer
                 </button>
               </div>
             </div>

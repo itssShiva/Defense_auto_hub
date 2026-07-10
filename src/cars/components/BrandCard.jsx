@@ -10,7 +10,7 @@ const BrandCard = ({ brand, modelCount }) => {
   return (
     <motion.div whileHover={{ y: -6 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
       <Link
-        to={`/brand/${getRouteId(brand)}`}
+        to={`/brands/${getRouteId(brand)}`}
         className="group block bg-white rounded-2xl border border-[#708ca4]/15 p-6 text-center
                    shadow-sm hover:shadow-xl hover:border-[#b48001]/40 transition-all duration-300
                    relative overflow-hidden"
