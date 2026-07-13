@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useCars } from "../../cars/hooks/useCars.jsx";
+import { statesList, getCitiesForState, getRTORate } from "../../utils/rtoRates.js";
 
 /* ── Image URL helper ── */
 const imgUrl = (src) =>
@@ -7,7 +8,7 @@ const imgUrl = (src) =>
 
 /* ── Currency formatter ───────────────────────────────────────── */
 const fmt = (n) =>
-    n !== undefined && n !== null && n !== ""
+    n !== undefined && n !== null && n !== "" && !isNaN(Number(n))
         ? `₹${Number(n).toLocaleString("en-IN")}`
         : "—";
 
@@ -20,8 +21,14 @@ const DetailRow = ({ label, value }) => (
 );
 
 /* ─── Variant Detail Modal ─────────────────────────────────────────── */
-const VariantModal = ({ variant, onClose }) => {
+const VariantModal = ({ variant, onClose, rtoRate, selectedState, selectedCity }) => {
     if (!variant) return null;
+
+    const exShowroom = Number(variant.ExShowroomPrice) || 0;
+    const calcRTO = exShowroom > 0 ? Math.round((exShowroom * rtoRate) / 100) : null;
+    const otherFees = (Number(variant.Insurance) || 0) + (Number(variant.FastTagFee) || 0) + (Number(variant.HPEndorsementFee) || 0) + (Number(variant.HSRPSMartCardTemporaryFee) || 0);
+    const calcOnRoad = exShowroom > 0 ? exShowroom + (calcRTO || 0) + otherFees : null;
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
@@ -42,6 +49,9 @@ const VariantModal = ({ variant, onClose }) => {
                             <span className="px-2.5 py-0.5 bg-[#b48001] text-white text-xs font-bold rounded-full">{variant.fuelType}</span>
                             <span className="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">{variant.transmissionType}</span>
                         </div>
+                        {(selectedState || selectedCity) && (
+                            <p className="text-white/70 text-xs mt-1">📍 {[selectedCity, selectedState].filter(Boolean).join(", ")}</p>
+                        )}
                     </div>
                     <button
                         onClick={onClose}
@@ -67,14 +77,32 @@ const VariantModal = ({ variant, onClose }) => {
                         </div>
                     </div>
 
+                    {/* Dynamic Pricing */}
+                    {exShowroom > 0 && (
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                            <p className="text-xs font-bold text-green-700 uppercase tracking-widest mb-2">
+                                📍 On-Road Price Calculation {selectedCity ? `— ${selectedCity}, ${selectedState}` : selectedState ? `— ${selectedState}` : "(Select State/City)"}
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                                <DetailRow label="Ex-Showroom" value={fmt(exShowroom)} />
+                                <DetailRow label={`RTO (${rtoRate}%)`} value={calcRTO !== null ? fmt(calcRTO) : "Select State"} />
+                                <DetailRow label="Insurance + Other Fees" value={fmt(otherFees)} />
+                            </div>
+                            <div className="flex justify-between items-center pt-2 mt-2 border-t border-green-200">
+                                <span className="text-sm font-extrabold text-green-700 uppercase tracking-wide">Total On-Road Price</span>
+                                <span className="text-base font-extrabold text-green-700">{calcOnRoad !== null ? fmt(calcOnRoad) : "—"}</span>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Normal Pricing */}
                     <div>
                         <p className="text-xs font-bold text-[#b48001] uppercase tracking-widest mb-2 border-b pb-1">Normal (Non-BH) Pricing</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                             <DetailRow label="CSD Price" value={fmt(variant.CSDPrice)} />
-                            <DetailRow label="On Road Price" value={fmt(variant.OnRoadPrice)} />
+                            <DetailRow label="On Road Price (DB)" value={fmt(variant.OnRoadPrice)} />
                             <DetailRow label="Ex-Showroom Price" value={fmt(variant.ExShowroomPrice)} />
-                            <DetailRow label="RTO" value={fmt(variant.RTO)} />
+                            <DetailRow label={`RTO (${rtoRate}%)`} value={calcRTO !== null ? fmt(calcRTO) : "Select State"} />
                             <DetailRow label="Insurance" value={fmt(variant.Insurance)} />
                             <DetailRow label="Registration Fee" value={variant.RegistraionFee} />
                             <DetailRow label="FASTag Fee" value={fmt(variant.FastTagFee)} />
@@ -135,6 +163,12 @@ const AllVariants = ({ handleEditVariantClick }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedVariant, setSelectedVariant] = useState(null);
 
+    // RTO State/City Selection
+    const [selectedState, setSelectedState] = useState("");
+    const [selectedCity, setSelectedCity] = useState("");
+    const cities = useMemo(() => getCitiesForState(selectedState), [selectedState]);
+    const rtoRate = useMemo(() => getRTORate(selectedState, selectedCity), [selectedState, selectedCity]);
+
     useEffect(() => {
         fetchAllVariants();
     }, [fetchAllVariants]);
@@ -146,15 +180,86 @@ const AllVariants = ({ handleEditVariantClick }) => {
             (v.brandId?.brandName || v.brandName)?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    /* Calculate dynamic on-road price for a variant */
+    const getCalcOnRoad = (variant) => {
+        const ex = Number(variant.ExShowroomPrice) || 0;
+        if (!ex || !selectedState) return null;
+        const rto = (ex * rtoRate) / 100;
+        const other = (Number(variant.Insurance) || 0) + (Number(variant.FastTagFee) || 0) + (Number(variant.HPEndorsementFee) || 0) + (Number(variant.HSRPSMartCardTemporaryFee) || 0);
+        return Math.round(ex + rto + other);
+    };
+
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
             {/* Header Area */}
-            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#fafbf8]">
-                <div>
-                    <h2 className="text-xl font-extrabold text-[#19456d]">All Variants</h2>
-                    <p className="text-sm text-gray-500 mt-1">Manage and organize all vehicle variants</p>
+            <div className="p-6 border-b border-gray-100 flex flex-col gap-4 bg-[#fafbf8]">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 className="text-xl font-extrabold text-[#19456d]">All Variants</h2>
+                        <p className="text-sm text-gray-500 mt-1">Manage and organize all vehicle variants</p>
+                    </div>
                 </div>
-                <div className="relative w-full sm:w-64 shrink-0">
+                
+                {/* RTO State / City Filter */}
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">📍</span>
+                        <h3 className="text-sm font-bold text-amber-800">On-Road Price Calculator — Select State & City</h3>
+                        {selectedState && (
+                            <span className="ml-auto px-2 py-0.5 bg-amber-200 text-amber-800 text-xs font-bold rounded-full">
+                                RTO: {rtoRate}%
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1">
+                            <label className="text-xs font-bold text-amber-700 uppercase tracking-widest block mb-1">State</label>
+                            <select
+                                id="rto-state-select"
+                                value={selectedState}
+                                onChange={(e) => { setSelectedState(e.target.value); setSelectedCity(""); }}
+                                className="w-full px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-[#19456d] font-medium text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                            >
+                                <option value="">Select State</option>
+                                {statesList.map((s) => (
+                                    <option key={s} value={s}>{s}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex-1">
+                            <label className="text-xs font-bold text-amber-700 uppercase tracking-widest block mb-1">City (Optional)</label>
+                            <select
+                                id="rto-city-select"
+                                value={selectedCity}
+                                onChange={(e) => setSelectedCity(e.target.value)}
+                                disabled={!selectedState || cities.length === 0}
+                                className="w-full px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-[#19456d] font-medium text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <option value="">{!selectedState ? "Select State First" : cities.length === 0 ? "No cities listed" : "All Cities (State Rate)"}</option>
+                                {cities.map((c) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </div>
+                        {selectedState && (
+                            <div className="flex items-end">
+                                <button
+                                    onClick={() => { setSelectedState(""); setSelectedCity(""); }}
+                                    className="px-3 py-2.5 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-800 text-sm font-bold transition"
+                                >
+                                    ✕ Clear
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    {selectedState && (
+                        <p className="mt-2 text-xs text-amber-700">
+                            RTO rate for <strong>{selectedCity || selectedState}</strong>: <strong>{rtoRate}%</strong> of Ex-Showroom price
+                        </p>
+                    )}
+                </div>
+
+                <div className="relative w-full shrink-0">
                     <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                         🔍
                     </span>
@@ -190,12 +295,22 @@ const AllVariants = ({ handleEditVariantClick }) => {
                                 <th className="px-6 py-4 font-bold rounded-tl-lg">Image</th>
                                 <th className="px-6 py-4 font-bold">Identity</th>
                                 <th className="px-6 py-4 font-bold">Specs</th>
-                                <th className="px-6 py-4 font-bold">CSD Price</th>
+                                <th className="px-6 py-4 font-bold">Ex-Showroom</th>
+                                <th className="px-6 py-4 font-bold">
+                                    On-Road Price
+                                    {selectedState && (
+                                        <span className="ml-1 text-amber-200 font-normal normal-case block">
+                                            ({selectedCity || selectedState}, {rtoRate}% RTO)
+                                        </span>
+                                    )}
+                                </th>
                                 <th className="px-6 py-4 font-bold text-center rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 bg-white text-sm">
-                            {filteredVariants.map((variant) => (
+                            {filteredVariants.map((variant) => {
+                                const calcOnRoad = getCalcOnRoad(variant);
+                                return (
                                 <tr key={variant._id} className="hover:bg-[#fafbf8] transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm relative group-hover:shadow transition-all">
@@ -219,7 +334,17 @@ const AllVariants = ({ handleEditVariantClick }) => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <p className="font-bold text-[#b48001]">{fmt(variant.CSDPrice)}</p>
+                                        <p className="font-bold text-gray-600">{fmt(variant.ExShowroomPrice)}</p>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {calcOnRoad !== null ? (
+                                            <div>
+                                                <p className="font-bold text-[#b48001]">{fmt(calcOnRoad)}</p>
+                                                <p className="text-xs text-amber-600">incl. {rtoRate}% RTO</p>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-gray-400 italic">Select state</span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <div className="flex items-center justify-center gap-2">
@@ -241,7 +366,8 @@ const AllVariants = ({ handleEditVariantClick }) => {
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                )
+                            })}
                         </tbody>
                     </table>
                 )}
@@ -254,7 +380,13 @@ const AllVariants = ({ handleEditVariantClick }) => {
             </div>
 
             {/* Modal */}
-            <VariantModal variant={selectedVariant} onClose={() => setSelectedVariant(null)} />
+            <VariantModal 
+                variant={selectedVariant} 
+                onClose={() => setSelectedVariant(null)} 
+                rtoRate={rtoRate}
+                selectedState={selectedState}
+                selectedCity={selectedCity}
+            />
         </div>
     );
 };

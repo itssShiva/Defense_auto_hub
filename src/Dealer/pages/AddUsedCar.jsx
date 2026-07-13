@@ -18,7 +18,6 @@ const INITIAL = {
     CSDPrice: "",
     OnRoadPrice: "",
     ExShowroomPrice: "",
-    RTO: "",
     Insurance: "",
     RegistraionFee: "",
     FastTagFee: "",
@@ -102,7 +101,7 @@ const AddUsedCar = () => {
         const newErrors = {};
         const requiredText = ["brandName", "modelName", "fuelType", "transmissionType", "color", "owner", "Address", "City", "State"];
         const requiredNumber = [
-            "kmTravelled", "year", "CSDPrice", "OnRoadPrice", "ExShowroomPrice", "RTO", 
+            "kmTravelled", "year", "CSDPrice", "OnRoadPrice", "ExShowroomPrice",
             "Insurance", "RegistraionFee", "FastTagFee", "HPEndorsementFee", "HSRPSMartCardTemporaryFee",
             "BHOnRoadPrice", "ExShowroomPriceBH", "BHRegistrationCost", "BHInsurance", 
             "BHRegistrationFee", "BHFastTagFee", "BHHPEndorsementFee", "BHHSRPSMartCardTemporaryFee", 
@@ -272,9 +271,6 @@ const AddUsedCar = () => {
                         </Field>
                         <Field label="Ex-Showroom Price" required error={errors.ExShowroomPrice}>
                             <input type="number" name="ExShowroomPrice" value={form.ExShowroomPrice} onChange={handleChange} className={`${inputCls} ${errCls(errors, "ExShowroomPrice")}`} />
-                        </Field>
-                        <Field label="RTO" required error={errors.RTO}>
-                            <input type="number" name="RTO" value={form.RTO} onChange={handleChange} className={`${inputCls} ${errCls(errors, "RTO")}`} />
                         </Field>
                         <Field label="Insurance" required error={errors.Insurance}>
                             <input type="number" name="Insurance" value={form.Insurance} onChange={handleChange} className={`${inputCls} ${errCls(errors, "Insurance")}`} />

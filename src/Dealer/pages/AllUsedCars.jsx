@@ -55,14 +55,14 @@ const AllUsedCars = ({ onEdit }) => {
                             <div className="p-5 flex-1 flex flex-col">
                                 <h3 className="text-lg font-bold text-[#19456d] line-clamp-1">{car.brandName} {car.modelName}</h3>
                                 <div className="text-xl font-extrabold text-[#b48001] mt-1">₹{car.ExShowroomPrice?.toLocaleString('en-IN')}</div>
-                                
+
                                 <div className="grid grid-cols-2 gap-y-2 mt-4 text-sm text-[#708ca4]">
                                     <div className="flex items-center gap-1.5"><span className="text-lg">📅</span> {car.year}</div>
                                     <div className="flex items-center gap-1.5"><span className="text-lg">🛣️</span> {car.kmTravelled?.toLocaleString('en-IN')} km</div>
                                     <div className="flex items-center gap-1.5"><span className="text-lg">⛽</span> {car.fuelType}</div>
                                     <div className="flex items-center gap-1.5"><span className="text-lg">⚙️</span> {car.transmissionType}</div>
                                 </div>
-                                
+
                                 <div className="mt-auto pt-5 flex gap-2">
                                     <button onClick={() => setViewCar(car)} className="flex-1 px-3 py-2 bg-[#fafbf8] border border-[#708ca4]/20 text-[#19456d] font-bold rounded-lg hover:bg-[#19456d] hover:text-white transition-colors text-sm">
                                         👁️ View
@@ -88,7 +88,7 @@ const AllUsedCars = ({ onEdit }) => {
                             <h3 className="text-xl font-bold text-[#19456d]">Used Vehicle Details</h3>
                             <button onClick={() => setViewCar(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-500 font-bold">✕</button>
                         </div>
-                        
+
                         <div className="p-6 overflow-y-auto">
                             <div className="flex flex-col md:flex-row gap-8">
                                 {/* Images */}
@@ -104,20 +104,20 @@ const AllUsedCars = ({ onEdit }) => {
                                         <div className="grid grid-cols-4 gap-2">
                                             {viewCar.carImages.slice(1).map((img, i) => (
                                                 <div key={i} className="aspect-square rounded-lg overflow-hidden border border-gray-200">
-                                                    <img src={img} alt={`vehicle-${i+1}`} className="w-full h-full object-cover" />
+                                                    <img src={img} alt={`vehicle-${i + 1}`} className="w-full h-full object-cover" />
                                                 </div>
                                             ))}
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 {/* Details */}
                                 <div className="w-full md:w-1/2 space-y-6">
                                     <div>
                                         <h2 className="text-3xl font-extrabold text-[#19456d] mb-1">{viewCar.brandName} {viewCar.modelName}</h2>
                                         <div className="text-2xl font-bold text-[#b48001]">₹{viewCar.ExShowroomPrice?.toLocaleString('en-IN')} (Ex-Showroom)</div>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-[#fafbf8] p-3 rounded-xl border border-gray-100">
                                             <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Year</p>
@@ -145,11 +145,35 @@ const AllUsedCars = ({ onEdit }) => {
                                         </div>
                                     </div>
 
+                                    {/* Normal Pricing Breakdown */}
+                                    <div className="border-t border-gray-100 pt-5">
+                                        <h3 className="text-sm font-bold text-[#19456d] uppercase tracking-wider mb-3">💰 Normal Pricing Breakdown</h3>
+                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                            {[
+                                                ["CSD Price", viewCar.CSDPrice],
+                                                ["On-Road Price", viewCar.OnRoadPrice],
+                                                ["Ex-Showroom", viewCar.ExShowroomPrice],
+                                                ["Insurance", viewCar.Insurance],
+                                                ["Registration Fee", viewCar.RegistraionFee],
+                                                ["Fast Tag Fee", viewCar.FastTagFee],
+                                                ["HP Endorsement", viewCar.HPEndorsementFee],
+                                                ["HSRP/Smart/Temp", viewCar.HSRPSMartCardTemporaryFee],
+                                            ].map(([label, val]) => (
+                                                <div key={label} className="flex justify-between bg-[#fafbf8] px-3 py-2 rounded-lg border border-gray-100">
+                                                    <span className="text-gray-500 font-medium">{label}</span>
+                                                    <span className="font-bold text-[#19456d]">
+                                                        {val ? `₹${Number(val).toLocaleString('en-IN')}` : "—"}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">Location</p>
                                         <p className="text-sm font-medium text-[#19456d]">{viewCar.Address}, {viewCar.City}, {viewCar.State}</p>
                                     </div>
-                                    
+
                                     <div>
                                         <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">Status</p>
                                         <span className={`px-3 py-1.5 text-sm font-bold rounded-lg text-white shadow-sm inline-block

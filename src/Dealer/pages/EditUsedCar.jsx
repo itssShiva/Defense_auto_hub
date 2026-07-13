@@ -63,7 +63,6 @@ const EditUsedCar = ({ carId, onCancel }) => {
                 CSDPrice: car.CSDPrice || "",
                 OnRoadPrice: car.OnRoadPrice || "",
                 ExShowroomPrice: car.ExShowroomPrice || "",
-                RTO: car.RTO || "",
                 Insurance: car.Insurance || "",
                 RegistraionFee: car.RegistraionFee || "",
                 FastTagFee: car.FastTagFee || "",
@@ -122,7 +121,7 @@ const EditUsedCar = ({ carId, onCancel }) => {
         const newErrors = {};
         const requiredText = ["brandName", "modelName", "fuelType", "transmissionType", "color", "owner", "Address", "City", "State"];
         const requiredNumber = [
-            "kmTravelled", "year", "CSDPrice", "OnRoadPrice", "ExShowroomPrice", "RTO", 
+            "kmTravelled", "year", "CSDPrice", "OnRoadPrice", "ExShowroomPrice",
             "Insurance", "RegistraionFee", "FastTagFee", "HPEndorsementFee", "HSRPSMartCardTemporaryFee",
             "BHOnRoadPrice", "ExShowroomPriceBH", "BHRegistrationCost", "BHInsurance", 
             "BHRegistrationFee", "BHFastTagFee", "BHHPEndorsementFee", "BHHSRPSMartCardTemporaryFee", 
@@ -297,9 +296,6 @@ const EditUsedCar = ({ carId, onCancel }) => {
                         </Field>
                         <Field label="Ex-Showroom Price" required error={errors.ExShowroomPrice}>
                             <input type="number" name="ExShowroomPrice" value={form.ExShowroomPrice} onChange={handleChange} className={`${inputCls} ${errCls(errors, "ExShowroomPrice")}`} />
-                        </Field>
-                        <Field label="RTO" required error={errors.RTO}>
-                            <input type="number" name="RTO" value={form.RTO} onChange={handleChange} className={`${inputCls} ${errCls(errors, "RTO")}`} />
                         </Field>
                         <Field label="Insurance" required error={errors.Insurance}>
                             <input type="number" name="Insurance" value={form.Insurance} onChange={handleChange} className={`${inputCls} ${errCls(errors, "Insurance")}`} />

@@ -190,7 +190,6 @@ const UsedCarApproval = () => {
                                             ["CSD Price", selectedCar.CSDPrice],
                                             ["On-Road Price", selectedCar.OnRoadPrice],
                                             ["Ex-Showroom", selectedCar.ExShowroomPrice],
-                                            ["RTO", selectedCar.RTO],
                                             ["Insurance", selectedCar.Insurance],
                                             ["Registration Fee", selectedCar.RegistraionFee],
                                             ["Fast Tag Fee", selectedCar.FastTagFee],

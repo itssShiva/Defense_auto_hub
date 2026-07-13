@@ -14,8 +14,9 @@ import ModelCard from '../components/ModelCard';
 import { CarCardSkeleton, HeroSkeleton } from '../components/LoadingSkeleton';
 import EmptyState from '../components/EmptyState';
 import { formatCompactPrice, formatIndianPrice, calculateEMI } from '../utils/helpers';
+import PriceBreakup from '../components/PriceBreakup';
 
-const TABS = ['Overview', 'Specifications', 'Gallery'];
+const TABS = ['Overview', 'Specifications', 'Pricing', 'Gallery'];
 
 const CarDetailPage = () => {
   const { slug } = useParams();
@@ -220,6 +221,12 @@ const CarDetailPage = () => {
             {activeTab === 'Specifications' && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <SpecificationTable title="Full Specifications" specs={specRows} />
+              </motion.div>
+            )}
+
+            {activeTab === 'Pricing' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <PriceBreakup item={car} />
               </motion.div>
             )}
 
