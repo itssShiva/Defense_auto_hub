@@ -314,7 +314,7 @@ const FindDealers = () => {
             {/* VIEW DETAILS MODAL */}
             <AnimatePresence>
                 {viewDealer && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                    <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewDealer(null)} className="absolute inset-0 bg-[#19456d]/60 backdrop-blur-sm" />
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl w-full max-w-md relative z-10 overflow-hidden shadow-2xl">
                             <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-[#fafbf8]">
@@ -377,7 +377,7 @@ const FindDealers = () => {
             {/* CONTACT DEALER MODAL */}
             <AnimatePresence>
                 {contactDealer && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                    <div className="fixed inset-0 z-100 flex items-center justify-center px-4">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeContactModal} className="absolute inset-0 bg-[#19456d]/80 backdrop-blur-md" />
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl w-full max-w-md relative z-10 overflow-hidden shadow-2xl">
                             <div className="p-5 border-b border-gray-100 flex justify-between items-center">
