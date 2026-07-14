@@ -26,12 +26,16 @@ import SkodaLogo from '../assets/brands/Skoda.png';
 import TataLogo from '../assets/brands/Tata.png';
 import ToyotaLogo from '../assets/brands/Toyota.png';
 import MercedesLogo from '../assets/brands/Mercedes.png';
+import { useNavigate } from 'react-router-dom';
 
 // --- Shared Animations ---
 const fadeUp = {
     hidden: { opacity: 0, y: 40 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
 };
+
+
+
 
 const staggerContainer = {
     hidden: { opacity: 0 },
@@ -41,6 +45,7 @@ const staggerContainer = {
 // --- Subcomponents ---
 
 const HeroSection = () => {
+
     return (
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#fafbf8]">
             {/* Animated Blobs */}
@@ -321,6 +326,7 @@ const FeaturedCars = () => {
 };
 
 const CompareCarsBanner = () => {
+    const navigate = useNavigate();
     return (
         <section className="py-24 bg-[#fafbf8] relative overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-r from-[#b48001]/10 to-transparent" />
@@ -335,7 +341,7 @@ const CompareCarsBanner = () => {
                         <p className="text-white/70 text-lg mb-8 max-w-md">
                             Make the right decision. Compare features, specs, and prices of your favorite vehicles instantly.
                         </p>
-                        <button className="bg-[#b48001] text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-[#b48001] transition-colors flex items-center gap-2">
+                        <button onClick={() => navigate("/compare")} className="bg-[#b48001] text-white px-8 py-4 rounded-full font-bold hover:bg-white hover:text-[#b48001] transition-colors flex items-center gap-2">
                             Start Comparing <ArrowRight className="w-5 h-5" />
                         </button>
                     </div>

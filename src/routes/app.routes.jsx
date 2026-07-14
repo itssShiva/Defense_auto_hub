@@ -16,6 +16,7 @@ import CarLoanHome from "../Loans/LoanHome.jsx";
 import EligibilityDocuments from "../Loans/Eligibilitydocuments.jsx";
 import EmiCalculator from "../Loans/EmiCalculator.jsx";
 import LoanEnquiryForm from "../Loans/EnquiryForm.jsx";
+import InsuranceHome from "../Insurance/InsuranceHome.jsx";
 
 /* ── Lazy-loaded public car platform pages ── */
 const AllCarsPage = lazy(() => import("../cars/pages/AllCarsPage.jsx"));
@@ -28,6 +29,10 @@ const ComparePage = lazy(() => import("../cars/pages/ComparePage.jsx"));
 const SearchPage = lazy(() => import("../cars/pages/SearchPage.jsx"));
 const UsedCarsPage = lazy(() => import("../cars/pages/UsedCarsPage.jsx"));
 const UsedCarDetailPage = lazy(() => import("../cars/pages/UsedCarDetailPage.jsx"));
+const NewCarInsurance = lazy(() => import("../Insurance/NewCarInsurance.jsx"));
+const QutationForm = lazy(() => import("../Insurance/QutationForm.jsx"));
+const RenewInsurance = lazy(() => import("../Insurance/RenewInsurance.jsx"));
+
 
 /* ── Loading fallback ── */
 const PageLoader = () => (
@@ -80,7 +85,12 @@ const router = createBrowserRouter([
       { path: "/loans", element: <Lazy element={<CarLoanHome />} /> },
       { path: "/loan/eligibility-documents", element: <Lazy element={<EligibilityDocuments />} /> },
       { path: "/loan/emi-calculator", element: <Lazy element={<EmiCalculator />} /> },
-      { path: "/loan/enquiry-form", element: <Lazy element={<LoanEnquiryForm />} /> }
+      { path: "/loan/enquiry-form", element: <Lazy element={<LoanEnquiryForm />} /> },
+      { path: '/insurance', element: <Lazy element={<InsuranceHome />} /> },
+      { path: '/newCar-Insurance', element: <Lazy element={<NewCarInsurance />} /> },
+      { path: '/quotation-form', element: <Lazy element={<QutationForm />} /> },
+      { path: '/insurance/renew', element: <Lazy element={<RenewInsurance />} /> },
+
     ],
   },
 ]);
