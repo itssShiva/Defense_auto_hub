@@ -58,8 +58,9 @@ const Navbar = () => {
       isDropdown: true,
       items: [
         { name: 'Car Insurance', path: '/insurance' },
-        { name: 'Check Eligibility', path: '/loan/eligibility-documents' },
-        { name: 'EMI Calculator', path: '/loan/emi-calculator' },
+        { name: 'New Insurance', path: '/newCar-Insurance' },
+        { name: 'Renew Insurance', path: '/insurance/renew' },
+        { name: 'Get Instant quote', path: '/quotation-form' }
       ],
     },
     { name: 'Blogs', path: '/blogs' },

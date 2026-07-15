@@ -58,6 +58,45 @@ export default function QutationForm() {
         }
     }, [location.search]);
 
+    // Pre-populate from Zero Dep or City Insurance pages
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        
+        // Zero Dep Params
+        const zeroDep     = params.get("zeroDep") === "true";
+        const idv         = params.get("idv");
+        const consumables = params.get("consumables") === "true";
+        
+        // City Insurance Params
+        const city        = params.get("city");
+        const rto         = params.get("rto");
+
+        if (zeroDep) {
+            setCompData((prev) => ({
+                ...prev,
+                zeroDep: true,
+                ...(idv ? { manualIdvOverride: idv } : {}),
+            }));
+            if (consumables) {
+                console.info("[ZeroDep] Consumables cover bundled — remind agent/insurer on submit.");
+            }
+        }
+
+        if (city || rto) {
+            setCompData((prev) => ({
+                ...prev,
+                ...(city ? { city } : {}),
+                ...(rto ? { rtoLocation: rto } : {})
+            }));
+            setTpData((prev) => ({
+                ...prev,
+                ...(city ? { city } : {})
+            }));
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+
     const handleTabChange = (tab) => {
         setActiveTab(tab);
         const params = new URLSearchParams(location.search);
@@ -81,6 +120,13 @@ export default function QutationForm() {
     const onFuelSelect = (fuel) => { setSelectedFuel(fuel); setSelectedVariant(null); setStep("variant"); };
     const onVariantSelect = (variant) => { setSelectedVariant(variant); setStep("form"); };
 
+    const parseSafeNum = (val, fallback = 0) => {
+        if (!val) return fallback;
+        const cleaned = String(val).replace(/[^\d.]/g, '');
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? fallback : num;
+    };
+
     // Unified pricing
     const calculateComprehensive = () => {
         if (step !== "form" && step !== "manual_entry") {
@@ -91,12 +137,12 @@ export default function QutationForm() {
 
         // Use exact Ex-Showroom if variant selected, or manual entry if provided
         if (selectedVariant?.ExShowroomPrice) {
-            baseIDV = Number(selectedVariant.ExShowroomPrice);
+            baseIDV = parseSafeNum(selectedVariant.ExShowroomPrice, 600000);
         } else if (step === "manual_entry" && manualVehicle.exShowroomPrice) {
-            baseIDV = Number(manualVehicle.exShowroomPrice);
+            baseIDV = parseSafeNum(manualVehicle.exShowroomPrice, 600000);
         }
 
-        const age = 2026 - (parseInt(compData.year) || 2026);
+        const age = 2026 - parseSafeNum(compData.year, 2026);
         let depFactor = 0.9;
         if (age === 1) depFactor = 0.8;
         if (age === 2) depFactor = 0.7;
@@ -105,7 +151,7 @@ export default function QutationForm() {
         const finalIDV = Math.round(baseIDV * depFactor);
         let ownDamage = Math.round(finalIDV * 0.02);
 
-        const ncbPercent = parseInt(compData.ncb) || 0;
+        const ncbPercent = parseSafeNum(compData.ncb, 0);
         const ncbDiscount = Math.round(ownDamage * (ncbPercent / 100));
         const netOwnDamage = Math.max(0, ownDamage - ncbDiscount);
 
@@ -214,7 +260,7 @@ export default function QutationForm() {
     }
 
     return (
-        <div className="min-h-screen bg-[#fafbf8] text-slate-800 flex flex-col font-sans pt-20">
+        <div className="min-h-screen bg-[#fafbf8] text-slate-800 flex flex-col font-sans">
             {/* HEADER SECTION */}
             <header className="bg-[#19456d] text-white shadow-md z-40 relative">
                 <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -335,7 +381,7 @@ export default function QutationForm() {
                                                     className="group relative p-4 rounded-2xl border-2 text-left transition-all overflow-hidden border-transparent bg-white shadow-[0_4px_20px_-8px_rgba(25,69,109,0.1)] hover:shadow-[0_8px_25px_-5px_rgba(25,69,109,0.15)] hover:-translate-y-0.5 focus:border-[#b48001]"
                                                 >
                                                     <span className="text-xs font-bold text-[#19456d]">{v.variantName}</span>
-                                                    <span className="text-[10px] text-slate-500">₹{Number(v.ExShowroomPrice).toLocaleString()}</span>
+                                                    <span className="text-[10px] text-slate-500">₹{parseSafeNum(v.ExShowroomPrice, 0).toLocaleString()}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -387,10 +433,20 @@ export default function QutationForm() {
                                             value={activeTab === "comprehensive" ? compData.fullName : tpData.fullName}
                                             onChange={(e) => activeTab === "comprehensive" ? handleCompChange("fullName", e.target.value) : handleTpChange("fullName", e.target.value)}
                                             className="mt-1 w-full p-2.5 sm:p-3 text-sm border-2 border-transparent bg-white shadow-[0_2px_10px_-3px_rgba(25,69,109,0.1)] rounded-xl outline-none focus:border-[#b48001] transition-all text-[#19456d] font-medium placeholder:text-[#708ca4]/50 hover:shadow-[0_4px_15px_-3px_rgba(25,69,109,0.15)]" />
-                                        <input type="tel" required placeholder="Mobile Number"
-                                            value={activeTab === "comprehensive" ? compData.phone : tpData.phone}
-                                            onChange={(e) => activeTab === "comprehensive" ? handleCompChange("phone", e.target.value) : handleTpChange("phone", e.target.value)}
-                                            className="mt-1 w-full p-2.5 sm:p-3 text-sm border-2 border-transparent bg-white shadow-[0_2px_10px_-3px_rgba(25,69,109,0.1)] rounded-xl outline-none focus:border-[#b48001] transition-all text-[#19456d] font-medium placeholder:text-[#708ca4]/50 hover:shadow-[0_4px_15px_-3px_rgba(25,69,109,0.15)]" />
+                                        
+                                        <div className="relative mt-1">
+                                            <input type="tel" required placeholder="Mobile Number"
+                                                value={activeTab === "comprehensive" ? compData.phone : tpData.phone}
+                                                onChange={(e) => activeTab === "comprehensive" ? handleCompChange("phone", e.target.value) : handleTpChange("phone", e.target.value)}
+                                                className="w-full p-2.5 sm:p-3 text-sm border-2 border-transparent bg-white shadow-[0_2px_10px_-3px_rgba(25,69,109,0.1)] rounded-xl outline-none focus:border-[#b48001] transition-all text-[#19456d] font-medium placeholder:text-[#708ca4]/50 hover:shadow-[0_4px_15px_-3px_rgba(25,69,109,0.15)]" />
+                                            <button 
+                                                type="button" 
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white bg-[#19456d] hover:bg-[#b48001] px-2.5 py-1.5 rounded-lg transition"
+                                            >
+                                                Send OTP
+                                            </button>
+                                        </div>
+
                                         <input type="email" required placeholder="Email Address"
                                             value={activeTab === "comprehensive" ? compData.email : tpData.email}
                                             onChange={(e) => activeTab === "comprehensive" ? handleCompChange("email", e.target.value) : handleTpChange("email", e.target.value)}

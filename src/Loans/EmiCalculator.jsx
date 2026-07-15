@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { getAllVehicles, getAllUsedCars } from "../cars/Api/cars.api";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, IndianRupee, Percent, CalendarClock } from "lucide-react";
+import { ArrowRight, IndianRupee, Percent, CalendarClock, User, Mail, Phone } from "lucide-react";
 import {
   PieChart,
   Pie,
@@ -85,6 +86,38 @@ export default function EmiCalculator() {
   const [rate, setRate] = useState(8.75);
   const [tenure, setTenure] = useState(60); // months
 
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const [carType, setCarType] = useState("New car");
+  const [carModel, setCarModel] = useState("");
+  const [isManual, setIsManual] = useState(false);
+  const [vehicles, setVehicles] = useState([]);
+  const [loadingCars, setLoadingCars] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const fetchCars = async () => {
+      setLoadingCars(true);
+      try {
+        if (carType === "New car") {
+          const res = await getAllVehicles();
+          if (active && res?.success) setVehicles(res.vehicles || res.data || []);
+        } else {
+          const res = await getAllUsedCars();
+          if (active && res?.success) setVehicles(res.usedCars || res.data || []);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (active) setLoadingCars(false);
+      }
+    };
+    fetchCars();
+    return () => { active = false; };
+  }, [carType]);
+
   const downPayment = (price * downPct) / 100;
   const principal = price - downPayment;
 
@@ -146,6 +179,92 @@ export default function EmiCalculator() {
             transition={{ duration: 0.5 }}
             className="bg-white rounded-2xl shadow-xl p-7 space-y-7"
           >
+            {/* Car Selection */}
+            <div className="space-y-4 pb-4 border-b border-dashed border-slate-200">
+              <div className="text-sm font-semibold text-[#19456d]">Select your car</div>
+              <div className="grid grid-cols-2 gap-3">
+                {["New car", "Used car"].map((t) => (
+                  <button
+                    type="button"
+                    key={t}
+                    onClick={() => {
+                      setCarType(t);
+                      setCarModel("");
+                      setIsManual(false);
+                    }}
+                    className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${carType === t
+                      ? "border-gold bg-amber-50 text-[#0E1A2B]"
+                      : "border-slate-300 text-slate-500 hover:border-slate-400"
+                      }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+
+              {!isManual ? (
+                <div>
+                  <select
+                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-[#0E1A2B] focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    value={carModel}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "Others") {
+                        setIsManual(true);
+                        setCarModel("");
+                        return;
+                      }
+                      setCarModel(val);
+                      const selected = vehicles.find((v, i) => {
+                        const name = v.vehicleName || v.carModel || v.name || (v.brandName ? v.brandName + " " + v.modelName : `Vehicle ${i}`);
+                        return name === val;
+                      });
+                      if (selected) {
+                        const p = selected.price || selected.ExShowroomPrice || selected.onRoadPrice || "";
+                        const cleaned = String(p).replace(/\D/g, "");
+                        if (cleaned) setPrice(Number(cleaned));
+                      }
+                    }}
+                    disabled={loadingCars}
+                  >
+                    <option value="">{loadingCars ? "Loading cars..." : "Select a model"}</option>
+                    {vehicles.map((v, i) => {
+                      const name = v.vehicleName || v.carModel || v.name || (v.brandName ? v.brandName + " " + v.modelName : `Vehicle ${i}`);
+                      return <option key={v._id || i} value={name}>{name}</option>;
+                    })}
+                    <option value="Others">Others</option>
+                  </select>
+                  <div className="text-right mt-1.5">
+                    <button 
+                      type="button" 
+                      onClick={() => { setIsManual(true); setCarModel(""); }}
+                      className="text-[10px] font-bold text-amber-600 hover:underline"
+                    >
+                      Can't find your car? Enter manually →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-[#0E1A2B] focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    value={carModel}
+                    onChange={(e) => setCarModel(e.target.value)}
+                    placeholder="e.g. Hyundai Creta"
+                  />
+                  <div className="text-right mt-1.5">
+                    <button 
+                      type="button" 
+                      onClick={() => { setIsManual(false); setCarModel(""); }}
+                      className="text-[10px] font-bold text-amber-600 hover:underline"
+                    >
+                      ← Back to list
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <Slider
               label="On-road car price"
               value={price}
@@ -295,6 +414,49 @@ export default function EmiCalculator() {
                   <Area type="monotone" dataKey="balance" stroke="#19456d" fill="url(#bal)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-dashed border-slate-200 space-y-4">
+              <div className="text-sm font-semibold text-[#19456d] mb-1">Enter details to apply</div>
+              
+              <div className="relative">
+                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2.5 text-sm text-[#0E1A2B] focus:outline-none focus:ring-2 focus:ring-amber-400 transition-shadow"
+                />
+              </div>
+
+              <div className="relative">
+                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2.5 text-sm text-[#0E1A2B] focus:outline-none focus:ring-2 focus:ring-amber-400 transition-shadow"
+                />
+              </div>
+
+              <div className="relative">
+                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="tel"
+                  placeholder="10-digit mobile number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  className="w-full rounded-xl border border-slate-300 pl-10 pr-24 py-2.5 text-sm text-[#0E1A2B] focus:outline-none focus:ring-2 focus:ring-amber-400 transition-shadow"
+                />
+                <button 
+                  type="button" 
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white bg-amber-500 hover:bg-[#0E1A2B] px-3 py-1.5 rounded-lg transition"
+                >
+                  Send OTP
+                </button>
+              </div>
             </div>
 
             <button

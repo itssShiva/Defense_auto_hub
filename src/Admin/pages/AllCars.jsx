@@ -173,7 +173,7 @@ const AllCars = ({ handleEditCarClick }) => {
             String(c.vehicleType || "").toLowerCase().includes(sq);
 
         const matchFuel = fuelFilter === "All" ||
-            String(c.vehicleType || "").toLowerCase().trim() === fuelFilter.toLowerCase();
+            String(c.fuelType || "").toLowerCase().trim() === fuelFilter.toLowerCase();
 
         return matchSearch && matchFuel;
     });

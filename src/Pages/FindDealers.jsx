@@ -434,9 +434,15 @@ const FindDealers = () => {
                                                     type="tel"
                                                     value={contactForm.phone}
                                                     onChange={e => setContactForm({ ...contactForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                                                    className="w-full bg-[#fafbf8] border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-sm text-[#19456d] focus:outline-none focus:ring-2 focus:ring-[#b48001]"
+                                                    className="w-full bg-[#fafbf8] border border-gray-200 rounded-xl py-2.5 pl-10 pr-28 text-sm text-[#19456d] focus:outline-none focus:ring-2 focus:ring-[#b48001]"
                                                     placeholder="10-digit mobile number"
                                                 />
+                                                <button
+                                                    type="button"
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white bg-[#19456d] hover:bg-[#b48001] px-2.5 py-1.5 rounded-lg transition whitespace-nowrap"
+                                                >
+                                                    Send OTP
+                                                </button>
                                             </div>
                                         </div>
                                         <button

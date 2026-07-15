@@ -32,6 +32,8 @@ const UsedCarDetailPage = lazy(() => import("../cars/pages/UsedCarDetailPage.jsx
 const NewCarInsurance = lazy(() => import("../Insurance/NewCarInsurance.jsx"));
 const QutationForm = lazy(() => import("../Insurance/QutationForm.jsx"));
 const RenewInsurance = lazy(() => import("../Insurance/RenewInsurance.jsx"));
+const ZeroDep = lazy(() => import("../Insurance/ZeroDep.jsx"));
+const CityInsurance = lazy(() => import("../Insurance/CityInsurance.jsx"));
 
 
 /* ── Loading fallback ── */
@@ -90,6 +92,8 @@ const router = createBrowserRouter([
       { path: '/newCar-Insurance', element: <Lazy element={<NewCarInsurance />} /> },
       { path: '/quotation-form', element: <Lazy element={<QutationForm />} /> },
       { path: '/insurance/renew', element: <Lazy element={<RenewInsurance />} /> },
+      { path: '/insurance/zero-dep', element: <Lazy element={<ZeroDep />} /> },
+      { path: '/insurance/City', element: <Lazy element={<CityInsurance />} /> },
 
     ],
   },

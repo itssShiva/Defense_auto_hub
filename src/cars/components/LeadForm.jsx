@@ -86,6 +86,35 @@ const LeadForm = ({ isOpen, onClose, type = 'bestPrice', carName = '' }) => {
     </div>
   );
 
+  /* Phone field with inline Send OTP button */
+  const PhoneField = () => (
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest">Phone Number *</label>
+      <div className="relative">
+        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#708ca4] z-10" />
+        <input
+          type="tel"
+          value={form.phone}
+          onChange={(e) => {
+            setForm((p) => ({ ...p, phone: e.target.value }));
+            if (errors.phone) setErrors((p) => ({ ...p, phone: '' }));
+          }}
+          placeholder="10-digit mobile number"
+          maxLength={10}
+          className={`w-full pl-10 pr-28 py-3 rounded-xl border bg-white text-[#19456d] font-medium text-sm focus:outline-none focus:ring-1 transition-all
+            ${errors.phone ? 'border-red-400 focus:ring-red-400' : 'border-[#708ca4]/30 focus:border-[#19456d] focus:ring-[#19456d]'}`}
+        />
+        <button
+          type="button"
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#19456d] hover:bg-[#b48001] text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
+        >
+          Send OTP
+        </button>
+      </div>
+      {errors.phone && <p className="text-[11px] text-red-500 font-medium">{errors.phone}</p>}
+    </div>
+  );
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -133,7 +162,7 @@ const LeadForm = ({ isOpen, onClose, type = 'bestPrice', carName = '' }) => {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <Field name="name" label="Full Name *" placeholder="Your full name" Icon={User} />
-                  <Field name="phone" label="Phone Number *" inputType="tel" placeholder="10-digit mobile number" Icon={Phone} />
+                  <PhoneField />
                   <Field name="email" label="Email (Optional)" inputType="email" placeholder="your@email.com" Icon={Mail} />
 
                   <div className="space-y-1">

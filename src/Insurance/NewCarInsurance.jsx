@@ -135,7 +135,7 @@ const NewCarInsurance = () => {
     // ── Success screen ────────────────────────────────────────
     if (submitted) {
         return (
-            <div className="min-h-screen bg-[#fafbf8] flex items-center justify-center px-6 pt-28">
+            <div className="min-h-screen bg-[#fafbf8] flex items-center justify-center px-6">
                 <div className="bg-white rounded-3xl shadow-[0_20px_60px_-20px_rgba(25,69,109,0.15)] border border-[#708ca4]/15 p-10 max-w-md w-full text-center">
                     <div className="h-16 w-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-6">
                         <CheckCircle2 size={32} className="text-emerald-500" />
@@ -180,7 +180,7 @@ const NewCarInsurance = () => {
     );
 
     return (
-        <div className="min-h-screen bg-[#fafbf8] pt-28 pb-20 px-4">
+        <div className="min-h-screen bg-[#fafbf8] pb-20 px-4">
             <div className="max-w-3xl mx-auto">
                 <div className="bg-white rounded-3xl border border-[#708ca4]/15 shadow-[0_8px_40px_-12px_rgba(25,69,109,0.1)] overflow-hidden">
 
@@ -218,12 +218,22 @@ const NewCarInsurance = () => {
                                     ].map(({ field, label, placeholder }) => (
                                         <label key={field} className="flex flex-col gap-1 text-sm">
                                             <span className="font-semibold text-[#19456d]/70">{label}</span>
-                                            <input
-                                                value={form[field]}
-                                                onChange={(e) => setField(field, e.target.value)}
-                                                placeholder={placeholder}
-                                                className="rounded-xl border border-[#708ca4]/30 bg-[#fafbf8] px-3 py-2.5 text-[#19456d] placeholder-[#708ca4]/50 outline-none focus:border-[#b48001] focus:ring-1 focus:ring-[#b48001]/30 transition"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    value={form[field]}
+                                                    onChange={(e) => setField(field, e.target.value)}
+                                                    placeholder={placeholder}
+                                                    className="w-full rounded-xl border border-[#708ca4]/30 bg-[#fafbf8] px-3 py-2.5 text-[#19456d] placeholder-[#708ca4]/50 outline-none focus:border-[#b48001] focus:ring-1 focus:ring-[#b48001]/30 transition"
+                                                />
+                                                {field === "phone" && (
+                                                    <button 
+                                                        type="button" 
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white bg-[#b48001] hover:bg-[#19456d] px-2.5 py-1.5 rounded-lg transition"
+                                                    >
+                                                        Send OTP
+                                                    </button>
+                                                )}
+                                            </div>
                                             {errors[field] && <p className="text-xs text-red-500">{errors[field]}</p>}
                                         </label>
                                     ))}

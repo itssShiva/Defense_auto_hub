@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 
 import image from "./images/Screenshot 2026-07-07 160506.png";
 import ratingbanner from "./images/feec5f97-c104-4676-915c-32dae0cfb885Social proof.avif";
+import { Link } from "react-router-dom";
 
 // ─── Animation helpers ────────────────────────────────────────────────────────
 const fadeUp = {
@@ -158,7 +159,7 @@ function Hero() {
                             <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                         </button>
                         <button
-                            onClick={() => navigate("/insurance/Renewal/quote")}
+                            onClick={() => navigate("/insurance/renew")}
                             className="inline-flex items-center gap-2 border border-white/30 hover:border-white/60 hover:bg-white/5 px-7 py-3.5 rounded-xl font-medium transition-all"
                         >
                             <RefreshCw size={16} /> Renew Policy
@@ -283,28 +284,28 @@ function InsuranceProducts() {
             desc: "No inspection required. Retain up to 50% No Claim Bonus on your active policy.",
             icon: RefreshCw,
             accent: "bg-[#19456d]/10 text-[#19456d]",
-            route: "/insurance/Renewal/quote",
+            route: "/insurance/renew",
         },
         {
             title: "Third Party Only",
             desc: "Legal minimum compliance required by Indian Motor Vehicles Act — affordable & instant.",
             icon: FileText,
             accent: "bg-emerald-50 text-emerald-600",
-            route: "/insurance/third-party",
+            route: "/quotation-form?tab=thirdparty",
         },
         {
             title: "Comprehensive Cover",
             desc: "Own damage, theft, disasters + Third-party liability with highly customized IDVs.",
             icon: Layers,
             accent: "bg-blue-50 text-blue-600",
-            route: "/insurance/live-quotation-form",
+            route: "/quotation-form?tab=comprehensive",
         },
         {
             title: "Zero Depreciation",
             desc: "Must-have addon for cars up to 5 years old. Save on plastic & fiber replacement costs.",
             icon: Shield,
             accent: "bg-rose-50 text-rose-500",
-            route: "/insurance/zero-dep/quote",
+            route: "/insurance/zero-dep",
         },
         {
             title: "RTO Risk Zones",
@@ -589,16 +590,16 @@ function CtaBanner() {
                     </p>
                     <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                         <button
-                            onClick={() => navigate("/new-Insurance/quote")}
+                            onClick={() => navigate("/quotation-form")}
                             className="group relative overflow-hidden px-8 py-4 rounded-full font-bold text-white bg-[#b48001] shadow-[0_0_20px_rgba(180,128,1,0.3)] hover:shadow-[0_0_30px_rgba(180,128,1,0.5)] transition-all duration-300 hover:-translate-y-1"
                         >
                             <span className="absolute inset-0 w-full h-full bg-linear-to-r from-[#b48001] to-[#19456d] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            <span className="relative flex items-center justify-center gap-2">
+                            <Link to={"/quotation-form"} className="relative flex items-center justify-center gap-2">
                                 Get Instant Quote <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </span>
+                            </Link>
                         </button>
                         <button
-                            onClick={() => navigate("/insurance/Renewal/quote")}
+                            onClick={() => navigate("/insurance/renew")}
                             className="px-8 py-4 rounded-full font-bold text-[#19456d] border-2 border-[#19456d]/20 hover:border-[#b48001] hover:text-[#b48001] transition-all duration-300"
                         >
                             Renew Existing Policy

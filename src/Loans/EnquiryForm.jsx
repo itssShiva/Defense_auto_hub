@@ -1,6 +1,6 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getAllVehicles, getAllUsedCars } from "../cars/Api/cars.api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -45,16 +45,22 @@ function StepPersonal({ form, set }) {
         <div className="relative">
           <Phone
             size={16}
-            className="absolute left-3.5 top-3.5 text-slate-400"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
-            className={inputCls + " pl-10"}
+            className={inputCls + " pl-10 pr-24"}
             value={form.phone}
             onChange={(e) =>
               set("phone", e.target.value.replace(/\D/g, "").slice(0, 10))
             }
             placeholder="10-digit number"
           />
+          <button 
+            type="button" 
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white bg-amber-500 hover:bg-[#0E1A2B] px-3 py-1.5 rounded-lg transition"
+          >
+            Send OTP
+          </button>
         </div>
       </Field>
       <Field label="Email address">
@@ -84,6 +90,32 @@ function StepPersonal({ form, set }) {
 }
 
 function StepCar({ form, set }) {
+  const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isManual, setIsManual] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const fetchCars = async () => {
+      setLoading(true);
+      try {
+        if (form.carType === "New car") {
+          const res = await getAllVehicles();
+          if (active && res?.success) setVehicles(res.vehicles || res.data || []);
+        } else {
+          const res = await getAllUsedCars();
+          if (active && res?.success) setVehicles(res.usedCars || res.data || []);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    fetchCars();
+    return () => { active = false; };
+  }, [form.carType]);
+
   return (
     <div className="grid sm:grid-cols-2 gap-5">
       <Field label="Car type">
@@ -92,7 +124,11 @@ function StepCar({ form, set }) {
             <button
               type="button"
               key={t}
-              onClick={() => set("carType", t)}
+              onClick={() => {
+                set("carType", t);
+                set("carModel", "");
+                setIsManual(false);
+              }}
               className={`rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${form.carType === t
                 ? "border-gold bg-amber-50 text-[#0E1A2B]"
                 : "border-slate-300 text-slate-500 hover:border-slate-400"
@@ -104,12 +140,73 @@ function StepCar({ form, set }) {
         </div>
       </Field>
       <Field label="Car model">
-        <input
-          className={inputCls}
-          value={form.carModel}
-          onChange={(e) => set("carModel", e.target.value)}
-          placeholder="e.g. Hyundai Creta"
-        />
+        {!isManual ? (
+          <div>
+            <select
+              className={inputCls}
+              value={form.carModel}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "Others") {
+                  setIsManual(true);
+                  set("carModel", "");
+                  return;
+                }
+                set("carModel", val);
+                const selected = vehicles.find((v, i) => {
+                  const name = v.vehicleName || v.carModel || v.name || (v.brandName ? v.brandName + " " + v.modelName : `Vehicle ${i}`);
+                  return name === val;
+                });
+                if (selected) {
+                  const price = selected.price || selected.ExShowroomPrice || selected.onRoadPrice || "";
+                  const cleanedPrice = String(price).replace(/\D/g, "");
+                  if (cleanedPrice) set("onRoadPrice", cleanedPrice);
+                }
+              }}
+              disabled={loading}
+            >
+              <option value="">
+                {loading ? "Loading..." : "Select a model"}
+              </option>
+              {vehicles.map((v, i) => {
+                const name = v.vehicleName || v.carModel || v.name || v.brandName + " " + v.modelName || `Vehicle ${i}`;
+                return (
+                  <option key={v._id || i} value={name}>
+                    {name}
+                  </option>
+                );
+              })}
+              <option value="Others">Others</option>
+            </select>
+            <div className="text-right mt-1.5">
+              <button 
+                type="button" 
+                onClick={() => { setIsManual(true); set("carModel", ""); }}
+                className="text-[10px] font-bold text-amber-600 hover:underline"
+              >
+                Can't find your car? Enter manually →
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <input
+              className={inputCls}
+              value={form.carModel}
+              onChange={(e) => set("carModel", e.target.value)}
+              placeholder="e.g. Hyundai Creta"
+            />
+            <div className="text-right mt-1.5">
+              <button 
+                type="button" 
+                onClick={() => { setIsManual(false); set("carModel", ""); }}
+                className="text-[10px] font-bold text-amber-600 hover:underline"
+              >
+                ← Back to list
+              </button>
+            </div>
+          </div>
+        )}
       </Field>
       <Field label="On-road price (₹)">
         <input

@@ -37,6 +37,36 @@ const Field = ({ name, label, inputType = 'text', placeholder, Icon, value, onCh
   </div>
 );
 
+/* Phone field with inline Send OTP button */
+const PhoneField = ({ value, onChange, error }) => (
+  <div className="space-y-1">
+    <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest">
+      Phone Number <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#708ca4] z-10" />
+      <input
+        type="tel"
+        value={value}
+        onChange={onChange}
+        placeholder="10-digit mobile number"
+        maxLength={10}
+        className={`w-full pl-10 pr-28 py-3 rounded-xl border bg-[#fafbf8] text-[#19456d] font-medium text-sm focus:outline-none focus:ring-2 transition-all
+          ${error
+            ? 'border-red-400 focus:ring-red-300'
+            : 'border-[#708ca4]/25 focus:border-[#19456d] focus:ring-[#19456d]/20 focus:bg-white'}`}
+      />
+      <button
+        type="button"
+        className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#19456d] hover:bg-[#b48001] text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
+      >
+        Send OTP
+      </button>
+    </div>
+    {error && <p className="text-[11px] text-red-500 font-medium">{error}</p>}
+  </div>
+);
+
 const ContactDealerModal = ({ isOpen, onClose, carName = '', carId = null, dealer = null }) => {
   const { submitLead } = useLeads();
   const [form, setForm] = useState(INITIAL);
@@ -185,12 +215,7 @@ const ContactDealerModal = ({ isOpen, onClose, carName = '', carId = null, deale
                     onChange={(e) => handleFieldChange("name", e.target.value)}
                     error={errors.name}
                   />
-                  <Field
-                    name="phone"
-                    label="Phone Number"
-                    inputType="tel"
-                    placeholder="10-digit mobile number"
-                    Icon={Phone}
+                  <PhoneField
                     value={form.phone}
                     onChange={(e) => handleFieldChange("phone", e.target.value)}
                     error={errors.phone}

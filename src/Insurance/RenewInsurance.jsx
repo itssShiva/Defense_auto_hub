@@ -77,7 +77,7 @@ const RenewInsurance = () => {
     const canProceedStep2 = (vehicleStep === "done" || vehicleStep === "manual") && regYear;
 
     return (
-        <div className="min-h-screen bg-[#fafbf8] pt-20 pb-10">
+        <div className="min-h-screen bg-[#fafbf8] pb-10">
             <header className="bg-[#19456d] text-white shadow-md">
                 <div className="max-w-4xl mx-auto px-6 py-5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -141,8 +141,24 @@ const RenewInsurance = () => {
                             </div>
                             <div className="space-y-4">
                                 <label className="block">
-                                    <span className="text-xs font-bold text-[#19456d]/70 uppercase tracking-wider">Phone or Policy Number</span>
-                                    <input value={loginValue} onChange={(e) => setLoginValue(e.target.value)} placeholder="e.g. +91 98765 43210 or POL-XXXXXXXX" className={INPUT_CLS} />
+                                    <span className="text-xs font-bold text-[#19456d]/70 uppercase tracking-wider">Full Name</span>
+                                    <input placeholder="Your full name" className={INPUT_CLS} />
+                                </label>
+                                <label className="block">
+                                    <span className="text-xs font-bold text-[#19456d]/70 uppercase tracking-wider">Email Address</span>
+                                    <input type="email" placeholder="you@email.com" className={INPUT_CLS} />
+                                </label>
+                                <label className="block relative">
+                                    <span className="text-xs font-bold text-[#19456d]/70 uppercase tracking-wider">Phone Number</span>
+                                    <div className="relative">
+                                        <input value={loginValue} onChange={(e) => setLoginValue(e.target.value)} placeholder="+91 98765 43210" className={INPUT_CLS} />
+                                        <button 
+                                            type="button" 
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white bg-[#b48001] hover:bg-[#19456d] px-2.5 py-1.5 rounded-lg transition"
+                                        >
+                                            Send OTP
+                                        </button>
+                                    </div>
                                 </label>
                                 <label className="block">
                                     <span className="text-xs font-bold text-[#19456d]/70 uppercase tracking-wider">Vehicle Registration Number</span>
