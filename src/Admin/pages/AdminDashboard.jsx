@@ -6,7 +6,7 @@ import AllDealers from "./AllDealers.jsx";
 import AllCars from "./AllCars.jsx";
 import AllModels from "./AllModels.jsx";
 import EditModels from "./EditModels.jsx";
-import EditNewCar from "./editNewCar.jsx";
+import EditNewCar from "./EditNewCar.jsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/hooks/useAuth";
 import AddCars from "./AddCars.jsx";

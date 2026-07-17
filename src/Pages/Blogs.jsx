@@ -17,7 +17,7 @@ const BlogCard = ({ blog, featured }) => {
 
   if (featured) {
     return (
-      <Link to={`/blogs/${blog._id}`}
+      <Link to={`/blogs/${blog.slug || blog._id}`}
         className="group relative block rounded-3xl overflow-hidden border border-[#708ca4]/15 shadow-lg hover:shadow-2xl transition-all duration-400 bg-white">
         <div className="relative h-72 md:h-96 overflow-hidden">
           <img src={img} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -46,7 +46,7 @@ const BlogCard = ({ blog, featured }) => {
 
   return (
     <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.22 }}>
-      <Link to={`/blogs/${blog._id}`}
+      <Link to={`/blogs/${blog.slug || blog._id}`}
         className="group block bg-white rounded-2xl border border-[#708ca4]/15 overflow-hidden shadow-sm hover:shadow-xl hover:border-[#b48001]/30 transition-all duration-300">
         <div className="relative h-48 overflow-hidden bg-[#fafbf8]">
           <img src={img} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

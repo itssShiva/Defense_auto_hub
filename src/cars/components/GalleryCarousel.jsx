@@ -24,7 +24,7 @@ const GalleryCarousel = ({ images = [], onFullscreen, layout = 'horizontal' }) =
             onSwiper={setThumbsSwiper}
             freeMode
             watchSlidesProgress
-            direction={layout === 'vertical' ? 'horizontal' : 'horizontal'}
+            direction="horizontal"
             breakpoints={layout === 'vertical' ? {
               768: { direction: 'vertical', slidesPerView: 'auto', spaceBetween: 12 }
             } : undefined}

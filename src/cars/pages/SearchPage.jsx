@@ -86,7 +86,6 @@ const SearchPage = () => {
   const paged = allItems.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const renderCard = (item) => {
-    if (item.brandName !== undefined && item.slug !== undefined && !item.Model && !item.modelName && !item.variantName && !item.brandCountry) return <ModelCard key={item._id} model={item} />;
     if (item.variantName) return <div key={item._id} className="col-span-full"><VariantCard variant={item} /></div>;
     if (item.brandCountry !== undefined) return <BrandCard key={item._id} brand={item} />;
     if (item.Model || (item.modelName && item.carImages)) return <CarCard key={item._id} car={item} />;

@@ -173,6 +173,13 @@ export const getAllUsedCars = async () => {
     } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
 };
 
+export const getUsedCarById = async (id) => {
+    try {
+        const res = await vehicleApi.get(`/usedcar/${id}`);
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
 export const approveUsedCar = async (id) => {
     try {
         const res = await vehicleApi.put(`/usedcar/approve/${id}`);

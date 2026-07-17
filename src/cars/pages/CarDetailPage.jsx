@@ -123,8 +123,8 @@ const CarDetailPage = () => {
             <div className="space-y-5">
               {/* Brand + Name */}
               <div>
-                {car.brandName && (
-                  <p className="text-xs font-bold text-[#b48001] uppercase tracking-widest mb-1.5">{car.brandName}</p>
+                {(car.brandName || car.brandId?.brandName) && (
+                  <p className="text-xs font-bold text-[#b48001] uppercase tracking-widest mb-1.5">{car.brandName || car.brandId?.brandName}</p>
                 )}
                 <h1 className="text-3xl md:text-4xl font-extrabold text-[#19456d] leading-tight mb-3">{name}</h1>
                 {car.category && (

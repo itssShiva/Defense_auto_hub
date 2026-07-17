@@ -8,7 +8,9 @@ const brandApi = axios.create({
 /* ================= CREATE BRAND ================= */
 export const createBrand = async (formData) => {
     try {
-        const res = await brandApi.post("/create", formData);
+        const res = await brandApi.post("/create", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
         return res.data;
     } catch (error) {
         return { success: false, message: error.response?.data?.message || error.message };

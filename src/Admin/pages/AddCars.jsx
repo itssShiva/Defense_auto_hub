@@ -188,8 +188,7 @@ const AddCars = () => {
 
                 const brandRes = await createBrand(brandFormData);
                 if (brandRes?.success) {
-                    form.brandId = brandRes.brand._id;
-                    form.brandName = brandRes.brand.brandName;
+                    setForm(prev => ({ ...prev, brandId: brandRes.brand._id, brandName: brandRes.brand.brandName }));
 
                     // Add to brands list locally so we have it
                     setBrands(prev => [...prev, brandRes.brand]);
@@ -203,6 +202,9 @@ const AddCars = () => {
             const formData = new FormData();
             Object.entries(form).forEach(([key, value]) => {
                 formData.append(key, value);
+            });
+            vehicleImages.forEach((img) => {
+                formData.append("vehicleImages", img);
             });
             const response = await addVehicle(formData);
 

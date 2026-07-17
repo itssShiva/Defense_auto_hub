@@ -393,6 +393,9 @@ const CSDPricingHighlight = () => {
     );
 };
 
+// Fallback icon for UserCircleIcon since it might not be imported
+const UserCircleIcon = Users;
+
 const LoanEMISection = () => {
     return (
         <section className="py-24 bg-[#fafbf8]">
@@ -425,9 +428,6 @@ const LoanEMISection = () => {
         </section>
     );
 };
-
-// Fallback icon for UserCircleIcon since it might not be imported
-const UserCircleIcon = Users;
 
 const InsuranceSection = () => {
     return (
@@ -590,7 +590,7 @@ const StatisticsCounters = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     {stats.map((stat, idx) => (
                         <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} className="text-center">
-                            <h3 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-linaer-to-r from-[#b48001] to-[#19456d] mb-2">{stat.num}</h3>
+                            <h3 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-linear-to-r from-[#b48001] to-[#19456d] mb-2">{stat.num}</h3>
                             <p className="font-bold text-[#19456d]/70 uppercase tracking-widest text-sm">{stat.label}</p>
                         </motion.div>
                     ))}

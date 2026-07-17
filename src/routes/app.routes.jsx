@@ -68,9 +68,9 @@ const router = createBrowserRouter([
         element: <DealerRoute><DealerDashboard /></DealerRoute>,
       },
 
-      /* ── Blog routes (existing) ── */
+      /* ── Blog routes ── */
       { path: "/blogs", element: <Blogs /> },
-      { path: "/blogs/:id", element: <BlogDetails /> },
+      { path: "/blogs/:slug", element: <BlogDetails /> },
       { path: "find-dealers", element: <FindDealers /> },
 
       /* ── Car Platform routes ── */

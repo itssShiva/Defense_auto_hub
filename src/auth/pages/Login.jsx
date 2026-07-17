@@ -29,7 +29,10 @@ const Login = () => {
 
             if (response?.success) {
                 toast.success(response?.message || 'Login successful!');
-                navigate(role === 'dealer' ? '/dealer-dashboard' : '/admin-dashboard');
+                const user = response.user || response.dealer;
+                if (user?.role === 'Admin') navigate('/admin-dashboard');
+                else if (user?.role === 'dealer') navigate('/dealer-dashboard');
+                else navigate('/');
             } else {
                 const errMsg = response?.message || 'Login failed. Please try again.';
                 setError(errMsg);
@@ -207,15 +210,12 @@ const Login = () => {
                         <span className="flex-1 h-px bg-[#708ca4]/30" />
                     </div>
 
-                    {/* Register link */}
+                    {/* Register link - hidden until public registration page is built */}
                     <p className="text-center text-sm text-[#52602d]">
                         Don't have an account?{' '}
-                        <Link
-                            to="/register"
-                            className="font-bold text-[#19456d] hover:text-[#b48001] transition-colors duration-200"
-                        >
-                            Register here
-                        </Link>
+                        <span className="font-bold text-[#708ca4]">
+                            Contact your admin for registration
+                        </span>
                     </p>
                 </div>
             </div>

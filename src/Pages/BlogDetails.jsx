@@ -1,7 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { ArrowLeft, Clock, Tag, Share2, Link2, BookOpen, ChevronRight } from 'lucide-react';
+import { getOneBlog, getAllBlogs } from '../blogs/api/blog.api';
+import { BlogCardSkeleton } from '../cars/components/LoadingSkeleton';
+import EmptyState from '../cars/components/EmptyState';
+import { getImageUrl, truncateText, getReadingTime, FALLBACK_IMAGE } from '../cars/utils/helpers';
+import toast from 'react-hot-toast';
 
 const Facebook = ({ className }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -14,14 +19,9 @@ const Twitter = ({ className }) => (
     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-import { getOneBlog, getAllBlogs } from '../blogs/api/blog.api';
-import { BlogCardSkeleton } from '../cars/components/LoadingSkeleton';
-import EmptyState from '../cars/components/EmptyState';
-import { getImageUrl, truncateText, getReadingTime, FALLBACK_IMAGE } from '../cars/utils/helpers';
-import toast from 'react-hot-toast';
 
 const BlogDetails = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [blog, setBlog] = useState(null);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,20 +34,20 @@ const BlogDetails = () => {
     window.scrollTo(0, 0);
     (async () => {
       setLoading(true);
-      const [blogRes, allRes] = await Promise.all([getOneBlog(id), getAllBlogs()]);
+      const [blogRes, allRes] = await Promise.all([getOneBlog(slug), getAllBlogs()]);
       if (blogRes?.success && blogRes.blog) {
         setBlog(blogRes.blog);
         document.title = `${blogRes.blog.title} — Defence Auto Hub`;
         if (allRes?.success) {
           const others = (allRes.blogs || [])
-            .filter((b) => b._id !== id && b.category === blogRes.blog.category)
+            .filter((b) => b.slug !== slug && b._id !== slug && b.category === blogRes.blog.category)
             .slice(0, 3);
-          setRelated(others.length ? others : (allRes.blogs || []).filter((b) => b._id !== id).slice(0, 3));
+          setRelated(others.length ? others : (allRes.blogs || []).filter((b) => b.slug !== slug && b._id !== slug).slice(0, 3));
         }
       }
       setLoading(false);
     })();
-  }, [id]);
+  }, [slug]);
 
   const handleShare = (type) => {
     const url = window.location.href;
@@ -157,7 +157,7 @@ const BlogDetails = () => {
                     const rImg = getImageUrl(b.blogImages?.[0] || b.image || b.thumbnail) || FALLBACK_IMAGE;
                     return (
                       <motion.div key={b._id} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
-                        <Link to={`/blogs/${b._id}`}
+                        <Link to={`/blogs/${b.slug || b._id}`}
                           className="group block bg-white rounded-2xl border border-[#708ca4]/15 overflow-hidden shadow-sm hover:shadow-lg hover:border-[#b48001]/30 transition-all">
                           <div className="h-36 overflow-hidden bg-[#fafbf8]">
                             <img src={rImg} alt={b.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"

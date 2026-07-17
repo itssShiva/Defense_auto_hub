@@ -57,7 +57,7 @@ export const getUserDetails = async () => {
         return response.data
     } catch (error) {
         console.log(error.message)
-        return error.message
+        return { success: false, message: error.response?.data?.message || error.message }
     }
 }
 
@@ -67,7 +67,7 @@ export const logoutUser = async () => {
         return response.data
     } catch (error) {
         console.log(error.message)
-        return error.message
+        return { success: false, message: error.response?.data?.message || error.message }
     }
 }
 

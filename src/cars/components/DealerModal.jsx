@@ -3,17 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Phone, MapPin, Building2 } from 'lucide-react';
 
 const DealerModal = ({ isOpen, onClose, dealer }) => {
-  if (!isOpen) return null;
-
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      {isOpen && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ duration: 0.2 }}
-          className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative"
         >
           {/* Header */}
           <div className="bg-[#19456d] p-6 text-white text-center relative">
@@ -82,7 +87,8 @@ const DealerModal = ({ isOpen, onClose, dealer }) => {
             </button>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
+      )}
     </AnimatePresence>
   );
 };

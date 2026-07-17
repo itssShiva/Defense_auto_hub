@@ -9,11 +9,11 @@ const Footer = () => {
                     <div className="col-span-1 md:col-span-1">
                         <div className="flex items-center cursor-pointer group mb-4">
                             <span className="text-3xl font-extrabold text-[#19456d] tracking-wider transition-transform duration-300">
-                                Auto<span className="text-[#b48001]">Hub</span>
+                                Fouji<span className="text-[#b48001]">Mart</span>
                             </span>
                         </div>
                         <p className="text-[#19456d]/80 leading-relaxed mb-6">
-                            Your trusted partner for all automotive needs. Premium vehicles, expert servicing, and financing solutions tailored for you.
+                            Your trusted partner for all automotive needs. Premium vehicles, expert servicing, and financing solutions tailored for our defence personnel.
                         </p>
                         {/* Social Icons */}
                         <div className="flex space-x-4">
@@ -95,7 +95,7 @@ const Footer = () => {
                 {/* Bottom Bar */}
                 <div className="pt-8 border-t border-[#708ca4]/50 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                     <p className="text-[#19456d]/80 text-sm">
-                        &copy; {new Date().getFullYear()} AutoHub. All rights reserved.
+                        &copy; {new Date().getFullYear()} FoujiMart. All rights reserved.
                     </p>
                     <div className="flex space-x-6 text-sm">
                         <a href="#" className="text-[#19456d]/80 hover:text-[#b48001] transition-colors duration-300">Privacy Policy</a>

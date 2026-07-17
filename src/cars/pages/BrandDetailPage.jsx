@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Globe, Layers, Car, Search } from 'lucide-react';
+import { ArrowLeft, Globe, Car, Search } from 'lucide-react';
 import { getAllBrands } from '../../brand/api/brand.api';
-import { getAllCars, getAllModels } from '../Api/cars.api';
+import { getAllCars } from '../Api/cars.api';
 import CarCard from '../components/CarCard';
-import ModelCard from '../components/ModelCard';
 import EmptyState from '../components/EmptyState';
 import Pagination from '../components/Pagination';
 import { CarCardSkeleton } from '../components/LoadingSkeleton';
@@ -15,6 +14,7 @@ const ITEMS_PER_PAGE = 12;
 
 const BrandDetailPage = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [brand, setBrand] = useState(null);
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,11 +23,18 @@ const BrandDetailPage = () => {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
       setLoading(true);
-      const [brandsRes, carsRes, modelsRes] = await Promise.all([
-        getAllBrands(), getAllCars(), getAllModels(),
+      setPage(1);
+      setSearch('');
+      setFuelFilter('All');
+      const [brandsRes, carsRes] = await Promise.all([
+        getAllBrands(), getAllCars(),
       ]);
+
+      if (cancelled) return;
 
       if (brandsRes?.success) {
         const found = (brandsRes.brands || []).find(
@@ -42,11 +49,23 @@ const BrandDetailPage = () => {
             item.brandId === found._id ||
             item.brandName?.toLowerCase() === found.brandName?.toLowerCase();
 
-          if (carsRes?.success) setCars((carsRes.cars || []).filter(match));
+          if (carsRes?.success) {
+            setCars((carsRes.cars || []).filter(match));
+          } else {
+            setCars([]);
+          }
+        } else {
+          setCars([]);
         }
+      } else {
+        setBrand(null);
+        setCars([]);
       }
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     })();
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const fuelTypes = useMemo(() => {
@@ -77,7 +96,7 @@ const BrandDetailPage = () => {
         <EmptyState
           title="Brand not found"
           message="This brand doesn't exist or may have been removed."
-          action={{ label: 'Browse All Brands', onClick: () => (window.location.href = '/brands') }}
+          action={{ label: 'Browse All Brands', onClick: () => navigate('/brands') }}
         />
       </div>
     );

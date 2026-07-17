@@ -46,7 +46,7 @@ const CarCard = ({ car, linkTo, layout = 'grid' }) => {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => { e.target.src = FALLBACK_IMAGE; }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         {car.category && (
           <div className="absolute top-3 left-3 px-2.5 py-1 bg-[#19456d]/85 backdrop-blur-sm text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
             {car.category}
