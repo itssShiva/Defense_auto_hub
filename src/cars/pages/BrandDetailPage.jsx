@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import  { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Globe, Car, Search } from 'lucide-react';
@@ -24,12 +24,12 @@ const BrandDetailPage = () => {
 
   useEffect(() => {
     let cancelled = false;
+    setPage(1);
+    setSearch('');
+    setFuelFilter('All');
 
     (async () => {
       setLoading(true);
-      setPage(1);
-      setSearch('');
-      setFuelFilter('All');
       const [brandsRes, carsRes] = await Promise.all([
         getAllBrands(), getAllCars(),
       ]);
@@ -65,7 +65,6 @@ const BrandDetailPage = () => {
     })();
 
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const fuelTypes = useMemo(() => {
@@ -99,7 +98,7 @@ const BrandDetailPage = () => {
           action={{ label: 'Browse All Brands', onClick: () => navigate('/brands') }}
         />
       </div>
-    );
+    );  
   }
 
   return (
@@ -108,9 +107,9 @@ const BrandDetailPage = () => {
       <div className="relative bg-[#19456d] pt-12 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden z-0">
         {/* Abstract Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-linear-to-bl from-[#1a3a5c] to-[#19456d] rounded-full opacity-50 blur-3xl" />
-          <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-[#b48001]/10 rounded-full blur-3xl" />
-          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-[#2a6b9c]/20 rounded-full blur-2xl" />
+          <div className="absolute -top-1/2 -right-1/4 w-200 h-200 bg-linear-to-bl from-[#1a3a5c] to-[#19456d] rounded-full opacity-50 blur-3xl" />
+          <div className="absolute -bottom-1/4 -left-1/4 w-150 h-150 bg-[#b48001]/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 right-1/4 w-75 h-75 bg-[#2a6b9c]/20 rounded-full blur-2xl" />
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
