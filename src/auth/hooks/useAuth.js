@@ -7,6 +7,9 @@ import {
     getUserDetails as getUserDetailsApi,
     updateDealer as updateDealerApi,
     updateDealerPassword as updateDealerPasswordApi,
+    sendOtp as sendOtpApi,
+    verifyOtp as verifyOtpApi,
+    resendOtp as resendOtpApi,
 } from "../Api/auth.api";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser, setLoading, setError } from "../../slices/userSlice";
@@ -146,6 +149,48 @@ export const useAuth = () => {
         }
     };
 
+    const sendOtp = async (data) => {
+        try {
+            dispatch(setLoading(true));
+            dispatch(setError(null));
+            const response = await sendOtpApi(data);
+            return response;
+        } catch (err) {
+            dispatch(setError(err.response?.data?.message || err.message));
+            return { success: false, message: err.message };
+        } finally {
+            dispatch(setLoading(false));
+        }
+    };
+
+    const verifyOtp = async (data) => {
+        try {
+            dispatch(setLoading(true));
+            dispatch(setError(null));
+            const response = await verifyOtpApi(data);
+            return response;
+        } catch (err) {
+            dispatch(setError(err.response?.data?.message || err.message));
+            return { success: false, message: err.message };
+        } finally {
+            dispatch(setLoading(false));
+        }
+    };
+
+    const resendOtp = async (data) => {
+        try {
+            dispatch(setLoading(true));
+            dispatch(setError(null));
+            const response = await resendOtpApi(data);
+            return response;
+        } catch (err) {
+            dispatch(setError(err.response?.data?.message || err.message));
+            return { success: false, message: err.message };
+        } finally {
+            dispatch(setLoading(false));
+        }
+    };
+
     return {
         registerNewUser,
         registerNewDealer,
@@ -155,6 +200,9 @@ export const useAuth = () => {
         getUserDetails,
         updateDealerProfile,
         updateDealerPassword,
+        sendOtp,
+        verifyOtp,
+        resendOtp,
         user,
         loading,
         error,

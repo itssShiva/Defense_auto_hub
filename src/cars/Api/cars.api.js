@@ -15,6 +15,14 @@ const vehicleApi = axios.create({
    NEW VEHICLE MANAGEMENT API (Brand → Vehicle → Model → Variant)
 ══════════════════════════════════════════════════════════════ */
 
+/* ── Filter Options ──────────────────────────────────────── */
+export const getFilterOptions = async () => {
+    try {
+        const res = await vehicleApi.get("/filter-options");
+        return res.data;
+    } catch (e) { return { success: false, message: e.response?.data?.message || e.message }; }
+};
+
 /* ── Vehicle CRUD ─────────────────────────────────────────── */
 export const addVehicle = async (formData) => {
     try {

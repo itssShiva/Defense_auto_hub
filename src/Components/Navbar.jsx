@@ -143,10 +143,12 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to={getDashboardPath()}
-                  className="px-5 py-2 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all duration-300 text-base">
-                  Dashboard
-                </Link>
+                {user?.role === 'dealer' || user?.role === 'Admin' ? (
+                  <Link to={getDashboardPath()}
+                    className="px-5 py-2 rounded-full font-bold text-[#b48001] border-2 border-[#b48001] hover:bg-[#b48001] hover:text-white transition-all duration-300 text-base">
+                    Dashboard
+                  </Link>
+                ) : null}
                 <button onClick={handleLogout}
                   className="px-5 py-2 rounded-full font-bold text-white bg-red-600 hover:bg-red-700 transition-all duration-300 shadow-md text-base">
                   Logout
@@ -212,7 +214,9 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to={getDashboardPath()} onClick={() => setIsOpen(false)} className="w-full text-center py-3 rounded-full font-bold text-[#19456d] bg-[#708ca4]/15 hover:bg-[#708ca4]/25 transition-all text-base">Dashboard</Link>
+                {user?.role === 'dealer' || user?.role === 'Admin' ? (
+                  <Link to={getDashboardPath()} onClick={() => setIsOpen(false)} className="w-full text-center py-3 rounded-full font-bold text-[#19456d] bg-[#708ca4]/15 hover:bg-[#708ca4]/25 transition-all text-base">Dashboard</Link>
+                ) : null}
                 <button onClick={handleLogout} className="w-full py-3 rounded-full font-bold text-white bg-red-600 hover:bg-red-700 transition-all shadow-md text-base">Logout</button>
               </>
             )}

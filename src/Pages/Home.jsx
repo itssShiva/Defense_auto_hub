@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Autoplay, Pagination, Navigation } from 'swiper/modules';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useBlog } from '../blogs/hooks/useBlog';
 import {
     Search, Shield, Car, Banknote, BadgeIndianRupee, Building2, ChevronRight,
-    Heart, ArrowRight, ShieldCheck, ThumbsUp, Users, PenTool, CheckCircle, Plus, Minus, Mail, MapPin, Settings, Star, TrendingUp, Calendar, Zap
+    ArrowRight, ShieldCheck, ThumbsUp, Users, PenTool, CheckCircle, Plus, Minus, Mail, MapPin, Settings, Star, TrendingUp, Calendar, Zap
 } from 'lucide-react';
+import { getAllBrands } from '../brand/api/brand.api';
+import { getAllVehicles, getAllModels, getFilterOptions } from '../cars/Api/cars.api';
 
 import 'swiper/css';
 import 'swiper/css/effect-coverflow';
@@ -26,7 +28,6 @@ import SkodaLogo from '../assets/brands/Skoda.png';
 import TataLogo from '../assets/brands/Tata.png';
 import ToyotaLogo from '../assets/brands/Toyota.png';
 import MercedesLogo from '../assets/brands/Mercedes.png';
-import { useNavigate } from 'react-router-dom';
 
 // --- Shared Animations ---
 const fadeUp = {
@@ -142,8 +143,76 @@ const HeroSection = () => {
 };
 
 const SmartSearch = () => {
-    const [activeTab, setActiveTab] = useState('CSD Pricing');
-    const tabs = ['CSD Pricing', 'New Vehicles', 'Used Vehicles'];
+    const navigate = useNavigate();
+    const [brands, setBrands] = useState([]);
+    const [models, setModels] = useState([]);
+    const [fuelTypes, setFuelTypes] = useState([]);
+    const [budgetRanges, setBudgetRanges] = useState([]);
+    const [selectedBrand, setSelectedBrand] = useState('');
+    const [selectedModel, setSelectedModel] = useState('');
+    const [selectedFuel, setSelectedFuel] = useState('');
+    const [selectedBudget, setSelectedBudget] = useState('');
+
+    useEffect(() => {
+        (async () => {
+            const [brandRes, filterRes] = await Promise.all([getAllBrands(), getFilterOptions()]);
+            if (brandRes?.success) setBrands(brandRes.brands || []);
+            if (filterRes?.success) {
+                const fts = filterRes.fuelTypes || [];
+                setFuelTypes(fts);
+                const pr = filterRes.priceRange || { min: 0, max: 0 };
+                generateBudgetRanges(pr.min, pr.max);
+            }
+        })();
+    }, []);
+
+    const generateBudgetRanges = (min, max) => {
+        if (min === 0 && max === 0) {
+            setBudgetRanges([{ label: 'Under ₹5L', min: 0, max: 500000 }]);
+            return;
+        }
+        const ranges = [];
+        const step = 500000;
+        const floorMin = Math.floor(min / step) * step;
+        ranges.push({ label: `Under ₹${(floorMin / 100000).toFixed(0)}L`, min: 0, max: floorMin });
+        for (let i = floorMin; i < max; i += step) {
+            ranges.push({ label: `₹${(i / 100000).toFixed(0)}-${((i + step) / 100000).toFixed(0)}L`, min: i, max: i + step });
+        }
+        ranges.push({ label: `₹${(max / 100000).toFixed(0)}L+`, min: max, max: Infinity });
+        setBudgetRanges(ranges);
+    };
+
+    const handleBrandChange = (e) => {
+        const brandId = e.target.value;
+        setSelectedBrand(brandId);
+        setSelectedModel('');
+        if (brandId) {
+            getAllModels({ brandId }).then(res => {
+                if (res?.success) {
+                    setModels(res.models || []);
+                } else {
+                    setModels([]);
+                }
+            }).catch(() => setModels([]));
+        } else {
+            setModels([]);
+        }
+    };
+
+    const handleSearch = () => {
+        const params = new URLSearchParams();
+        if (selectedBrand) params.set('brand', selectedBrand);
+        if (selectedModel) params.set('modelId', selectedModel);
+        if (selectedFuel) params.set('fuelType', selectedFuel);
+        if (selectedBudget) {
+            const range = budgetRanges.find(r => r.label === selectedBudget);
+            if (range) {
+                if (range.min > 0) params.set('budgetMin', range.min);
+                if (range.max !== Infinity) params.set('budgetMax', range.max);
+            }
+        }
+        navigate(`/cars?${params.toString()}`);
+    };
 
     return (
         <section className="relative z-20 -mt-16 max-w-5xl mx-auto px-4">
@@ -151,32 +220,42 @@ const SmartSearch = () => {
                 initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 className="bg-white/70 backdrop-blur-xl p-6 rounded-3xl shadow-[0_20px_40px_-15px_rgba(25,69,109,0.1)] border border-white"
             >
-                <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`relative px-6 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-colors ${activeTab === tab ? 'text-[#fafbf8]' : 'text-[#19456d] hover:bg-[#708ca4]/20'
-                                }`}
-                        >
-                            {activeTab === tab && (
-                                <motion.div layoutId="searchTab" className="absolute inset-0 bg-[#b48001] rounded-full -z-10" />
-                            )}
-                            {tab}
-                        </button>
-                    ))}
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                    {['Brand', 'Model', 'Budget', 'Fuel Type'].map((field) => (
-                        <div key={field} className="flex flex-col">
-                            <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">{field}</label>
-                            <select className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer">
-                                <option>Select {field}</option>
-                            </select>
-                        </div>
-                    ))}
-                    <button className="h-[50px] rounded-2xl bg-[#19456d] text-[#fafbf8] font-bold flex items-center justify-center gap-2 hover:bg-[#b48001] transition-colors shadow-lg group">
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">Brand</label>
+                        <select value={selectedBrand} onChange={handleBrandChange}
+                            className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer">
+                            <option value="">All Brands</option>
+                            {brands.map(b => <option key={b._id} value={b._id}>{b.brandName}</option>)}
+                        </select>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">Model</label>
+                        <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}
+                            disabled={!selectedBrand}
+                            className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer disabled:opacity-50">
+                            <option value="">All Models</option>
+                            {models.map(m => <option key={m._id} value={m._id}>{m.modelName}</option>)}
+                        </select>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">Budget</label>
+                        <select value={selectedBudget} onChange={(e) => setSelectedBudget(e.target.value)}
+                            className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer">
+                            <option value="">All Budgets</option>
+                            {budgetRanges.map((r, i) => <option key={i} value={r.label}>{r.label}</option>)}
+                        </select>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">Fuel Type</label>
+                        <select value={selectedFuel} onChange={(e) => setSelectedFuel(e.target.value)}
+                            className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer">
+                            <option value="">All Fuel Types</option>
+                            {fuelTypes.map(ft => <option key={ft} value={ft}>{ft}</option>)}
+                        </select>
+                    </div>
+                    <button onClick={handleSearch}
+                        className="h-[50px] rounded-2xl bg-[#19456d] text-[#fafbf8] font-bold flex items-center justify-center gap-2 hover:bg-[#b48001] transition-colors shadow-lg group">
                         <Search className="w-5 h-5 group-hover:scale-110 transition-transform" /> Search
                     </button>
                 </div>
@@ -187,12 +266,12 @@ const SmartSearch = () => {
 
 const FeaturedCategories = () => {
     const categories = [
-        { name: 'New Vehicles', icon: Car },
-        { name: 'Used Vehicles', icon: Settings },
-        { name: 'Vehicle Loan', icon: Banknote },
-        { name: 'Insurance', icon: Shield },
-        { name: 'CSD Price', icon: BadgeIndianRupee },
-        { name: 'Dealers', icon: Building2 },
+        { name: 'New Vehicles', icon: Car, link: '/cars' },
+        { name: 'Used Vehicles', icon: Settings, link: '/used-cars' },
+        { name: 'Vehicle Loan', icon: Banknote, link: '/loans' },
+        { name: 'Insurance', icon: Shield, link: '/insurance' },
+        { name: 'CSD Price', icon: BadgeIndianRupee, link: '/cars' },
+        { name: 'Dealers', icon: Building2, link: '/find-dealers' },
     ];
 
     return (
@@ -200,9 +279,10 @@ const FeaturedCategories = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                     {categories.map((cat, idx) => (
-                        <motion.div
-                            key={idx} variants={fadeUp}
-                            className="group cursor-pointer bg-white/40 backdrop-blur-sm border border-[#708ca4]/30 rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative overflow-hidden"
+                        <Link
+                            key={idx}
+                            to={cat.link}
+                            className="group cursor-pointer bg-white/40 backdrop-blur-sm border border-[#708ca4]/30 rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative overflow-hidden block"
                         >
                             <div className="absolute inset-0 bg-linear-to-br from-[#b48001]/0 to-[#b48001]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             <div className="w-16 h-16 rounded-2xl bg-[#fafbf8] flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-[#b48001]/10 transition-all duration-300 shadow-inner">
@@ -210,7 +290,7 @@ const FeaturedCategories = () => {
                             </div>
                             <h3 className="font-bold text-[#19456d] group-hover:text-[#b48001] transition-colors">{cat.name}</h3>
                             <div className="mt-4 w-8 h-1 bg-[#708ca4] rounded-full scale-0 group-hover:scale-100 transition-transform duration-300" />
-                        </motion.div>
+                        </Link>
                     ))}
                 </motion.div>
             </div>
@@ -235,26 +315,98 @@ const PopularBrands = () => {
     ];
 
     return (
-        <section className="py-20 overflow-hidden relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 relative z-10">
-                <h2 className="text-4xl md:text-5xl font-extrabold text-[#19456d] text-center">Popular Brands</h2>
-                <div className="w-24 h-1.5 bg-[#b48001] mx-auto mt-6 rounded-full shadow-[0_0_10px_rgba(180,128,1,0.5)]"></div>
+        <section className="py-28 overflow-hidden relative bg-[#fafbf8]">
+            {/* ── Animated Mesh Background ── */}
+            <motion.div
+                animate={{ scale: [1, 1.15, 1], rotate: [0, 60, 0] }}
+                transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-[#b48001]/10 rounded-full blur-[150px] z-0"
+            />
+            <motion.div
+                animate={{ scale: [1, 1.2, 1], rotate: [0, -45, 0] }}
+                transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+                className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-[#19456d]/10 rounded-full blur-[120px] z-0"
+            />
+            <motion.div
+                animate={{ scale: [1, 1.1, 1], x: [0, 80, 0] }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-[#708ca4]/10 rounded-full blur-[100px] z-0"
+            />
+
+            {/* ── Grid Dot Texture ── */}
+            <div
+                className="absolute inset-0 z-0 opacity-[0.03]"
+                style={{
+                    backgroundImage: 'radial-gradient(rgba(25,69,109,0.5) 1px, transparent 1px)',
+                    backgroundSize: '32px 32px'
+                }}
+            />
+
+            {/* ── Header ── */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 relative z-10">
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                    className="text-center"
+                >
+                    <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-[#b48001]/10 border border-[#b48001]/20 mb-6">
+                        <span className="w-2 h-2 rounded-full bg-[#b48001] animate-pulse" />
+                        <span className="text-sm font-bold tracking-[0.2em] uppercase text-[#b48001]">Trusted Partners</span>
+                    </div>
+                    <h2 className="text-5xl md:text-7xl font-black text-[#19456d] leading-tight">
+                        Popular <span className="text-transparent bg-clip-text bg-linear-to-r from-[#b48001] to-[#19456d]">Brands</span>
+                    </h2>
+                    <div className="w-40 h-1.5 bg-linear-to-r from-[#b48001] via-[#708ca4] to-[#19456d] mx-auto mt-6 rounded-full shadow-[0_0_20px_rgba(180,128,1,0.3)]" />
+                    <p className="text-lg text-[#708ca4] mt-6 font-medium max-w-xl mx-auto">
+                        Explore vehicles from India's most trusted automobile brands
+                    </p>
+                </motion.div>
             </div>
 
-            {/* Decorative Background Elements */}
-            <div className="absolute top-1/2 left-0 w-72 h-72 bg-[#b48001]/10 rounded-full blur-[100px] -translate-y-1/2 z-0"></div>
-            <div className="absolute top-1/2 right-0 w-72 h-72 bg-[#708ca4]/20 rounded-full blur-[100px] -translate-y-1/2 z-0"></div>
+            {/* ── Marquee Slider ── */}
+            <div className="relative z-10 py-4">
+                <div className="relative flex overflow-x-hidden group">
+                    <div className="flex gap-8 px-4 py-8 animate-marquee group-hover:[animation-play-state:paused]">
+                        {[...brands, ...brands].map((brand, idx) => (
+                            <div
+                                key={idx}
+                                className="relative flex-none"
+                                style={{ perspective: 1000 }}
+                            >
+                                <motion.div
+                                    whileHover={{
+                                        rotateY: 10,
+                                        rotateX: -6,
+                                        scale: 1.05,
+                                        transition: { type: "spring", stiffness: 250, damping: 18 }
+                                    }}
+                                    className="group/card cursor-pointer relative rounded-3xl p-[2px] bg-linear-to-br from-[#708ca4]/30 via-transparent to-[#708ca4]/30 hover:from-[#b48001] hover:via-[#b48001]/50 hover:to-[#b48001] transition-all duration-700 shadow-lg hover:shadow-[0_25px_50px_-8px_rgba(180,128,1,0.4)]"
+                                >
+                                    <div className="relative rounded-[22px] bg-white/70 backdrop-blur-xl w-[270px] h-[200px] p-6 flex flex-col items-center justify-center overflow-hidden border border-white/50">
+                                        <div className="absolute inset-0 bg-linear-to-br from-[#b48001]/0 via-[#b48001]/5 to-[#708ca4]/10 opacity-0 group-hover/card:opacity-100 transition-all duration-700" />
 
-            <div className="relative flex overflow-x-hidden group z-10 py-4">
-                <div className="py-8 animate-marquee whitespace-nowrap flex gap-10 px-4 items-center group-hover:[animation-play-state:paused]">
-                    {[...brands, ...brands].map((brand, idx) => (
-                        <div key={idx} className="relative flex-none p-[3px] rounded-3xl bg-linear-to-br from-[#708ca4]/40 via-[#fafbf8] to-[#708ca4]/40 hover:from-[#b48001] hover:via-[#708ca4] hover:to-[#b48001] transition-all duration-500 hover:-translate-y-4 cursor-pointer shadow-lg hover:shadow-[0_20px_40px_rgba(180,128,1,0.25)] group/item border border-[#708ca4]/30">
-                            <div className="bg-white/80 backdrop-blur-xl rounded-[22px] w-[260px] h-[150px] p-8 flex items-center justify-center relative overflow-hidden">
-                                <div className="absolute inset-0 bg-linear-to-t from-[#b48001]/10 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-500"></div>
-                                <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain filter grayscale opacity-60 group-hover/item:grayscale-0 group-hover/item:opacity-100 transition-all duration-500 group-hover/item:scale-125 group-hover/item:drop-shadow-2xl mix-blend-multiply" />
+                                        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_35%,rgba(255,255,255,0.5)_50%,transparent_65%)] -translate-x-full group-hover/card:translate-x-full transition-all duration-1000 ease-in-out" />
+
+                                        <div className="absolute w-28 h-28 bg-[#b48001]/20 rounded-full blur-3xl opacity-0 group-hover/card:opacity-100 group-hover/card:scale-150 transition-all duration-700" />
+
+                                        <div className="w-[180px] h-[90px] flex items-center justify-center relative z-10 mb-1">
+                                            <img
+                                                src={brand.logo}
+                                                alt={brand.name}
+                                                className="w-full h-full object-contain transition-all duration-700 ease-out group-hover/card:scale-125 group-hover/card:drop-shadow-[0_8px_20px_rgba(180,128,1,0.35)]"
+                                            />
+                                        </div>
+
+                                        <span className="text-sm font-bold text-[#19456d]/50 group-hover/card:text-[#b48001] transition-all duration-500 relative z-10 mt-1 tracking-wide">
+                                            {brand.name}
+                                        </span>
+                                    </div>
+                                </motion.div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>
@@ -262,14 +414,40 @@ const PopularBrands = () => {
 };
 
 const FeaturedCars = () => {
-    const cars = [
-        { name: 'BMW X5', type: 'SUV', price: '₹95.90 Lakh', image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80' },
-        { name: 'Mercedes C-Class', type: 'Sedan', price: '₹60.00 Lakh', image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=800&q=80' },
-        { name: 'Audi Q7', type: 'SUV', price: '₹84.70 Lakh', image: 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=800&q=80' },
-        { name: 'Toyota Fortuner', type: 'SUV', price: '₹33.43 Lakh', image: 'https://images.unsplash.com/photo-1619767886645-0ae16581bf6b?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-        { name: 'Mahindra XUV700', type: 'SUV', price: '₹14.03 Lakh', image: 'https://www.mahindra.com/sites/default/files/social-thumbnail/XUV%20700%20%28955X736_0.jpg' },
-        { name: 'Tata Safari', type: 'SUV', price: '₹15.65 Lakh', image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80' },
-    ];
+    const navigate = useNavigate();
+    const [vehicles, setVehicles] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        (async () => {
+            const res = await getAllVehicles();
+            if (res?.success) {
+                const list = (res.vehicles || []).slice(-10).reverse();
+                setVehicles(list);
+            }
+            setLoading(false);
+        })();
+    }, []);
+
+    const getImageSrc = (path) => {
+        if (!path) return '';
+        if (path.startsWith('http://') || path.startsWith('https://')) return path;
+        return `${import.meta.env.VITE_BACKEND_URL || ''}${path}`;
+    };
+
+    const getPrice = (car) => car.CSDPrice || car.price || car.OnRoadPrice || car.ExShowroomPrice;
+
+    const formatPrice = (price) => {
+        if (!price) return 'Price on Request';
+        const num = Number(price);
+        if (isNaN(num)) return 'Price on Request';
+        if (num >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`;
+        if (num >= 100000) return `₹${(num / 100000).toFixed(2)} Lakh`;
+        return `₹${num.toLocaleString('en-IN')}`;
+    };
+
+    const typeLabel = (car) => car.bodyType || car.BodyType || car.category || 'Vehicle';
+    const carName = (car) => car.vehicleName || car.Model || car.modelName || 'Vehicle';
 
     return (
         <section className="py-24 bg-white">
@@ -277,49 +455,67 @@ const FeaturedCars = () => {
                 <div className="flex justify-between items-end mb-12">
                     <div>
                         <h2 className="text-4xl font-extrabold text-[#19456d] mb-4">Featured Vehicles</h2>
-                        <p className="text-[#19456d]/70 font-medium">Discover our handpicked selection of premium vehicles.</p>
+                        <p className="text-[#19456d]/70 font-medium">Discover our latest additions of premium vehicles.</p>
                     </div>
-                    <button className="hidden md:flex font-bold text-[#b48001] items-center gap-2 hover:gap-3 transition-all">
+                    <button onClick={() => navigate('/cars')} className="hidden md:flex font-bold text-[#b48001] items-center gap-2 hover:gap-3 transition-all">
                         View All <ArrowRight className="w-5 h-5" />
                     </button>
                 </div>
 
-                <Swiper
-                    effect={'coverflow'}
-                    grabCursor={true}
-                    centeredSlides={true}
-                    slidesPerView={'auto'}
-                    coverflowEffect={{ rotate: 0, stretch: 0, depth: 100, modifier: 2.5, slideShadows: false }}
-                    pagination={{ clickable: true }}
-                    modules={[EffectCoverflow, Pagination]}
-                    className="w-full pb-16!"
-                >
-                    {cars.map((car, idx) => (
-                        <SwiperSlide key={idx} className="w-[350px]! md:w-[400px]!">
-                            <div className="bg-[#fafbf8]/50 rounded-3xl overflow-hidden border border-[#708ca4]/30 group hover:shadow-2xl transition-all duration-500">
-                                <div className="relative h-56 overflow-hidden">
-                                    <img src={car.image} alt={car.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                    <div className="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer hover:bg-[#b48001] hover:text-white transition-colors">
-                                        <Heart className="w-5 h-5" />
+                {loading ? (
+                    <div className="flex gap-6 justify-center">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="w-[350px] h-[420px] bg-[#fafbf8] rounded-3xl animate-pulse border border-[#708ca4]/20" />
+                        ))}
+                    </div>
+                ) : vehicles.length === 0 ? (
+                    <p className="text-center text-[#708ca4] py-12">No vehicles available at the moment.</p>
+                ) : (
+                    <Swiper
+                        effect={'coverflow'}
+                        grabCursor={true}
+                        centeredSlides={true}
+                        slidesPerView={'auto'}
+                        coverflowEffect={{ rotate: 0, stretch: 0, depth: 100, modifier: 2.5, slideShadows: false }}
+                        pagination={{ clickable: true }}
+                        modules={[EffectCoverflow, Pagination]}
+                        className="w-full pb-16!"
+                    >
+                        {vehicles.map((car, idx) => {
+                            const imgSrc = getImageSrc(car.vehicleImages?.[0] || car.carImages?.[0]);
+                            const price = getPrice(car);
+                            const name = carName(car);
+
+                            return (
+                                <SwiperSlide key={car._id || idx} className="w-[350px]! md:w-[400px]!">
+                                    <div className="bg-[#fafbf8]/50 rounded-3xl overflow-hidden border border-[#708ca4]/30 group hover:shadow-2xl transition-all duration-500">
+                                        <div className="relative h-56 overflow-hidden">
+                                            <img
+                                                src={imgSrc}
+                                                alt={name}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                onError={(e) => { e.target.src = 'https://placehold.co/600x400/fafbf8/708ca4?text=No+Image'; }}
+                                            />
+                                            <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-[#19456d]">
+                                                {typeLabel(car)}
+                                            </div>
+                                        </div>
+                                        <div className="p-6">
+                                            <h3 className="text-2xl font-bold text-[#19456d] mb-2">{name}</h3>
+                                            <p className="text-xl font-extrabold text-[#b48001] mb-6">{formatPrice(price)}</p>
+                                            <button
+                                                onClick={() => navigate(`/cars/${car.slug || car._id}`)}
+                                                className="w-full bg-[#19456d] text-[#fafbf8] py-3 rounded-xl font-bold hover:bg-[#b48001] transition-colors"
+                                            >
+                                                View Details
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="absolute bottom-4 left-4 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-[#19456d]">
-                                        {car.type}
-                                    </div>
-                                </div>
-                                <div className="p-6">
-                                    <h3 className="text-2xl font-bold text-[#19456d] mb-2">{car.name}</h3>
-                                    <p className="text-xl font-extrabold text-[#b48001] mb-6">{car.price}</p>
-                                    <div className="flex gap-3">
-                                        <button className="flex-1 bg-[#19456d] text-[#fafbf8] py-3 rounded-xl font-bold hover:bg-[#b48001] transition-colors">View Details</button>
-                                        <button className="px-4 border-2 border-[#19456d]/20 rounded-xl hover:border-[#b48001] hover:text-[#b48001] text-[#19456d] transition-colors">
-                                            <Plus className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </SwiperSlide>
-                    ))}
-                </Swiper>
+                                </SwiperSlide>
+                            );
+                        })}
+                    </Swiper>
+                )}
             </div>
         </section>
     );
@@ -407,20 +603,22 @@ const LoanEMISection = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
-                        { title: 'EMI Calculator', icon: Calendar, desc: 'Plan your monthly budget easily' },
-                        { title: 'Loan Eligibility', icon: UserCircleIcon, desc: 'Check instantly in 2 minutes' },
-                        { title: 'Lowest Interest', icon: TrendingUp, desc: 'Starting from 8.5% p.a.' },
-                        { title: 'Instant Enquiry', icon: Zap, desc: 'Get a callback in 10 minutes' }
+                        { title: 'EMI Calculator', icon: Calendar, desc: 'Plan your monthly budget easily', link: '/loan/emi-calculator' },
+                        { title: 'Loan Eligibility', icon: UserCircleIcon, desc: 'Check instantly in 2 minutes', link: '/loan/eligibility-documents' },
+                        { title: 'Lowest Interest', icon: TrendingUp, desc: 'Starting from 8.5% p.a.', link: '/loan/enquiry-form' },
+                        { title: 'Instant Enquiry', icon: Zap, desc: 'Get a callback in 10 minutes', link: '/contact' }
                     ].map((item, idx) => (
                         <motion.div key={idx} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={idx} className="bg-white rounded-3xl p-8 hover:shadow-xl transition-shadow border border-[#708ca4]/30 group">
-                            <div className="w-14 h-14 bg-[#b48001]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#b48001] transition-all">
-                                <item.icon className="w-7 h-7 text-[#b48001] group-hover:text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-[#19456d] mb-2">{item.title}</h3>
-                            <p className="text-[#19456d]/60 mb-6">{item.desc}</p>
-                            <button className="text-[#b48001] font-bold flex items-center gap-2 group-hover:gap-3 transition-all">
-                                Check Now <ArrowRight className="w-4 h-4" />
-                            </button>
+                            <Link to={item.link} className="block">
+                                <div className="w-14 h-14 bg-[#b48001]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#b48001] transition-all">
+                                    <item.icon className="w-7 h-7 text-[#b48001] group-hover:text-white" />
+                                </div>
+                                <h3 className="text-xl font-bold text-[#19456d] mb-2">{item.title}</h3>
+                                <p className="text-[#19456d]/60 mb-6">{item.desc}</p>
+                                <span className="text-[#b48001] font-bold flex items-center gap-2 group-hover:gap-3 transition-all">
+                                    Check Now <ArrowRight className="w-4 h-4" />
+                                </span>
+                            </Link>
                         </motion.div>
                     ))}
                 </div>
@@ -452,9 +650,9 @@ const InsuranceSection = () => {
                                 </div>
                             ))}
                         </div>
-                        <button className="bg-[#19456d] text-[#fafbf8] px-8 py-4 rounded-full font-bold hover:bg-[#b48001] transition-colors shadow-lg">
+                        <Link to={'/quotation-form'} className="bg-[#19456d] text-[#fafbf8] px-8 py-4 rounded-full font-bold hover:bg-[#b48001] transition-colors shadow-lg">
                             Get Insurance Quote
-                        </button>
+                        </Link>
                     </div>
 
                     <div className="relative">
@@ -638,9 +836,9 @@ const CallToAction = () => {
                     <Link to={'/cars'} className="bg-[#b48001] text-white px-10 py-5 rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-[0_0_30px_rgba(180,128,1,0.4)]">
                         Explore Vehicles Now
                     </Link>
-                    <button className="bg-white/10 backdrop-blur-md border-2 border-white text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white hover:text-[#19456d] transition-colors">
+                    <Link to={'/find-dealers'} className="bg-white/10 backdrop-blur-md border-2 border-white text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white hover:text-[#19456d] transition-colors">
                         Contact Dealer
-                    </button>
+                    </Link>
                 </div>
             </div>
         </section>
@@ -653,13 +851,10 @@ const NewsletterSection = () => {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <Mail className="w-12 h-12 text-[#b48001] mx-auto mb-6" />
                 <h2 className="text-3xl font-extrabold text-[#19456d] mb-4">Stay Updated</h2>
-                <p className="text-[#19456d]/70 mb-10 max-w-xl mx-auto">Subscribe to our newsletter for the latest vehicle launches, exclusive offers, and automotive tips.</p>
-                <div className="flex flex-col sm:flex-row max-w-lg mx-auto gap-2 p-2 bg-[#fafbf8] rounded-full border border-[#708ca4]/50 focus-within:ring-2 focus-within:ring-[#b48001] transition-all">
-                    <input type="email" placeholder="Enter your email address" className="flex-1 bg-transparent px-6 py-3 text-[#19456d] font-medium focus:outline-none placeholder:text-[#19456d]/40" />
-                    <button className="bg-[#19456d] text-[#fafbf8] px-8 py-3 rounded-full font-bold hover:bg-[#b48001] transition-colors">
-                        Subscribe
-                    </button>
-                </div>
+                <p className="text-[#19456d]/70 mb-10 max-w-xl mx-auto">Have questions or want to know more? Get in touch with our team.</p>
+                <Link to="/contact" className="inline-block bg-[#19456d] text-[#fafbf8] px-10 py-4 rounded-full font-bold hover:bg-[#b48001] transition-colors shadow-lg">
+                    Contact Us
+                </Link>
             </div>
         </section>
     );

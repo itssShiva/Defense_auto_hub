@@ -155,3 +155,30 @@ export const updateDealerPassword = async (id, data) => {
         return { success: false, message: error.response?.data?.message || error.message };
     }
 }
+
+export const sendOtp = async ({ mobile, otpLength, otpExpiry }) => {
+    try {
+        const response = await authApi.post("/send-otp", { mobile, otpLength, otpExpiry });
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const verifyOtp = async ({ mobile, otp }) => {
+    try {
+        const response = await authApi.post("/verify-otp", { mobile, otp });
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}
+
+export const resendOtp = async ({ mobile, retryType }) => {
+    try {
+        const response = await authApi.post("/resend-otp", { mobile, retryType });
+        return response.data;
+    } catch (error) {
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+}

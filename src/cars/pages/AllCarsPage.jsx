@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Grid3X3, List, SlidersHorizontal, MapPin, Phone, Building2 } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getAllVehicles } from '../Api/cars.api';
 import { getAllDealers } from '../../auth/Api/auth.api';
 import CarCard from '../components/CarCard';
@@ -11,6 +12,15 @@ import Pagination from '../components/Pagination';
 const PER_PAGE = 12;
 
 const AllCarsPage = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const urlBrandParam = searchParams.get('brand') || '';
+  const urlModelIdParam = searchParams.get('modelId') || '';
+  const urlFuelTypeParam = searchParams.get('fuelType') || '';
+  const urlBudgetMin = searchParams.get('budgetMin') || '';
+  const urlBudgetMax = searchParams.get('budgetMax') || '';
+
   const [cars, setCars] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,11 +29,14 @@ const AllCarsPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('model') || '');
 
   // Filters State
   const [filters, setFilters] = useState({
-    brand: 'All',
+    brand: urlBrandParam || 'All',
+    fuelType: urlFuelTypeParam || '',
+    budgetMin: urlBudgetMin || '',
+    budgetMax: urlBudgetMax || '',
     vehicleType: 'All',
     category: 'All',
     state: 'All',
@@ -35,7 +48,13 @@ const AllCarsPage = () => {
     document.title = 'All Vehicles — Defence Auto Hub';
     (async () => {
       setLoading(true);
-      const [vehiclesRes, dealersRes] = await Promise.all([getAllVehicles(), getAllDealers()]);
+      const apiParams = {};
+      if (urlBrandParam) apiParams.brandId = urlBrandParam;
+      if (urlModelIdParam) apiParams.modelId = urlModelIdParam;
+      if (urlFuelTypeParam) apiParams.fuelType = urlFuelTypeParam;
+      if (urlBudgetMin) apiParams.budgetMin = urlBudgetMin;
+      if (urlBudgetMax) apiParams.budgetMax = urlBudgetMax;
+      const [vehiclesRes, dealersRes] = await Promise.all([getAllVehicles(apiParams), getAllDealers()]);
       if (vehiclesRes?.success) {
         setCars(vehiclesRes.vehicles || []);
       }
@@ -44,7 +63,7 @@ const AllCarsPage = () => {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [urlBrandParam, urlModelIdParam, urlFuelTypeParam, urlBudgetMin, urlBudgetMax]);
 
   // Derived filter options
   const brands = useMemo(() => ['All', ...new Set(cars.map(c => c.brandId?.brandName || c.brandName).filter(Boolean))], [cars]);
@@ -76,7 +95,16 @@ const AllCarsPage = () => {
 
     // Exact Match Filters
     if (filters.brand !== 'All') {
-      list = list.filter(c => (c.brandId?.brandName || c.brandName) === filters.brand);
+      list = list.filter(c => String(c.brandId?._id || c.brandId) === filters.brand || (c.brandId?.brandName || c.brandName) === filters.brand);
+    }
+    if (filters.fuelType) {
+      list = list.filter(c => (c.fuelType || '').toLowerCase() === filters.fuelType.toLowerCase());
+    }
+    if (filters.budgetMin) {
+      list = list.filter(c => Number(c.CSDPrice || c.price || 0) >= Number(filters.budgetMin));
+    }
+    if (filters.budgetMax) {
+      list = list.filter(c => Number(c.CSDPrice || c.price || 0) <= Number(filters.budgetMax));
     }
     if (filters.vehicleType !== 'All') list = list.filter(c => c.vehicleType === filters.vehicleType);
     if (filters.category !== 'All') list = list.filter(c => c.category === filters.category);
@@ -110,13 +138,17 @@ const AllCarsPage = () => {
   const pagedCars = processedCars.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const clearFilters = () => {
-    setFilters({ brand: 'All', vehicleType: 'All', category: 'All', state: 'All', city: 'All', priceSort: 'none' });
+    setFilters({ brand: 'All', fuelType: '', budgetMin: '', budgetMax: '', vehicleType: 'All', category: 'All', state: 'All', city: 'All', priceSort: 'none' });
     setSearch('');
     setPage(1);
+    navigate('/cars', { replace: true });
   };
 
   const activeFiltersCount = [
     filters.brand !== 'All',
+    filters.fuelType !== '',
+    filters.budgetMin !== '',
+    filters.budgetMax !== '',
     filters.vehicleType !== 'All',
     filters.category !== 'All',
     filters.state !== 'All',
