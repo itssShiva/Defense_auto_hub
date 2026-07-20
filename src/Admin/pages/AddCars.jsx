@@ -234,8 +234,6 @@ const AddCars = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const errCls = (field) => ""; // Deprecated, kept for no breaking
-
     return (
         <div className="max-w-5xl mx-auto">
             {/* Header */}
