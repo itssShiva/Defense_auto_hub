@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useInsuranceWizard } from "./hooks/useInsuranceWizard";
+import { State, City } from "country-state-city";
 
 export default function QutationForm() {
     const location = useLocation();
@@ -16,7 +17,7 @@ export default function QutationForm() {
 
     // Form states
     const [compData, setCompData] = useState({
-        year: "", fullName: "", phone: "", city: "", ncb: "", zeroDep: false, rsa: false,
+        year: "", fullName: "", phone: "", state: "", city: "", ncb: "", zeroDep: false, rsa: false,
         engineProtect: false, email: "", aadhaar: "", address: "", nomineeName: "",
         relationship: "", nomineeAge: "", vehicleType: "", registrationNumber: "",
         registrationDate: "", rtoLocation: "", vehicleUsage: "", odometerReading: "",
@@ -28,9 +29,13 @@ export default function QutationForm() {
     });
 
     const [tpData, setTpData] = useState({
-        year: "", fullName: "", phone: "", city: "", engineCapacity: "", paCover: false,
+        year: "", fullName: "", phone: "", state: "", city: "", engineCapacity: "", paCover: false,
         email: "", nomineeName: "", address: "", aadhar: "", chassisNumber: "", policyTenure: "",
     });
+
+    const [stateCode, setStateCode] = useState("");
+    const states = State.getStatesOfCountry("IN");
+    const cities = stateCode ? City.getCitiesOfState("IN", stateCode) : [];
 
     // DB Hook integration
     const {
@@ -69,6 +74,7 @@ export default function QutationForm() {
         
         // City Insurance Params
         const city        = params.get("city");
+        const state       = params.get("state");
         const rto         = params.get("rto");
 
         if (zeroDep) {
@@ -82,16 +88,22 @@ export default function QutationForm() {
             }
         }
 
-        if (city || rto) {
+        if (city || state || rto) {
             setCompData((prev) => ({
                 ...prev,
                 ...(city ? { city } : {}),
+                ...(state ? { state } : {}),
                 ...(rto ? { rtoLocation: rto } : {})
             }));
             setTpData((prev) => ({
                 ...prev,
-                ...(city ? { city } : {})
+                ...(city ? { city } : {}),
+                ...(state ? { state } : {})
             }));
+            if (state) {
+                const matchedState = State.getStatesOfCountry("IN").find(s => s.name === state);
+                if (matchedState) setStateCode(matchedState.isoCode);
+            }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -106,6 +118,14 @@ export default function QutationForm() {
 
     const handleCompChange = (field, value) => setCompData((prev) => ({ ...prev, [field]: value }));
     const handleTpChange = (field, value) => setTpData((prev) => ({ ...prev, [field]: value }));
+
+    const handleStateChange = (e) => {
+        const code = e.target.value;
+        const name = e.target.options[e.target.selectedIndex]?.text || "";
+        setStateCode(code);
+        const fn = activeTab === "comprehensive" ? setCompData : setTpData;
+        fn((prev) => ({ ...prev, state: name, city: "" }));
+    };
     const handleManualChange = (field, value) => setManualVehicle((prev) => ({ ...prev, [field]: value }));
 
     // Vehicle DB selection flow
@@ -451,10 +471,29 @@ export default function QutationForm() {
                                             value={activeTab === "comprehensive" ? compData.email : tpData.email}
                                             onChange={(e) => activeTab === "comprehensive" ? handleCompChange("email", e.target.value) : handleTpChange("email", e.target.value)}
                                             className="mt-1 w-full p-2.5 sm:p-3 text-sm border-2 border-transparent bg-white shadow-[0_2px_10px_-3px_rgba(25,69,109,0.1)] rounded-xl outline-none focus:border-[#b48001] transition-all text-[#19456d] font-medium placeholder:text-[#708ca4]/50 hover:shadow-[0_4px_15px_-3px_rgba(25,69,109,0.15)]" />
-                                        <input type="text" required placeholder="Registration City (e.g. Delhi)"
-                                            value={activeTab === "comprehensive" ? compData.city : tpData.city}
-                                            onChange={(e) => activeTab === "comprehensive" ? handleCompChange("city", e.target.value) : handleTpChange("city", e.target.value)}
-                                            className="mt-1 w-full p-2.5 sm:p-3 text-sm border-2 border-transparent bg-white shadow-[0_2px_10px_-3px_rgba(25,69,109,0.1)] rounded-xl outline-none focus:border-[#b48001] transition-all text-[#19456d] font-medium placeholder:text-[#708ca4]/50 hover:shadow-[0_4px_15px_-3px_rgba(25,69,109,0.15)]" />
+                                        <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                                            <select required
+                                                value={stateCode}
+                                                onChange={handleStateChange}
+                                                className="w-full p-2.5 sm:p-3 text-sm border-2 border-transparent bg-white shadow-[0_2px_10px_-3px_rgba(25,69,109,0.1)] rounded-xl outline-none focus:border-[#b48001] transition-all text-[#19456d] font-medium placeholder:text-[#708ca4]/50 hover:shadow-[0_4px_15px_-3px_rgba(25,69,109,0.15)]"
+                                            >
+                                                <option value="">Select State</option>
+                                                {states.map((s) => (
+                                                    <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                                                ))}
+                                            </select>
+                                            <select required
+                                                value={activeTab === "comprehensive" ? compData.city : tpData.city}
+                                                onChange={(e) => activeTab === "comprehensive" ? handleCompChange("city", e.target.value) : handleTpChange("city", e.target.value)}
+                                                disabled={!stateCode}
+                                                className="w-full p-2.5 sm:p-3 text-sm border-2 border-transparent bg-white shadow-[0_2px_10px_-3px_rgba(25,69,109,0.1)] rounded-xl outline-none focus:border-[#b48001] transition-all text-[#19456d] font-medium placeholder:text-[#708ca4]/50 hover:shadow-[0_4px_15px_-3px_rgba(25,69,109,0.15)]"
+                                            >
+                                                <option value="">Select City</option>
+                                                {cities.map((c) => (
+                                                    <option key={c.name} value={c.name}>{c.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
 
                                     {activeTab === "comprehensive" && (

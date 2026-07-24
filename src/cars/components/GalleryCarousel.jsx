@@ -30,7 +30,7 @@ const GalleryCarousel = ({ images = [], onFullscreen, layout = 'horizontal' }) =
             } : undefined}
             slidesPerView={4.5}
             spaceBetween={8}
-            className={`${layout === 'vertical' ? 'h-[72px] md:h-full md:max-h-[400px]' : 'h-[72px]'}`}
+            className={`${layout === 'vertical' ? 'h-18 md:h-full md:max-h-100' : 'h-18'}`}
           >
             {imgs.map((img, i) => (
               <SwiperSlide key={i} className="cursor-pointer">
@@ -61,7 +61,7 @@ const GalleryCarousel = ({ images = [], onFullscreen, layout = 'horizontal' }) =
           navigation
           pagination={{ clickable: true }}
           onSlideChange={(sw) => setActiveIndex(sw.activeIndex)}
-          className="h-[300px] md:h-[400px] w-full"
+          className="h-75 md:h-100 w-full"
         >
           {imgs.map((img, i) => (
             <SwiperSlide key={i}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Search, Grid3X3, List, Fuel, Settings2, Calendar, MapPin,
@@ -20,7 +20,25 @@ const UsedCarsPage = () => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid');
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({ fuel: 'All', transmission: 'All', priceMax: '', location: '' });
+  const [searchParams] = useSearchParams();
+  const urlBrand = searchParams.get('brand') || 'All';
+  const urlBudgetMin = searchParams.get('budgetMin') || '';
+  const urlBudgetMax = searchParams.get('budgetMax') || '';
+  const urlFuelType = searchParams.get('fuelType') || '';
+  const urlModelId = searchParams.get('modelId') || '';
+
+  const [filters, setFilters] = useState({
+    brand: urlBrand,
+    budgetMin: urlBudgetMin,
+    budgetMax: urlBudgetMax,
+    fuelType: urlFuelType,
+    modelId: urlModelId,
+    vehicleType: 'All',
+    category: 'All',
+    state: 'All',
+    city: 'All',
+    priceSort: 'none'
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
   const [dealerModalOpen, setDealerModalOpen] = useState(false);
@@ -50,8 +68,14 @@ const UsedCarsPage = () => {
     })();
   }, []);
 
-  const fuels = useMemo(() => ['All', ...new Set(cars.map((c) => c.fuelType).filter(Boolean))], [cars]);
-  const transmissions = useMemo(() => ['All', ...new Set(cars.map((c) => c.transmissionType).filter(Boolean))], [cars]);
+  const brands = useMemo(() => ['All', ...new Set(cars.map((c) => c.brandName).filter(Boolean))], [cars]);
+  const vehicleTypes = useMemo(() => ['All', ...new Set(cars.map((c) => c.vehicleType).filter(Boolean))], [cars]);
+  const categories = useMemo(() => ['All', ...new Set(cars.map((c) => c.category).filter(Boolean))], [cars]);
+  const states = useMemo(() => ['All', ...new Set(cars.map((c) => c.state || c.State).filter(Boolean))], [cars]);
+  const cities = useMemo(() => {
+    if (filters.state === 'All') return ['All'];
+    return ['All', ...new Set(cars.filter((c) => (c.state || c.State) === filters.state).map((c) => c.city || c.City).filter(Boolean))];
+  }, [cars, filters.state]);
 
   const filtered = useMemo(() => {
     let list = [...cars];
@@ -59,16 +83,46 @@ const UsedCarsPage = () => {
       const q = search.toLowerCase();
       list = list.filter((c) =>
         (c.modelName || c.Model || '').toLowerCase().includes(q) ||
-        c.brandName?.toLowerCase().includes(q)
+        (c.brandName || '').toLowerCase().includes(q)
       );
     }
-    if (filters.fuel !== 'All') list = list.filter((c) => c.fuelType === filters.fuel);
-    if (filters.transmission !== 'All') list = list.filter((c) => c.transmissionType === filters.transmission);
-    if (filters.priceMax) list = list.filter((c) => Number(c.price || c.askingPrice || c.CSDPrice || 0) <= Number(filters.priceMax));
-    if (filters.location) {
-      const loc = filters.location.toLowerCase();
-      list = list.filter((c) => (c.location || c.Address || '')?.toLowerCase().includes(loc) || (c.city || c.City || '')?.toLowerCase().includes(loc));
+    if (filters.brand !== 'All') {
+      list = list.filter((c) => c.brandName === filters.brand);
     }
+    if (filters.vehicleType !== 'All') {
+      list = list.filter((c) => c.vehicleType === filters.vehicleType);
+    }
+    if (filters.category !== 'All') {
+      list = list.filter((c) => c.category === filters.category);
+    }
+    if (filters.state !== 'All') {
+      list = list.filter((c) => (c.state || c.State) === filters.state);
+    }
+    if (filters.city !== 'All') {
+      list = list.filter((c) => (c.city || c.City) === filters.city);
+    }
+    if (filters.budgetMin) {
+      list = list.filter(c => Number(c.price || c.askingPrice || c.CSDPrice || 0) >= Number(filters.budgetMin));
+    }
+    if (filters.budgetMax) {
+      list = list.filter(c => Number(c.price || c.askingPrice || c.CSDPrice || 0) <= Number(filters.budgetMax));
+    }
+    if (filters.fuelType) {
+      list = list.filter(c => (c.fuelType || '').toLowerCase() === filters.fuelType.toLowerCase());
+    }
+    if (filters.modelId) {
+      list = list.filter(c => c.modelId === filters.modelId || c.model === filters.modelId);
+    }
+
+    // Sorting
+    if (filters.priceSort === 'low-high') {
+      list.sort((a, b) => (Number(a.price || a.askingPrice || a.CSDPrice) || 0) - (Number(b.price || b.askingPrice || b.CSDPrice) || 0));
+    } else if (filters.priceSort === 'high-low') {
+      list.sort((a, b) => (Number(b.price || b.askingPrice || b.CSDPrice) || 0) - (Number(a.price || a.askingPrice || a.CSDPrice) || 0));
+    } else if (filters.priceSort === 'newest') {
+      list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
+
     return list;
   }, [cars, search, filters]);
 
@@ -76,17 +130,19 @@ const UsedCarsPage = () => {
   const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   const clearFilters = () => {
-    setFilters({ fuel: 'All', transmission: 'All', priceMax: '', location: '' });
+    setFilters({ brand: 'All', vehicleType: 'All', category: 'All', state: 'All', city: 'All', priceSort: 'none' });
     setSearch('');
     setPage(1);
   };
 
   const activeFiltersCount = [
-    filters.fuel !== 'All',
-    filters.transmission !== 'All',
-    filters.priceMax,
-    filters.location,
-    search.trim(),
+    filters.brand !== 'All',
+    filters.vehicleType !== 'All',
+    filters.category !== 'All',
+    filters.state !== 'All',
+    filters.city !== 'All',
+    filters.priceSort !== 'none',
+    search.trim() !== ''
   ].filter(Boolean).length;
 
   const UsedCarCard = ({ car, list }) => {
@@ -214,91 +270,154 @@ const UsedCarsPage = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Toolbar */}
-        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm border transition-all ${showFilters ? 'bg-[#19456d] text-white border-transparent' : 'bg-white border-[#708ca4]/20 text-[#19456d] hover:border-[#b48001]'
-                }`}>
-              <SlidersHorizontal className="w-4 h-4" />
-              Filters
-              {activeFiltersCount > 0 && (
-                <span className="w-5 h-5 bg-[#b48001] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center">{activeFiltersCount}</span>
-              )}
-            </button>
-            {activeFiltersCount > 0 && (
-              <button onClick={clearFilters} className="text-sm text-[#708ca4] hover:text-red-500 font-medium flex items-center gap-1 transition-colors">
-                <X className="w-3.5 h-3.5" /> Clear all
-              </button>
-            )}
-            <p className="text-sm text-[#708ca4] font-medium">{filtered.length} results</p>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Sidebar (Filters on Desktop) */}
+          <div className={`lg:w-1/4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+            <div className="bg-white rounded-3xl border border-[#708ca4]/15 p-6 sticky top-28 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-extrabold text-[#19456d] flex items-center gap-2">
+                  <SlidersHorizontal className="w-5 h-5" /> Filters
+                </h3>
+                {activeFiltersCount > 0 && (
+                  <button onClick={clearFilters} className="text-xs font-bold text-red-500 hover:text-red-600">
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                {/* Brand Filter */}
+                <div>
+                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">Brand</label>
+                  <select
+                    value={filters.brand}
+                    onChange={(e) => { setFilters(p => ({ ...p, brand: e.target.value })); setPage(1); }}
+                    className="w-full p-3 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white"
+                  >
+                    {brands.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+
+                {/* Vehicle Type Filter */}
+                <div>
+                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">Vehicle Type</label>
+                  <select
+                    value={filters.vehicleType}
+                    onChange={(e) => { setFilters(p => ({ ...p, vehicleType: e.target.value })); setPage(1); }}
+                    className="w-full p-3 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white"
+                  >
+                    {vehicleTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+
+                {/* Category Filter */}
+                <div>
+                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">Category</label>
+                  <select
+                    value={filters.category}
+                    onChange={(e) => { setFilters(p => ({ ...p, category: e.target.value })); setPage(1); }}
+                    className="w-full p-3 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white"
+                  >
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                {/* State Filter */}
+                <div>
+                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">State</label>
+                  <select
+                    value={filters.state}
+                    onChange={(e) => { setFilters(p => ({ ...p, state: e.target.value, city: 'All' })); setPage(1); }}
+                    className="w-full p-3 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white"
+                  >
+                    {states.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+
+                {/* City Filter */}
+                <div>
+                  <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-2">City</label>
+                  <select
+                    value={filters.city}
+                    onChange={(e) => { setFilters(p => ({ ...p, city: e.target.value })); setPage(1); }}
+                    className="w-full p-3 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white"
+                    disabled={filters.state === 'All'}
+                  >
+                    {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2 bg-white rounded-xl border border-[#708ca4]/20 p-1">
-            <button onClick={() => setViewMode('grid')} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${viewMode === 'grid' ? 'bg-[#19456d] text-white' : 'text-[#708ca4] hover:text-[#19456d]'}`}>
-              <Grid3X3 className="w-4 h-4" />
-            </button>
-            <button onClick={() => setViewMode('list')} className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${viewMode === 'list' ? 'bg-[#19456d] text-white' : 'text-[#708ca4] hover:text-[#19456d]'}`}>
-              <List className="w-4 h-4" />
-            </button>
+
+          {/* Right Content Area */}
+          <div className="flex-1 min-w-0">
+            {/* Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-3 rounded-2xl border border-[#708ca4]/15 shadow-sm">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`lg:hidden flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${showFilters ? 'bg-[#19456d] text-white' : 'bg-[#fafbf8] text-[#19456d]'
+                    }`}
+                >
+                  <SlidersHorizontal className="w-4 h-4" /> Filters
+                  {activeFiltersCount > 0 && (
+                    <span className="w-5 h-5 bg-[#b48001] text-white text-[10px] font-extrabold rounded-full flex items-center justify-center">{activeFiltersCount}</span>
+                  )}
+                </button>
+                <p className="text-sm font-bold text-[#708ca4]">
+                  Showing {filtered.length} results
+                </p>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <select
+                  value={filters.priceSort}
+                  onChange={(e) => { setFilters(p => ({ ...p, priceSort: e.target.value })); setPage(1); }}
+                  className="bg-transparent text-sm font-bold text-[#19456d] focus:outline-none pr-2 cursor-pointer"
+                >
+                  <option value="none">Sort By: Featured</option>
+                  <option value="low-high">Price: Low to High</option>
+                  <option value="high-low">Price: High to Low</option>
+                  <option value="newest">Newest Arrivals</option>
+                </select>
+
+                <div className="hidden sm:flex items-center gap-1 bg-[#fafbf8] rounded-xl p-1 border border-[#708ca4]/15">
+                  <button onClick={() => setViewMode('grid')} className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow text-[#19456d]' : 'text-[#708ca4]'}`}>
+                    <Grid3X3 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setViewMode('list')} className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${viewMode === 'list' ? 'bg-white shadow text-[#19456d]' : 'text-[#708ca4]'}`}>
+                    <List className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid / List */}
+            {loading ? (
+              <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6' : 'space-y-4'}>
+                {Array.from({ length: 6 }).map((_, i) => <CarCardSkeleton key={i} />)}
+              </div>
+            ) : paged.length === 0 ? (
+              <EmptyState title="No used vehicles found" message="Try adjusting your filters." action={{ label: 'Clear Filters', onClick: clearFilters }} />
+            ) : viewMode === 'grid' ? (
+              <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {paged.map((car) => (
+                  <motion.div key={car._id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+                    <UsedCarCard car={car} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              <div className="space-y-4">
+                {paged.map((car) => <UsedCarCard key={car._id} car={car} list />)}
+              </div>
+            )}
+
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         </div>
-
-        {/* Filter panel */}
-        {showFilters && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl border border-[#708ca4]/15 p-5 mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-1.5">Fuel Type</label>
-              <select value={filters.fuel} onChange={(e) => { setFilters((p) => ({ ...p, fuel: e.target.value })); setPage(1); }}
-                className="w-full px-3 py-2 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white">
-                {fuels.map((f) => <option key={f}>{f}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-1.5">Transmission</label>
-              <select value={filters.transmission} onChange={(e) => { setFilters((p) => ({ ...p, transmission: e.target.value })); setPage(1); }}
-                className="w-full px-3 py-2 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white">
-                {transmissions.map((t) => <option key={t}>{t}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-1.5">Max Price (₹)</label>
-              <input type="number" value={filters.priceMax} onChange={(e) => { setFilters((p) => ({ ...p, priceMax: e.target.value })); setPage(1); }}
-                placeholder="e.g. 500000"
-                className="w-full px-3 py-2 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white" />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-[#708ca4] uppercase tracking-widest block mb-1.5">Location</label>
-              <input type="text" value={filters.location} onChange={(e) => { setFilters((p) => ({ ...p, location: e.target.value })); setPage(1); }}
-                placeholder="City or area"
-                className="w-full px-3 py-2 rounded-xl border border-[#708ca4]/20 text-sm font-medium text-[#19456d] focus:outline-none focus:ring-1 focus:ring-[#b48001] bg-white" />
-            </div>
-          </motion.div>
-        )}
-
-        {/* Grid / List */}
-        {loading ? (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5' : 'space-y-4'}>
-            {Array.from({ length: 8 }).map((_, i) => <CarCardSkeleton key={i} />)}
-          </div>
-        ) : paged.length === 0 ? (
-          <EmptyState title="No used vehicles found" message="Try adjusting your filters." action={{ label: 'Clear Filters', onClick: clearFilters }} />
-        ) : viewMode === 'grid' ? (
-          <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {paged.map((car) => (
-              <motion.div key={car._id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
-                <UsedCarCard car={car} />
-              </motion.div>
-            ))}
-          </motion.div>
-        ) : (
-          <div className="space-y-4">
-            {paged.map((car) => <UsedCarCard key={car._id} car={car} list />)}
-          </div>
-        )}
-
-        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
     </div>
   );

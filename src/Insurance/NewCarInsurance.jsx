@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useInsuranceWizard } from "./hooks/useInsuranceWizard";
+import { State, City } from "country-state-city";
 
 // ─── Form initial state ───────────────────────────────────────────────────────
 const initialForm = {
@@ -12,6 +13,7 @@ const initialForm = {
     phone: "",
     email: "",
     nomineeName: "",
+    state: "",
     city: "",
     year: "",
     address: "",
@@ -27,7 +29,7 @@ const initialForm = {
 
 // Only these fields are required to pass the first "Details" step
 const REQUIRED_FIELDS = [
-    "fullName", "phone", "email", "nomineeName", "city", 
+    "fullName", "phone", "email", "nomineeName", "state", "city", 
     "year", "address", "ncb", "policyTenure", "policyType", "vehicleUsageType"
 ];
 
@@ -72,6 +74,10 @@ const NewCarInsurance = () => {
     const [form, setForm] = useState(initialForm);
     const [errors, setErrors] = useState({});
     const [submitted, setSubmitted] = useState(false);
+    const [stateCode, setStateCode] = useState("");
+
+    const states = State.getStatesOfCountry("IN");
+    const cities = stateCode ? City.getCitiesOfState("IN", stateCode) : [];
 
     // Selections (full DB objects)
     const [selectedBrand, setSelectedBrand] = useState(null);
@@ -83,6 +89,14 @@ const NewCarInsurance = () => {
     const setField = (key, val) => {
         setForm((p) => ({ ...p, [key]: val }));
         setErrors((p) => ({ ...p, [key]: undefined }));
+    };
+
+    const handleStateChange = (e) => {
+        const code = e.target.value;
+        const name = e.target.options[e.target.selectedIndex]?.text || "";
+        setStateCode(code);
+        setForm((p) => ({ ...p, state: name, city: "" }));
+        setErrors((p) => ({ ...p, state: undefined, city: undefined }));
     };
 
     const validate = () => {
@@ -212,7 +226,6 @@ const NewCarInsurance = () => {
                                         { field: "phone", label: "Phone", placeholder: "+91 98765 43210" },
                                         { field: "email", label: "Email", placeholder: "you@email.com" },
                                         { field: "nomineeName", label: "Nominee Name", placeholder: "Nominee's full name" },
-                                        { field: "city", label: "City", placeholder: "e.g. New Delhi" },
                                         { field: "year", label: "Manufacturing Year", placeholder: "e.g. 2024" },
                                         { field: "ncb", label: "NCB %", placeholder: "0 / 20 / 25 / 35 / 45 / 50" },
                                     ].map(({ field, label, placeholder }) => (
@@ -237,6 +250,36 @@ const NewCarInsurance = () => {
                                             {errors[field] && <p className="text-xs text-red-500">{errors[field]}</p>}
                                         </label>
                                     ))}
+
+                                    <label className="flex flex-col gap-1 text-sm">
+                                        <span className="font-semibold text-[#19456d]/70">State</span>
+                                        <select
+                                            value={stateCode}
+                                            onChange={handleStateChange}
+                                            className="w-full rounded-xl border border-[#708ca4]/30 bg-[#fafbf8] px-3 py-2.5 text-[#19456d] outline-none focus:border-[#b48001] focus:ring-1 focus:ring-[#b48001]/30 transition"
+                                        >
+                                            <option value="">Select State</option>
+                                            {states.map((s) => (
+                                                <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.state && <p className="text-xs text-red-500">{errors.state}</p>}
+                                    </label>
+                                    <label className="flex flex-col gap-1 text-sm">
+                                        <span className="font-semibold text-[#19456d]/70">City</span>
+                                        <select
+                                            value={form.city}
+                                            onChange={(e) => setField("city", e.target.value)}
+                                            disabled={!stateCode}
+                                            className="w-full rounded-xl border border-[#708ca4]/30 bg-[#fafbf8] px-3 py-2.5 text-[#19456d] outline-none focus:border-[#b48001] focus:ring-1 focus:ring-[#b48001]/30 transition"
+                                        >
+                                            <option value="">Select City</option>
+                                            {cities.map((c) => (
+                                                <option key={c.name} value={c.name}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.city && <p className="text-xs text-red-500">{errors.city}</p>}
+                                    </label>
 
                                     {/* Address — full width */}
                                     <label className="flex flex-col gap-1 text-sm md:col-span-2">
@@ -599,6 +642,7 @@ const NewCarInsurance = () => {
                                             ["Name", form.fullName],
                                             ["Phone", form.phone],
                                             ["Email", form.email],
+                                            ["State", form.state],
                                             ["City", form.city],
                                             ["Year", form.year],
                                             ["Address", form.address],

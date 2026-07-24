@@ -26,6 +26,20 @@ const CarCard = ({ car, linkTo, layout = 'grid' }) => {
               {car.TransmissionType && <span className="flex items-center gap-1 text-xs text-[#708ca4]"><Settings2 className="w-3 h-3 text-[#b48001]" />{car.TransmissionType}</span>}
             </div>
             {price && <p className="text-xl font-extrabold text-[#19456d]">{formatCompactPrice(price)}</p>}
+            <div className="flex gap-2 mt-3">
+              <Link
+                to={finalLink}
+                className="flex items-center justify-center gap-1.5 py-2 px-3 bg-[#19456d] text-white text-xs font-bold rounded-xl hover:bg-[#b48001] transition-colors duration-200"
+              >
+                View Details
+              </Link>
+              <Link
+                to="/find-dealers"
+                className="flex items-center justify-center gap-1.5 py-2 px-3 border border-[#19456d]/30 text-[#19456d] text-xs font-bold rounded-xl hover:bg-[#19456d] hover:text-white transition-all duration-200 whitespace-nowrap"
+              >
+                <Store className="w-3.5 h-3.5 shrink-0" /> View Dealers
+              </Link>
+            </div>
           </div>
         </Link>
       </motion.div>

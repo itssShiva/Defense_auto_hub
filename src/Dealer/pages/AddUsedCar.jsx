@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useCars } from "../../cars/hooks/useCars";
 import { toast } from "react-hot-toast";
+import { State, City } from "country-state-city";
 
 /* ─── Initial form state ──────────────────────────────────── */
 const INITIAL = {
@@ -66,13 +67,26 @@ const AddUsedCar = () => {
     const [carImages, setCarImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [errors, setErrors] = useState({});
+    const [stateCode, setStateCode] = useState("");
     const fileInputRef = useRef(null);
+
+    const states = State.getStatesOfCountry("IN");
+    const cities = stateCode ? City.getCitiesOfState("IN", stateCode) : [];
 
     /* ── Two-way binding ── */
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    };
+
+    const handleStateChange = (e) => {
+        const code = e.target.value;
+        const name = e.target.options[e.target.selectedIndex]?.text || "";
+        setStateCode(code);
+        setForm((prev) => ({ ...prev, State: name, City: "" }));
+        if (errors.State) setErrors((prev) => ({ ...prev, State: "" }));
+        if (errors.City) setErrors((prev) => ({ ...prev, City: "" }));
     };
 
     /* ── Image handler ── */
@@ -348,18 +362,27 @@ const AddUsedCar = () => {
                                 className={`${inputCls} ${errCls(errors, "Address")}`} />
                         </Field>
 
-                        <Field label="City" required error={errors.City}>
-                            <input id="field-City" type="text" name="City"
-                                value={form.City} onChange={handleChange}
-                                placeholder="e.g. New Delhi"
-                                className={`${inputCls} ${errCls(errors, "City")}`} />
+                        <Field label="State" required error={errors.State}>
+                            <select id="field-State"
+                                value={stateCode} onChange={handleStateChange}
+                                className={`${inputCls} ${errCls(errors, "State")}`}>
+                                <option value="">Select State</option>
+                                {states.map((s) => (
+                                    <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                                ))}
+                            </select>
                         </Field>
 
-                        <Field label="State" required error={errors.State}>
-                            <input id="field-State" type="text" name="State"
-                                value={form.State} onChange={handleChange}
-                                placeholder="e.g. Delhi"
-                                className={`${inputCls} ${errCls(errors, "State")}`} />
+                        <Field label="City" required error={errors.City}>
+                            <select id="field-City" name="City"
+                                value={form.City} onChange={handleChange}
+                                disabled={!stateCode}
+                                className={`${inputCls} ${errCls(errors, "City")}`}>
+                                <option value="">Select City</option>
+                                {cities.map((c) => (
+                                    <option key={c.name} value={c.name}>{c.name}</option>
+                                ))}
+                            </select>
                         </Field>
                     </div>
                 </div>

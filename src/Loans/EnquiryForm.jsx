@@ -12,6 +12,7 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
+import { State, City } from "country-state-city";
 
 
 const STEPS = ["Personal details", "Car details", "Income details", "Review"];
@@ -30,7 +31,7 @@ function Field({ label, children }) {
 const inputCls =
   "w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-[#0E1A2B] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-shadow";
 
-function StepPersonal({ form, set }) {
+function StepPersonal({ form, set, stateCode, handleStateChange, states, cities }) {
   return (
     <div className="grid sm:grid-cols-2 gap-5">
       <Field label="Full name">
@@ -77,13 +78,30 @@ function StepPersonal({ form, set }) {
           />
         </div>
       </Field>
+      <Field label="State">
+        <select
+          className={inputCls}
+          value={stateCode}
+          onChange={handleStateChange}
+        >
+          <option value="">Select State</option>
+          {states.map((s) => (
+            <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+          ))}
+        </select>
+      </Field>
       <Field label="City">
-        <input
+        <select
           className={inputCls}
           value={form.city}
           onChange={(e) => set("city", e.target.value)}
-          placeholder="Where you'll take delivery"
-        />
+          disabled={!stateCode}
+        >
+          <option value="">Select City</option>
+          {cities.map((c) => (
+            <option key={c.name} value={c.name}>{c.name}</option>
+          ))}
+        </select>
       </Field>
     </div>
   );
@@ -270,6 +288,7 @@ function StepReview({ form }) {
     ["Name", form.name],
     ["Mobile", form.phone],
     ["Email", form.email],
+    ["State", form.state],
     ["City", form.city],
     ["Car type", form.carType],
     ["Car model", form.carModel],
@@ -304,6 +323,7 @@ function isStepValid(step, form) {
       form.name &&
       form.phone.length === 10 &&
       form.email.includes("@") &&
+      form.state &&
       form.city
     );
   if (step === 1) return form.carModel && form.onRoadPrice;
@@ -314,14 +334,25 @@ function isStepValid(step, form) {
 export default function LoanEnquiryForm() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
-    name: "", phone: "", email: "", city: "",
+    name: "", phone: "", email: "", state: "", city: "",
     carType: "New car", carModel: "", onRoadPrice: "",
     employment: "Salaried", monthlyIncome: "", pan: ""
   });
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [stateCode, setStateCode] = useState("");
+
+  const states = State.getStatesOfCountry("IN");
+  const cities = stateCode ? City.getCitiesOfState("IN", stateCode) : [];
 
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
+
+  const handleStateChange = (e) => {
+    const code = e.target.value;
+    const name = e.target.options[e.target.selectedIndex]?.text || "";
+    setStateCode(code);
+    setForm(prev => ({ ...prev, state: name, city: "" }));
+  };
 
   const icons = [User, Car, Wallet, CheckCircle2];
 
@@ -427,7 +458,7 @@ export default function LoanEnquiryForm() {
               <h2 className="text-lg font-bold text-[#19456d] mb-6">
                 {STEPS[step]}
               </h2>
-              {step === 0 && <StepPersonal form={form} set={set} />}
+              {step === 0 && <StepPersonal form={form} set={set} stateCode={stateCode} handleStateChange={handleStateChange} states={states} cities={cities} />}
               {step === 1 && <StepCar form={form} set={set} />}
               {step === 2 && <StepIncome form={form} set={set} />}
               {step === 3 && <StepReview form={form} />}

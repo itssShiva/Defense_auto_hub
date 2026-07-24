@@ -152,6 +152,7 @@ const SmartSearch = () => {
     const [selectedModel, setSelectedModel] = useState('');
     const [selectedFuel, setSelectedFuel] = useState('');
     const [selectedBudget, setSelectedBudget] = useState('');
+    const [searchMode, setSearchMode] = useState('All Cars');
 
     useEffect(() => {
         (async () => {
@@ -211,51 +212,100 @@ const SmartSearch = () => {
                 if (range.max !== Infinity) params.set('budgetMax', range.max);
             }
         }
-        navigate(`/cars?${params.toString()}`);
+        if (searchMode === 'Used Cars') {
+            navigate(`/used-cars?${params.toString()}`);
+        } else if (searchMode === 'CSD Price') {
+            params.set('isCSD', 'true');
+            navigate(`/cars?${params.toString()}`);
+        } else {
+            navigate(`/cars?${params.toString()}`);
+        }
     };
 
     return (
-        <section className="relative z-20 -mt-16 max-w-5xl mx-auto px-4">
+        <section className="relative z-20 -mt-20 max-w-5xl mx-auto px-4">
             <motion.div
                 initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                className="bg-white/70 backdrop-blur-xl p-6 rounded-3xl shadow-[0_20px_40px_-15px_rgba(25,69,109,0.1)] border border-white"
+                className="bg-white/80 backdrop-blur-2xl p-8 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(25,69,109,0.15)] border border-white/60 relative overflow-hidden"
             >
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-br from-[#b48001]/10 to-transparent rounded-full blur-[80px] -z-10" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-linear-to-tr from-[#19456d]/10 to-transparent rounded-full blur-[80px] -z-10" />
+
+                {/* Premium Search Mode Tabs */}
+                <div className="flex justify-center mb-8 relative z-10">
+                    <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-full border border-[#708ca4]/20 shadow-inner inline-flex relative">
+                        {['CSD Price', 'All Cars', 'Used Cars'].map(mode => (
+                            <button
+                                key={mode}
+                                onClick={() => {
+                                    setSearchMode(mode);
+                                    setSelectedBrand('');
+                                    setSelectedModel('');
+                                    setSelectedFuel('');
+                                    setSelectedBudget('');
+                                }}
+                                className={`relative px-8 py-3 rounded-full font-bold text-sm transition-colors duration-300 ${searchMode === mode ? 'text-white' : 'text-[#19456d] hover:text-[#b48001]'}`}
+                            >
+                                {searchMode === mode && (
+                                    <motion.div
+                                        layoutId="activeTab"
+                                        className="absolute inset-0 bg-linear-to-r from-[#19456d] to-[#1a3a5c] rounded-full shadow-lg shadow-[#19456d]/20"
+                                        initial={false}
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                )}
+                                <span className="relative z-10 flex items-center gap-2">
+                                    {mode === 'CSD Price' && <BadgeIndianRupee className="w-4 h-4" />}
+                                    {mode === 'All Cars' && <Car className="w-4 h-4" />}
+                                    {mode === 'Used Cars' && <Settings className="w-4 h-4" />}
+                                    {mode}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col relative">
                         <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">Brand</label>
                         <select value={selectedBrand} onChange={handleBrandChange}
-                            className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer">
+                            className="bg-white/70 backdrop-blur-sm border border-[#708ca4]/30 rounded-2xl px-5 py-4 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer transition-all hover:bg-white">
                             <option value="">All Brands</option>
                             {brands.map(b => <option key={b._id} value={b._id}>{b.brandName}</option>)}
                         </select>
+                        <ChevronRight className="w-4 h-4 text-[#708ca4] absolute right-4 bottom-4 rotate-90 pointer-events-none" />
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col relative">
                         <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">Model</label>
                         <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}
                             disabled={!selectedBrand}
-                            className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer disabled:opacity-50">
+                            className="bg-white/70 backdrop-blur-sm border border-[#708ca4]/30 rounded-2xl px-5 py-4 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer disabled:opacity-50 transition-all hover:bg-white disabled:hover:bg-white/70">
                             <option value="">All Models</option>
                             {models.map(m => <option key={m._id} value={m._id}>{m.modelName}</option>)}
                         </select>
+                        <ChevronRight className="w-4 h-4 text-[#708ca4] absolute right-4 bottom-4 rotate-90 pointer-events-none" />
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col relative">
                         <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">Budget</label>
                         <select value={selectedBudget} onChange={(e) => setSelectedBudget(e.target.value)}
-                            className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer">
+                            className="bg-white/70 backdrop-blur-sm border border-[#708ca4]/30 rounded-2xl px-5 py-4 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer transition-all hover:bg-white">
                             <option value="">All Budgets</option>
                             {budgetRanges.map((r, i) => <option key={i} value={r.label}>{r.label}</option>)}
                         </select>
+                        <ChevronRight className="w-4 h-4 text-[#708ca4] absolute right-4 bottom-4 rotate-90 pointer-events-none" />
                     </div>
-                    <div className="flex flex-col">
+                    <div className="flex flex-col relative">
                         <label className="text-xs font-bold text-[#19456d]/60 uppercase tracking-wider mb-2 ml-2">Fuel Type</label>
                         <select value={selectedFuel} onChange={(e) => setSelectedFuel(e.target.value)}
-                            className="bg-white border border-[#708ca4]/50 rounded-2xl px-4 py-3 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer">
+                            className="bg-white/70 backdrop-blur-sm border border-[#708ca4]/30 rounded-2xl px-5 py-4 text-[#19456d] font-semibold focus:outline-none focus:ring-2 focus:ring-[#b48001] appearance-none cursor-pointer transition-all hover:bg-white">
                             <option value="">All Fuel Types</option>
                             {fuelTypes.map(ft => <option key={ft} value={ft}>{ft}</option>)}
                         </select>
+                        <ChevronRight className="w-4 h-4 text-[#708ca4] absolute right-4 bottom-4 rotate-90 pointer-events-none" />
                     </div>
                     <button onClick={handleSearch}
-                        className="h-[50px] rounded-2xl bg-[#19456d] text-[#fafbf8] font-bold flex items-center justify-center gap-2 hover:bg-[#b48001] transition-colors shadow-lg group">
+                        className="h-[56px] rounded-2xl bg-linear-to-r from-[#19456d] to-[#1a3a5c] text-[#fafbf8] font-bold flex items-center justify-center gap-2 hover:from-[#b48001] hover:to-[#d69800] transition-all shadow-[0_10px_20px_-5px_rgba(25,69,109,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(180,128,1,0.4)] hover:-translate-y-0.5 group">
                         <Search className="w-5 h-5 group-hover:scale-110 transition-transform" /> Search
                     </button>
                 </div>
@@ -799,26 +849,79 @@ const StatisticsCounters = () => {
 };
 
 const FAQPreview = () => {
+    const [openIndex, setOpenIndex] = useState(null);
+
     const faqs = [
-        "How to compare vehicles?",
-        "How to apply for a loan?",
-        "How does CSD pricing work?",
-        "Can I book a test drive online?"
+        {
+            q: "How does the CSD (Canteen Stores Department) pricing model work?",
+            a: "CSD pricing offers exclusive, tax-exempt rates for eligible Armed Forces personnel and veterans. On our platform, simply select the 'CSD Price' tab in the search filter to instantly view the subsidized rates applicable to your rank and entitlement."
+        },
+        {
+            q: "How can I compare technical specifications across different vehicles?",
+            a: "Navigate to our 'Compare' tool and select up to 4 vehicles simultaneously. Our system provides a side-by-side granular breakdown of engine performance, transmission metrics, fuel efficiency, and safety ratings to help you make an informed decision."
+        },
+        {
+            q: "What is the process for securing a vehicle loan through Defence Auto Hub?",
+            a: "We partner with top-tier financial institutions to offer seamless, low-interest vehicle financing. You can use our built-in EMI calculator to estimate your payments, check your eligibility instantly, and submit a loan inquiry completely online with minimal documentation."
+        },
+        {
+            q: "Are the used vehicles on your platform verified?",
+            a: "Yes. Every used vehicle listed on our platform undergoes a rigorous multi-point mechanical inspection. Vehicles that meet our strict quality standards receive a 'Verified' badge, ensuring transparency, reliability, and peace of mind for buyers."
+        }
     ];
 
+    const toggleFaq = (idx) => {
+        setOpenIndex(openIndex === idx ? null : idx);
+    };
+
     return (
-        <section className="py-24 bg-[#fafbf8]">
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 className="text-4xl font-extrabold text-center text-[#19456d] mb-12">Frequently Asked Questions</h2>
+        <section className="py-24 relative overflow-hidden bg-[#fafbf8]">
+            {/* Ambient Background Elements */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-[#b48001]/5 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#19456d]/5 rounded-full blur-[100px] pointer-events-none" />
+            
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="text-center mb-16">
+                    <h2 className="text-4xl md:text-5xl font-extrabold text-[#19456d] mb-4">Frequently Asked Questions</h2>
+                    <p className="text-lg text-[#19456d]/70 max-w-xl mx-auto">Everything you need to know about our premium vehicle marketplace and services.</p>
+                </div>
+                
                 <div className="space-y-4">
-                    {faqs.map((faq, idx) => (
-                        <div key={idx} className="bg-white rounded-2xl p-6 cursor-pointer hover:shadow-md transition-shadow flex justify-between items-center group border border-[#708ca4]/30">
-                            <h4 className="font-bold text-[#19456d] text-lg">{faq}</h4>
-                            <div className="w-8 h-8 rounded-full bg-[#b48001]/10 flex items-center justify-center group-hover:bg-[#b48001] transition-colors">
-                                <Plus className="w-5 h-5 text-[#b48001] group-hover:text-white transition-colors" />
-                            </div>
-                        </div>
-                    ))}
+                    {faqs.map((faq, idx) => {
+                        const isOpen = openIndex === idx;
+                        return (
+                            <motion.div 
+                                key={idx} 
+                                className={`bg-white rounded-3xl border transition-all duration-300 overflow-hidden ${isOpen ? 'border-[#b48001]/40 shadow-[0_15px_40px_-15px_rgba(180,128,1,0.15)]' : 'border-[#708ca4]/20 hover:border-[#708ca4]/40 hover:shadow-md'}`}
+                            >
+                                <div 
+                                    className="p-6 md:p-8 cursor-pointer flex justify-between items-center gap-4 group"
+                                    onClick={() => toggleFaq(idx)}
+                                >
+                                    <h4 className={`font-bold text-lg md:text-xl transition-colors duration-300 ${isOpen ? 'text-[#b48001]' : 'text-[#19456d] group-hover:text-[#b48001]'}`}>
+                                        {faq.q}
+                                    </h4>
+                                    <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen ? 'bg-[#b48001] rotate-45 shadow-md shadow-[#b48001]/20' : 'bg-[#19456d]/5 group-hover:bg-[#b48001]/10'}`}>
+                                        <Plus className={`w-5 h-5 transition-colors duration-300 ${isOpen ? 'text-white' : 'text-[#19456d] group-hover:text-[#b48001]'}`} />
+                                    </div>
+                                </div>
+                                <AnimatePresence>
+                                    {isOpen && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                                        >
+                                            <div className="px-6 md:px-8 pb-8 text-[#19456d]/70 leading-relaxed border-t border-[#708ca4]/10 pt-4 text-base md:text-lg">
+                                                {faq.a}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        );
+                    })}
                 </div>
             </div>
         </section>

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/hooks/useAuth';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
@@ -174,7 +175,7 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`md:hidden absolute w-full bg-[#fafbf8] border-t border-[#708ca4]/20 overflow-hidden transition-all duration-300 ease-in-out shadow-xl ${isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}>
+      <div className={`md:hidden absolute w-full bg-[#fafbf8] border-t border-[#708ca4]/20 overflow-y-auto transition-all duration-300 ease-in-out shadow-xl ${isOpen ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="px-4 pt-4 pb-6 space-y-1">
           {/* Mobile Search */}
           <form onSubmit={handleSearch} className="relative mb-4">
@@ -186,15 +187,21 @@ const Navbar = () => {
 
           {navLinks.map((link) => (
             link.isDropdown ? (
-              <div key={link.name} className="space-y-1 mb-2">
-                <div className="px-4 py-2 text-xs font-bold text-[#708ca4] uppercase tracking-widest">{link.name}</div>
-                {link.items.map(subItem => (
-                  <Link key={subItem.name} to={subItem.path} onClick={() => setIsOpen(false)}
-                    className={`block pl-6 pr-4 py-3 text-base font-bold rounded-xl transition-all ${isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
-                      }`}>
-                    {subItem.name}
-                  </Link>
-                ))}
+              <div key={link.name} className="mb-2">
+                <button onClick={() => setOpenDropdowns(prev => ({ ...prev, [link.name]: !prev[link.name] }))}
+                  className="flex items-center justify-between w-full px-4 py-3 text-xs font-bold text-[#708ca4] uppercase tracking-widest hover:text-[#19456d] transition-colors rounded-xl">
+                  {link.name}
+                  <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${openDropdowns[link.name] ? 'rotate-90' : ''}`} />
+                </button>
+                <div className={`overflow-hidden transition-all duration-200 ${openDropdowns[link.name] ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  {link.items.map(subItem => (
+                    <Link key={subItem.name} to={subItem.path} onClick={() => setIsOpen(false)}
+                      className={`block pl-8 pr-4 py-3 text-base font-bold rounded-xl transition-all ${isActive(subItem.path) ? 'text-[#b48001] bg-[#b48001]/8' : 'text-[#19456d] hover:text-[#b48001] hover:bg-[#708ca4]/10'
+                        }`}>
+                      {subItem.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
             ) : (
               <Link key={link.name} to={link.path} onClick={() => setIsOpen(false)}

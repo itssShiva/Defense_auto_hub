@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import toast from "react-hot-toast";
+import { State, City } from "country-state-city";
 
 const DealerProfile = () => {
     const { user, updateDealerProfile, loading } = useAuth();
@@ -21,6 +22,10 @@ const DealerProfile = () => {
 
     const [profileImage, setProfileImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    const [stateCode, setStateCode] = useState("");
+
+    const states = State.getStatesOfCountry("IN");
+    const cities = stateCode ? City.getCitiesOfState("IN", stateCode) : [];
 
     // Populate data when user changes/loads
     useEffect(() => {
@@ -37,11 +42,20 @@ const DealerProfile = () => {
                 country: user.country || "",
             });
             setImagePreview(user.profileImage || null);
+            const matchedState = State.getStatesOfCountry("IN").find(s => s.name === user.state);
+            if (matchedState) setStateCode(matchedState.isoCode);
         }
     }, [user]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleStateChange = (e) => {
+        const code = e.target.value;
+        const name = e.target.options[e.target.selectedIndex]?.text || "";
+        setStateCode(code);
+        setFormData((prev) => ({ ...prev, state: name, city: "" }));
     };
 
     const handleImageChange = (e) => {
@@ -225,28 +239,33 @@ const DealerProfile = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                            <select
+                                value={stateCode}
+                                onChange={handleStateChange}
+                                disabled={!isEditing}
+                                className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
+                            >
+                                <option value="">Select State</option>
+                                {states.map((s) => (
+                                    <option key={s.isoCode} value={s.isoCode}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                            <input
-                                type="text"
+                            <select
                                 name="city"
                                 value={formData.city}
                                 onChange={handleChange}
+                                disabled={!isEditing || !stateCode}
                                 className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
-                                placeholder="City"
-                                disabled={!isEditing}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                            <input
-                                type="text"
-                                name="state"
-                                value={formData.state}
-                                onChange={handleChange}
-                                className={`w-full px-4 py-2 border rounded-md focus:ring-[#19456d] focus:border-[#19456d] ${!isEditing ? "bg-gray-50 border-gray-200" : "border-gray-300"}`}
-                                placeholder="State"
-                                disabled={!isEditing}
-                            />
+                            >
+                                <option value="">Select City</option>
+                                {cities.map((c) => (
+                                    <option key={c.name} value={c.name}>{c.name}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                 </div>

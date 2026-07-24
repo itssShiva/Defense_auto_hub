@@ -20,6 +20,7 @@ const AllCarsPage = () => {
   const urlFuelTypeParam = searchParams.get('fuelType') || '';
   const urlBudgetMin = searchParams.get('budgetMin') || '';
   const urlBudgetMax = searchParams.get('budgetMax') || '';
+  const urlIsCSD = searchParams.get('isCSD') === 'true';
 
   const [cars, setCars] = useState([]);
   const [dealers, setDealers] = useState([]);
@@ -41,7 +42,8 @@ const AllCarsPage = () => {
     category: 'All',
     state: 'All',
     city: 'All',
-    priceSort: 'none'
+    priceSort: 'none',
+    isCSD: urlIsCSD
   });
 
   useEffect(() => {
@@ -105,6 +107,9 @@ const AllCarsPage = () => {
     }
     if (filters.budgetMax) {
       list = list.filter(c => Number(c.CSDPrice || c.price || 0) <= Number(filters.budgetMax));
+    }
+    if (filters.isCSD) {
+      list = list.filter(c => c.CSDPrice && Number(c.CSDPrice) > 0);
     }
     if (filters.vehicleType !== 'All') list = list.filter(c => c.vehicleType === filters.vehicleType);
     if (filters.category !== 'All') list = list.filter(c => c.category === filters.category);
