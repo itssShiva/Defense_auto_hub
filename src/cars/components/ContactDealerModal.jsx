@@ -169,7 +169,7 @@ const ContactDealerModal = ({ isOpen, onClose, carName = '', carId = null, deale
                 <div>
                   <h2 className="text-xl font-extrabold leading-tight">Contact Dealer</h2>
                   {carName && (
-                    <p className="text-[#b48001] font-bold text-sm mt-0.5 truncate max-w-[220px]">{carName}</p>
+                    <p className="text-[#b48001] font-bold text-sm mt-0.5 truncate max-w-55">{carName}</p>
                   )}
                   <p className="text-white/65 text-xs mt-0.5">
                     {dealer?.dealerName || 'Our team will reach you shortly'}

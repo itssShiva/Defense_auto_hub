@@ -250,7 +250,7 @@ const ModelDetailPage = () => {
       </div>
 
       <ImageViewer images={images} initialIndex={viewerIndex} isOpen={viewerOpen} onClose={() => setViewerOpen(false)} />
-      <LeadForm isOpen={leadForm.open} onClose={() => setLeadForm((p) => ({ ...p, open: false }))} type={leadForm.type} carName={model?.modelName} />
+      <LeadForm isOpen={leadForm.open} onClose={() => setLeadForm((p) => ({ ...p, open: false }))} type={leadForm.type} carName={model?.modelName} carId={model?._id} />
     </div>
   );
 };

@@ -324,7 +324,7 @@ const VariantDetailPage = () => {
       </div>
 
       <ImageViewer images={images} initialIndex={viewerIndex} isOpen={viewerOpen} onClose={() => setViewerOpen(false)} />
-      <LeadForm isOpen={leadForm.open} onClose={() => setLeadForm((p) => ({ ...p, open: false }))} type={leadForm.type} carName={variant?.variantName} />
+      <LeadForm isOpen={leadForm.open} onClose={() => setLeadForm((p) => ({ ...p, open: false }))} type={leadForm.type} carName={variant?.variantName} carId={variant?._id} />
     </div>
   );
 };

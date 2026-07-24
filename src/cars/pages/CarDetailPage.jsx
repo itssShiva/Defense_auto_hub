@@ -260,7 +260,7 @@ const CarDetailPage = () => {
               ) : (
                 <div className="flex overflow-x-auto pb-6 gap-6 snap-x snap-mandatory">
                   {relatedModels.map((m) => (
-                    <div key={m._id} className="min-w-[280px] sm:min-w-[320px] snap-center">
+                    <div key={m._id} className="min-w-70 sm:min-w-[320px] snap-center">
                       <ModelCard model={m} />
                     </div>
                   ))}
@@ -272,9 +272,10 @@ const CarDetailPage = () => {
       </div>
 
       <ImageViewer images={images} initialIndex={viewerIndex} isOpen={viewerOpen} onClose={() => setViewerOpen(false)} />
-      <LeadForm isOpen={leadForm.open} onClose={() => setLeadForm((p) => ({ ...p, open: false }))} type={leadForm.type} carName={name} />
+      <LeadForm isOpen={leadForm.open} onClose={() => setLeadForm((p) => ({ ...p, open: false }))} type={leadForm.type} carName={name} carId={car?._id} />
     </div>
   );
 };
 
 export default CarDetailPage;
+

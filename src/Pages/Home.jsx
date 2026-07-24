@@ -53,12 +53,12 @@ const HeroSection = () => {
             <motion.div
                 animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="absolute top-0 left-0 w-[600px] h-[600px] bg-[#b48001]/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2"
+                className="absolute top-0 left-0 w-150 h-150 bg-[#b48001]/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2"
             />
             <motion.div
                 animate={{ scale: [1, 1.5, 1], rotate: [0, -90, 0] }}
                 transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#708ca4]/30 rounded-full blur-[80px] translate-x-1/3 translate-y-1/3"
+                className="absolute bottom-0 right-0 w-125 h-125 bg-[#708ca4]/30 rounded-full blur-[80px] translate-x-1/3 translate-y-1/3"
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full pt-32 pb-24">
@@ -305,7 +305,7 @@ const SmartSearch = () => {
                         <ChevronRight className="w-4 h-4 text-[#708ca4] absolute right-4 bottom-4 rotate-90 pointer-events-none" />
                     </div>
                     <button onClick={handleSearch}
-                        className="h-[56px] rounded-2xl bg-linear-to-r from-[#19456d] to-[#1a3a5c] text-[#fafbf8] font-bold flex items-center justify-center gap-2 hover:from-[#b48001] hover:to-[#d69800] transition-all shadow-[0_10px_20px_-5px_rgba(25,69,109,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(180,128,1,0.4)] hover:-translate-y-0.5 group">
+                        className="h-14 rounded-2xl bg-linear-to-r from-[#19456d] to-[#1a3a5c] text-[#fafbf8] font-bold flex items-center justify-center gap-2 hover:from-[#b48001] hover:to-[#d69800] transition-all shadow-[0_10px_20px_-5px_rgba(25,69,109,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(180,128,1,0.4)] hover:-translate-y-0.5 group">
                         <Search className="w-5 h-5 group-hover:scale-110 transition-transform" /> Search
                     </button>
                 </div>
@@ -332,7 +332,7 @@ const FeaturedCategories = () => {
                         <Link
                             key={idx}
                             to={cat.link}
-                            className="group cursor-pointer bg-white/40 backdrop-blur-sm border border-[#708ca4]/30 rounded-3xl p-6 flex flex-col items-center justify-center text-center hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative overflow-hidden block"
+                            className="group cursor-pointer bg-white/40 backdrop-blur-sm border border-[#708ca4]/30 rounded-3xl p-6 flex-col items-center justify-center text-center hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative overflow-hidden block"
                         >
                             <div className="absolute inset-0 bg-linear-to-br from-[#b48001]/0 to-[#b48001]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                             <div className="w-16 h-16 rounded-2xl bg-[#fafbf8] flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-[#b48001]/10 transition-all duration-300 shadow-inner">
@@ -370,17 +370,17 @@ const PopularBrands = () => {
             <motion.div
                 animate={{ scale: [1, 1.15, 1], rotate: [0, 60, 0] }}
                 transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-                className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-[#b48001]/10 rounded-full blur-[150px] z-0"
+                className="absolute -top-40 -left-40 w-150 h-150 bg-[#b48001]/10 rounded-full blur-[150px] z-0"
             />
             <motion.div
                 animate={{ scale: [1, 1.2, 1], rotate: [0, -45, 0] }}
                 transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-                className="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-[#19456d]/10 rounded-full blur-[120px] z-0"
+                className="absolute -bottom-40 -right-40 w-125 h-125 bg-[#19456d]/10 rounded-full blur-[120px] z-0"
             />
             <motion.div
                 animate={{ scale: [1, 1.1, 1], x: [0, 80, 0] }}
                 transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-[#708ca4]/10 rounded-full blur-[100px] z-0"
+                className="absolute top-1/3 left-1/2 -translate-x-1/2 w-100 h-100 bg-[#708ca4]/10 rounded-full blur-[100px] z-0"
             />
 
             {/* ── Grid Dot Texture ── */}
@@ -432,16 +432,16 @@ const PopularBrands = () => {
                                         scale: 1.05,
                                         transition: { type: "spring", stiffness: 250, damping: 18 }
                                     }}
-                                    className="group/card cursor-pointer relative rounded-3xl p-[2px] bg-linear-to-br from-[#708ca4]/30 via-transparent to-[#708ca4]/30 hover:from-[#b48001] hover:via-[#b48001]/50 hover:to-[#b48001] transition-all duration-700 shadow-lg hover:shadow-[0_25px_50px_-8px_rgba(180,128,1,0.4)]"
+                                    className="group/card cursor-pointer relative rounded-3xl p-0.5 bg-linear-to-br from-[#708ca4]/30 via-transparent to-[#708ca4]/30 hover:from-[#b48001] hover:via-[#b48001]/50 hover:to-[#b48001] transition-all duration-700 shadow-lg hover:shadow-[0_25px_50px_-8px_rgba(180,128,1,0.4)]"
                                 >
-                                    <div className="relative rounded-[22px] bg-white/70 backdrop-blur-xl w-[270px] h-[200px] p-6 flex flex-col items-center justify-center overflow-hidden border border-white/50">
+                                    <div className="relative rounded-[22px] bg-white/70 backdrop-blur-xl w-70 h-50 p-6 flex flex-col items-center justify-center overflow-hidden border border-white/50">
                                         <div className="absolute inset-0 bg-linear-to-br from-[#b48001]/0 via-[#b48001]/5 to-[#708ca4]/10 opacity-0 group-hover/card:opacity-100 transition-all duration-700" />
 
                                         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_35%,rgba(255,255,255,0.5)_50%,transparent_65%)] -translate-x-full group-hover/card:translate-x-full transition-all duration-1000 ease-in-out" />
 
                                         <div className="absolute w-28 h-28 bg-[#b48001]/20 rounded-full blur-3xl opacity-0 group-hover/card:opacity-100 group-hover/card:scale-150 transition-all duration-700" />
 
-                                        <div className="w-[180px] h-[90px] flex items-center justify-center relative z-10 mb-1">
+                                        <div className="w-45 h-22.5 flex items-center justify-center relative z-10 mb-1">
                                             <img
                                                 src={brand.logo}
                                                 alt={brand.name}
@@ -515,7 +515,7 @@ const FeaturedCars = () => {
                 {loading ? (
                     <div className="flex gap-6 justify-center">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="w-[350px] h-[420px] bg-[#fafbf8] rounded-3xl animate-pulse border border-[#708ca4]/20" />
+                            <div key={i} className="w-87.5 h-105 bg-[#fafbf8] rounded-3xl animate-pulse border border-[#708ca4]/20" />
                         ))}
                     </div>
                 ) : vehicles.length === 0 ? (
@@ -537,7 +537,7 @@ const FeaturedCars = () => {
                             const name = carName(car);
 
                             return (
-                                <SwiperSlide key={car._id || idx} className="w-[350px]! md:w-[400px]!">
+                                <SwiperSlide key={car._id || idx} className="w-87.5! md:w-100!">
                                     <div className="bg-[#fafbf8]/50 rounded-3xl overflow-hidden border border-[#708ca4]/30 group hover:shadow-2xl transition-all duration-500">
                                         <div className="relative h-56 overflow-hidden">
                                             <img
@@ -879,22 +879,22 @@ const FAQPreview = () => {
             {/* Ambient Background Elements */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-[#b48001]/5 rounded-full blur-[100px] pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#19456d]/5 rounded-full blur-[100px] pointer-events-none" />
-            
+
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl md:text-5xl font-extrabold text-[#19456d] mb-4">Frequently Asked Questions</h2>
                     <p className="text-lg text-[#19456d]/70 max-w-xl mx-auto">Everything you need to know about our premium vehicle marketplace and services.</p>
                 </div>
-                
+
                 <div className="space-y-4">
                     {faqs.map((faq, idx) => {
                         const isOpen = openIndex === idx;
                         return (
-                            <motion.div 
-                                key={idx} 
+                            <motion.div
+                                key={idx}
                                 className={`bg-white rounded-3xl border transition-all duration-300 overflow-hidden ${isOpen ? 'border-[#b48001]/40 shadow-[0_15px_40px_-15px_rgba(180,128,1,0.15)]' : 'border-[#708ca4]/20 hover:border-[#708ca4]/40 hover:shadow-md'}`}
                             >
-                                <div 
+                                <div
                                     className="p-6 md:p-8 cursor-pointer flex justify-between items-center gap-4 group"
                                     onClick={() => toggleFaq(idx)}
                                 >
